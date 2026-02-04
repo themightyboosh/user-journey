@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="M.AX - AI Assistant">
+  <meta name="theme-color" content="#0a0c10">
+  <title>M.AX</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ========================================
+       CSS VARIABLES
+       ======================================== */
+    :root {
+      --max-color-background: #0a0c10;
+      --max-color-surface-primary: #12141a;
+      --max-color-surface-secondary: #1a1d24;
+      --max-color-surface-tertiary: #22262f;
+      --max-color-surface-hover: #2a2f3a;
+      
+      --max-color-text-primary: #f0f2f5;
+      --max-color-text-secondary: #9ca3b4;
+      --max-color-text-tertiary: #6b7280;
+      --max-color-text-inverse: #0a0c10;
+      
+      --max-color-border: #2a2f3a;
+      --max-color-border-subtle: #1e2229;
+      
+      --max-color-accent: #3b82f6;
+      --max-color-accent-hover: #60a5fa;
+      --max-color-accent-subtle: rgba(59, 130, 246, 0.15);
+      
+      --max-color-error: #ef4444;
+      --max-color-error-subtle: rgba(239, 68, 68, 0.15);
+      
+      --max-color-ai-gradient-start: #3b82f6;
+      --max-color-ai-gradient-end: #06b6d4;
+      
+      --max-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --max-radius-small: 8px;
+      --max-radius-medium: 12px;
+      --max-radius-large: 16px;
+      --max-radius-xlarge: 20px;
+      --max-radius-full: 9999px;
+      
+      --max-shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --max-shadow-glow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+
+    /* ========================================
+       RESET & BASE
+       ======================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--max-font-family);
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--max-color-text-primary);
+      background: var(--max-color-background);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ========================================
+       APP LAYOUT
+       ======================================== */
+    .max-app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* ========================================
+       HEADER
+       ======================================== */
+    .max-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--max-color-border-subtle);
+    }
+
+    .max-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .max-logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end));
+      border-radius: var(--max-radius-small);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .max-logo-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .max-logo-text {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .max-logo-text span {
+      color: var(--max-color-accent);
+    }
+
+    .max-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--max-color-text-tertiary);
+    }
+
+    .max-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--max-color-text-tertiary);
+    }
+
+    .max-status-dot.connected {
+      background: #22c55e;
+    }
+
+    .max-status-dot.error {
+      background: var(--max-color-error);
+    }
+
+    /* ========================================
+       CHAT CONTAINER
+       ======================================== */
+    .max-chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ========================================
+       MESSAGES AREA
+       ======================================== */
+    .max-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .max-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .max-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .max-messages::-webkit-scrollbar-thumb {
+      background: var(--max-color-border);
+      border-radius: var(--max-radius-full);
+    }
+
+    /* Welcome State */
+    .max-welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .max-welcome-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end));
+      border-radius: var(--max-radius-large);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      box-shadow: var(--max-shadow-glow);
+    }
+
+    .max-welcome-icon svg {
+      width: 36px;
+      height: 36px;
+      color: white;
+    }
+
+    .max-welcome h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .max-welcome p {
+      font-size: 16px;
+      color: var(--max-color-text-secondary);
+      max-width: 400px;
+      margin-bottom: 32px;
+    }
+
+    .max-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .max-suggestion {
+      padding: 10px 16px;
+      background: var(--max-color-surface-secondary);
+      border: 1px solid var(--max-color-border);
+      border-radius: var(--max-radius-full);
+      color: var(--max-color-text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .max-suggestion:hover {
+      background: var(--max-color-surface-hover);
+      color: var(--max-color-text-primary);
+      border-color: var(--max-color-accent);
+    }
+
+    /* ========================================
+       MESSAGE BUBBLES
+       ======================================== */
+    .max-message {
+      display: flex;
+      gap: 12px;
+      max-width: 100%;
+      animation: messageIn 0.3s ease;
+    }
+
+    @keyframes messageIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .max-message--user {
+      flex-direction: row-reverse;
+    }
+
+    .max-message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--max-radius-small);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .max-message--ai .max-message-avatar {
+      background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end));
+      color: white;
+    }
+
+    .max-message--user .max-message-avatar {
+      background: var(--max-color-surface-tertiary);
+      color: var(--max-color-text-secondary);
+    }
+
+    .max-message-avatar svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .max-message-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .max-message-bubble {
+      padding: 14px 18px;
+      border-radius: var(--max-radius-large);
+      line-height: 1.6;
+    }
+
+    .max-message--ai .max-message-bubble {
+      background: var(--max-color-surface-secondary);
+      border: 1px solid var(--max-color-border-subtle);
+      border-top-left-radius: var(--max-radius-small);
+    }
+
+    .max-message--user .max-message-bubble {
+      background: var(--max-color-accent);
+      color: white;
+      border-top-right-radius: var(--max-radius-small);
+      margin-left: auto;
+      max-width: 80%;
+    }
+
+    .max-message--error .max-message-bubble {
+      background: var(--max-color-error-subtle);
+      border-color: var(--max-color-error);
+      color: var(--max-color-error);
+    }
+
+    .max-message-bubble p {
+      margin-bottom: 12px;
+    }
+
+    .max-message-bubble p:last-child {
+      margin-bottom: 0;
+    }
+
+    .max-message-bubble ul, .max-message-bubble ol {
+      margin: 12px 0;
+      padding-left: 20px;
+    }
+
+    .max-message-bubble li {
+      margin-bottom: 6px;
+    }
+
+    .max-message-bubble code {
+      background: var(--max-color-surface-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    .max-message-bubble pre {
+      background: var(--max-color-surface-primary);
+      border: 1px solid var(--max-color-border);
+      border-radius: var(--max-radius-small);
+      padding: 12px;
+      margin: 12px 0;
+      overflow-x: auto;
+    }
+
+    .max-message-bubble pre code {
+      background: transparent;
+      padding: 0;
+    }
+
+    /* Streaming cursor */
+    .max-message-bubble .streaming-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--max-color-accent);
+      margin-left: 2px;
+      animation: cursorBlink 1s step-end infinite;
+      vertical-align: text-bottom;
+    }
+
+    @keyframes cursorBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .max-message-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .max-message:hover .max-message-actions {
+      opacity: 1;
+    }
+
+    .max-message-action {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 10px;
+      background: transparent;
+      border: none;
+      border-radius: var(--max-radius-small);
+      color: var(--max-color-text-tertiary);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .max-message-action:hover {
+      background: var(--max-color-surface-tertiary);
+      color: var(--max-color-text-secondary);
+    }
+
+    .max-message-action svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ========================================
+       TYPING INDICATOR
+       ======================================== */
+    .max-typing {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .max-typing-dots {
+      display: flex;
+      gap: 4px;
+      padding: 16px 20px;
+      background: var(--max-color-surface-secondary);
+      border-radius: var(--max-radius-large);
+      border-top-left-radius: var(--max-radius-small);
+    }
+
+    .max-typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--max-color-text-tertiary);
+      border-radius: 50%;
+      animation: typingBounce 1.4s ease-in-out infinite;
+    }
+
+    .max-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .max-typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+      }
+      30% {
+        transform: translateY(-8px);
+        opacity: 1;
+      }
+    }
+
+    /* ========================================
+       INPUT AREA
+       ======================================== */
+    .max-input-area {
+      padding: 16px 24px 24px;
+      border-top: 1px solid var(--max-color-border-subtle);
+    }
+
+    .max-input-wrapper {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      background: var(--max-color-surface-secondary);
+      border: 1px solid var(--max-color-border);
+      border-radius: var(--max-radius-xlarge);
+      padding: 8px 8px 8px 20px;
+      transition: all 0.2s ease;
+    }
+
+    .max-input-wrapper:focus-within {
+      border-color: var(--max-color-accent);
+      box-shadow: var(--max-shadow-glow);
+    }
+
+    .max-input-wrapper.disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .max-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--max-color-text-primary);
+      resize: none;
+      max-height: 150px;
+      min-height: 24px;
+      line-height: 1.5;
+      padding: 8px 0;
+    }
+
+    .max-input::placeholder {
+      color: var(--max-color-text-tertiary);
+    }
+
+    .max-send-button {
+      width: 44px;
+      height: 44px;
+      background: var(--max-color-accent);
+      border: none;
+      border-radius: var(--max-radius-medium);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .max-send-button:hover:not(:disabled) {
+      background: var(--max-color-accent-hover);
+      transform: scale(1.05);
+    }
+
+    .max-send-button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .max-send-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .max-input-hint {
+      text-align: center;
+      font-size: 12px;
+      color: var(--max-color-text-tertiary);
+      margin-top: 10px;
+    }
+
+    .max-input-hint kbd {
+      background: var(--max-color-surface-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+
+    /* ========================================
+       RESPONSIVE
+       ======================================== */
+    @media (max-width: 600px) {
+      .max-app {
+        max-width: 100%;
+      }
+      
+      .max-messages {
+        padding: 16px;
+      }
+      
+      .max-input-area {
+        padding: 12px 16px 20px;
+      }
+      
+      .max-welcome h1 {
+        font-size: 24px;
+      }
+      
+      .max-suggestions {
+        flex-direction: column;
+      }
+
+      .max-status {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="max-app">
+    
+    <!-- Header -->
+    <header class="max-header">
+      <div class="max-logo">
+        <div class="max-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="max-logo-text">M<span>.</span>AX</div>
+      </div>
+      <div class="max-status" id="connectionStatus">
+        <span class="max-status-dot" id="statusDot"></span>
+        <span id="statusText">Connecting...</span>
+      </div>
+    </header>
+
+    <!-- Chat Container -->
+    <div class="max-chat-container">
+      
+      <!-- Messages Area -->
+      <div class="max-messages" id="messagesArea">
+        
+        <!-- Welcome State -->
+        <div class="max-welcome" id="welcomeState">
+          <div class="max-welcome-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <h1>How can I help you?</h1>
+          <p>I'm M.AX, powered by Gemini. Ask me anything or try one of these suggestions.</p>
+          <div class="max-suggestions">
+            <button class="max-suggestion" onclick="useSuggestion('Explain how this works')">Explain how this works</button>
+            <button class="max-suggestion" onclick="useSuggestion('Help me write code')">Help me write code</button>
+            <button class="max-suggestion" onclick="useSuggestion('Brainstorm ideas')">Brainstorm ideas</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Input Area -->
+      <div class="max-input-area">
+        <div class="max-input-wrapper" id="inputWrapper">
+          <textarea 
+            class="max-input" 
+            id="chatInput"
+            placeholder="Message M.AX..."
+            rows="1"
+            onkeydown="handleKeyDown(event)"
+            oninput="autoResize(this); toggleSendButton()"
+          ></textarea>
+          <button class="max-send-button" id="sendButton" onclick="sendMessage()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 2L11 13"/>
+              <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="max-input-hint">
+          <kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for new line
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ===========================================
+    // State
+    // ===========================================
+    const state = {
+      isStreaming: false,
+      isConnected: false,
+      conversationHistory: []
+    };
+
+    // ===========================================
+    // DOM Elements
+    // ===========================================
+    const messagesArea = document.getElementById('messagesArea');
+    const welcomeState = document.getElementById('welcomeState');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
+    const inputWrapper = document.getElementById('inputWrapper');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+
+    // ===========================================
+    // Connection Check
+    // ===========================================
+    async function checkConnection() {
+      try {
+        const response = await fetch('/api/health');
+        const data = await response.json();
+        
+        if (data.status === 'ok') {
+          state.isConnected = true;
+          statusDot.classList.add('connected');
+          statusDot.classList.remove('error');
+          statusText.textContent = `${data.model}`;
+        }
+      } catch (error) {
+        state.isConnected = false;
+        statusDot.classList.add('error');
+        statusDot.classList.remove('connected');
+        statusText.textContent = 'Not connected';
+      }
+    }
+
+    // Check connection on load
+    checkConnection();
+
+    // ===========================================
+    // Input Handling
+    // ===========================================
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 150) + 'px';
+    }
+
+    function toggleSendButton() {
+      sendButton.disabled = !chatInput.value.trim() || state.isStreaming;
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function useSuggestion(text) {
+      chatInput.value = text;
+      autoResize(chatInput);
+      toggleSendButton();
+      chatInput.focus();
+    }
+
+    function setInputEnabled(enabled) {
+      if (enabled) {
+        inputWrapper.classList.remove('disabled');
+        chatInput.disabled = false;
+      } else {
+        inputWrapper.classList.add('disabled');
+        chatInput.disabled = true;
+      }
+      toggleSendButton();
+    }
+
+    // ===========================================
+    // Message Handling
+    // ===========================================
+    async function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text || state.isStreaming) return;
+
+      // Hide welcome state
+      if (welcomeState) {
+        welcomeState.style.display = 'none';
+      }
+
+      // Add user message
+      addMessage(text, 'user');
+      state.conversationHistory.push({ role: 'user', content: text });
+
+      // Clear input
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      toggleSendButton();
+
+      // Disable input while streaming
+      state.isStreaming = true;
+      setInputEnabled(false);
+
+      // Create AI message container for streaming
+      const aiMessageEl = createStreamingMessage();
+      const bubbleEl = aiMessageEl.querySelector('.max-message-bubble');
+
+      try {
+        // Start streaming request
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            history: state.conversationHistory.slice(0, -1) // Exclude current message
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to connect to server');
+        }
+
+        // Read SSE stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                
+                if (data.error) {
+                  throw new Error(data.error);
+                }
+                
+                if (data.text) {
+                  fullResponse += data.text;
+                  bubbleEl.innerHTML = formatMessage(fullResponse) + '<span class="streaming-cursor"></span>';
+                  messagesArea.scrollTop = messagesArea.scrollHeight;
+                }
+                
+                if (data.done) {
+                  // Remove cursor, finalize message
+                  bubbleEl.innerHTML = formatMessage(fullResponse);
+                  addMessageActions(aiMessageEl);
+                  state.conversationHistory.push({ role: 'assistant', content: fullResponse });
+                }
+              } catch (e) {
+                // Skip malformed JSON
+                if (e.message !== 'Unexpected end of JSON input') {
+                  throw e;
+                }
+              }
+            }
+          }
+        }
+
+      } catch (error) {
+        console.error('Streaming error:', error);
+        
+        // Show error message
+        bubbleEl.innerHTML = `<p>Sorry, I encountered an error: ${escapeHtml(error.message)}</p>
+                             <p>Please make sure the server is running and try again.</p>`;
+        aiMessageEl.classList.add('max-message--error');
+      }
+
+      // Re-enable input
+      state.isStreaming = false;
+      setInputEnabled(true);
+      chatInput.focus();
+    }
+
+    // Create message element for streaming
+    function createStreamingMessage() {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'max-message max-message--ai';
+      
+      messageDiv.innerHTML = `
+        <div class="max-message-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="max-message-content">
+          <div class="max-message-bubble">
+            <span class="streaming-cursor"></span>
+          </div>
+        </div>
+      `;
+
+      messagesArea.appendChild(messageDiv);
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+      
+      return messageDiv;
+    }
+
+    // Add actions to message after streaming completes
+    function addMessageActions(messageEl) {
+      const contentEl = messageEl.querySelector('.max-message-content');
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'max-message-actions';
+      actionsDiv.innerHTML = `
+        <button class="max-message-action" onclick="copyMessage(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy
+        </button>
+      `;
+      contentEl.appendChild(actionsDiv);
+    }
+
+    // Add static message (user messages)
+    function addMessage(content, type) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `max-message max-message--${type}`;
+      
+      const avatarIcon = type === 'ai' 
+        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+             <path d="M2 17l10 5 10-5"/>
+             <path d="M2 12l10 5 10-5"/>
+           </svg>`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+             <circle cx="12" cy="7" r="4"/>
+           </svg>`;
+
+      messageDiv.innerHTML = `
+        <div class="max-message-avatar">${avatarIcon}</div>
+        <div class="max-message-content">
+          <div class="max-message-bubble">${type === 'ai' ? formatMessage(content) : escapeHtml(content)}</div>
+        </div>
+      `;
+
+      messagesArea.appendChild(messageDiv);
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    // ===========================================
+    // Formatting Helpers
+    // ===========================================
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatMessage(text) {
+      // Basic markdown-like formatting
+      let formatted = escapeHtml(text);
+      
+      // Code blocks
+      formatted = formatted.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+      
+      // Inline code
+      formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+      
+      // Bold
+      formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      
+      // Italic
+      formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      
+      // Line breaks to paragraphs
+      formatted = formatted
+        .split(/\n\n+/)
+        .map(para => para.trim())
+        .filter(para => para)
+        .map(para => {
+          // Check if it's a list
+          if (para.match(/^[-*•]\s/m)) {
+            const items = para.split(/\n/).map(item => 
+              `<li>${item.replace(/^[-*•]\s*/, '')}</li>`
+            ).join('');
+            return `<ul>${items}</ul>`;
+          }
+          // Check if it's a numbered list
+          if (para.match(/^\d+\.\s/m)) {
+            const items = para.split(/\n/).map(item => 
+              `<li>${item.replace(/^\d+\.\s*/, '')}</li>`
+            ).join('');
+            return `<ol>${items}</ol>`;
+          }
+          return `<p>${para.replace(/\n/g, '<br>')}</p>`;
+        })
+        .join('');
+      
+      return formatted;
+    }
+
+    // Copy message content
+    function copyMessage(btn) {
+      const bubble = btn.closest('.max-message-content').querySelector('.max-message-bubble');
+      navigator.clipboard.writeText(bubble.innerText);
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Copied!
+      `;
+      setTimeout(() => {
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy
+        `;
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
