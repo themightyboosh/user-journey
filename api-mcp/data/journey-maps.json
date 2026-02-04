@@ -1,0 +1,96 @@
+{
+  "81a74321-77b0-4316-b474-940cecd8303d": {
+    "journeyMapId": "81a74321-77b0-4316-b474-940cecd8303d",
+    "sessionId": "b7fd1600-8d3e-4a1f-a3b4-3312acda8cc4",
+    "status": "DRAFT",
+    "name": "Draft Journey",
+    "role": "Tester",
+    "context": "Initial test context",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": true
+    },
+    "phases": [
+      {
+        "phaseId": "3915fa31-cd25-4313-8962-b2037f63abc6",
+        "sequence": 1,
+        "name": "Phase 1",
+        "description": "First phase",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "5eba0fc9-ac4e-49a7-a093-ffcc31ce752e",
+        "sequence": 1,
+        "name": "Actor A",
+        "description": "First actor",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "edf3c7ea-f378-434d-9a41-3725e90fe6dc",
+        "phaseId": "3915fa31-cd25-4313-8962-b2037f63abc6",
+        "swimlaneId": "5eba0fc9-ac4e-49a7-a093-ffcc31ce752e",
+        "action": "Test Action",
+        "context": "Test Context"
+      }
+    ],
+    "metrics": {
+      "totalPhases": 1,
+      "totalSwimlanes": 1,
+      "totalCellsExpected": 1,
+      "totalCellsPresent": 1,
+      "totalCellsCompleted": 1,
+      "percentCellsComplete": 100
+    },
+    "createdAt": "2026-02-04T22:20:19.381Z",
+    "updatedAt": "2026-02-04T22:21:37.934Z",
+    "version": 6,
+    "mermaid": {
+      "code": "journey\n    title Draft Journey\n    section Phase 1\n      Actor A: 3: Test Action\n"
+    },
+    "outputJson": {
+      "code": "{\n  \"journeyMapId\": \"81a74321-77b0-4316-b474-940cecd8303d\",\n  \"sessionId\": \"b7fd1600-8d3e-4a1f-a3b4-3312acda8cc4\",\n  \"status\": \"DRAFT\",\n  \"name\": \"Draft Journey\",\n  \"role\": \"Tester\",\n  \"context\": \"Initial test context\",\n  \"arePhasesComplete\": false,\n  \"areSwimlanesComplete\": false,\n  \"completionStatus\": {\n    \"name\": true,\n    \"role\": true,\n    \"context\": true,\n    \"phases\": false,\n    \"swimlanes\": false,\n    \"cells\": true\n  },\n  \"phases\": [\n    {\n      \"phaseId\": \"3915fa31-cd25-4313-8962-b2037f63abc6\",\n      \"sequence\": 1,\n      \"name\": \"Phase 1\",\n      \"description\": \"First phase\",\n      \"context\": \"\"\n    }\n  ],\n  \"swimlanes\": [\n    {\n      \"swimlaneId\": \"5eba0fc9-ac4e-49a7-a093-ffcc31ce752e\",\n      \"sequence\": 1,\n      \"name\": \"Actor A\",\n      \"description\": \"First actor\",\n      \"context\": \"\"\n    }\n  ],\n  \"cells\": [\n    {\n      \"cellId\": \"edf3c7ea-f378-434d-9a41-3725e90fe6dc\",\n      \"phaseId\": \"3915fa31-cd25-4313-8962-b2037f63abc6\",\n      \"swimlaneId\": \"5eba0fc9-ac4e-49a7-a093-ffcc31ce752e\",\n      \"action\": \"Test Action\",\n      \"context\": \"Test Context\"\n    }\n  ],\n  \"metrics\": {\n    \"totalPhases\": 1,\n    \"totalSwimlanes\": 1,\n    \"totalCellsExpected\": 1,\n    \"totalCellsPresent\": 1,\n    \"totalCellsCompleted\": 1,\n    \"percentCellsComplete\": 100\n  },\n  \"createdAt\": \"2026-02-04T22:20:19.381Z\",\n  \"updatedAt\": \"2026-02-04T22:21:33.971Z\",\n  \"version\": 5,\n  \"mermaid\": {\n    \"code\": \"journey\\n    title Draft Journey\\n    section Phase 1\\n      Actor A: 3: Test Action\\n\"\n  }\n}"
+    }
+  },
+  "1ecc53ad-4a87-4a6d-8b27-95f84391c37f": {
+    "journeyMapId": "1ecc53ad-4a87-4a6d-8b27-95f84391c37f",
+    "sessionId": "c47ed159-0fdd-49ba-a597-3afa5b669afc",
+    "status": "DRAFT",
+    "name": "Draft Journey Map",
+    "role": "Product Manager",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:21:03.921Z",
+    "updatedAt": "2026-02-04T23:21:03.921Z",
+    "version": 1
+  }
+}
