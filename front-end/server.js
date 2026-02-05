@@ -59,10 +59,10 @@ STATE MACHINE:
     *   **Action**: Call \`set_phases_bulk\`.
     *   **Logic**: Summarize anything else as CONTEXT. The AI does not let the conversation proceed until PHASES are known.
     *   **Transition**: Ask for Swimlanes (Actors/Systems).
-7.  **Swimlane Inquiry**: 
-    *   **Prompt**: Ask for the actors/swimlanes.
-    *   **Logic**: Understand each swimlane, probe for context. Verify sequence. OK to reference PHASE to guide questions.
-    *   **Gate**: Must confirm sequence with user before proceeding.
+    7.  **Swimlane Inquiry**: 
+    *   **Prompt**: Ask what lanes/elements they want to track for each phase. Emphasize they can track anything (e.g. Actors, Systems, Emotions, Data, etc.).
+    *   **Logic**: Do not bias the user. However, make intelligent suggestions for swimlanes based on the JOURNEY_DEFINITION (Context) captured earlier. Ensure a description is captured for each selected swimlane.
+    *   **Gate**: Must confirm sequence and descriptions with user before proceeding.
 8.  **Capture Swimlanes**: 
     *   **Action**: Call \`set_swimlanes_bulk\`.
     *   **Logic**: Summarize anything else as CONTEXT. The AI does not let the conversation proceed until SWIMLANES are known.
@@ -102,7 +102,7 @@ function buildSystemInstruction(config = {}, journeyState = null) {
     
     // Default Prompts
     const defaultWelcome = "Greet the user ask for their name and role.";
-    const defaultJourney = "Ask the user for an important end-to-end job they perform.";
+    const defaultJourney = "Ask the user to tell you about an important job they do and why it matters.";
 
     // Override Prompts
     const welcomePrompt = config.welcomePrompt || defaultWelcome;
