@@ -51,6 +51,7 @@ server.post('/v1/journey-maps', async (request, reply) => {
     journeyMapId: id,
     sessionId: body.sessionId || uuidv4(),
     status: 'DRAFT',
+    stage: 'IDENTITY',
     name: body.name || '',
     role: body.role || '',
     context: body.context || '',
@@ -80,15 +81,19 @@ server.post('/v1/journey-maps', async (request, reply) => {
     version: 1
   };
 
-  await Store.save(newJourney);
-  return newJourney;
+    await Store.save(newJourney);
+    console.log(`[DB] Created Journey: ${id} | Name: ${newJourney.name}`);
+    return newJourney;
 });
 
 // Get JourneyMap
 server.get('/v1/journey-maps/:id', async (request, reply) => {
   const { id } = request.params as { id: string };
   const journey = await Store.get(id);
-  if (!journey) return reply.status(404).send({ message: 'Journey not found' });
+  if (!journey) {
+      console.warn(`[DB] Journey Not Found: ${id}`);
+      return reply.status(404).send({ message: 'Journey not found' });
+  }
   return journey;
 });
 
@@ -105,9 +110,15 @@ server.patch('/v1/journey-maps/:id', async (request, reply) => {
     if (body.status !== undefined) journey.status = body.status;
     if (body.arePhasesComplete !== undefined) journey.arePhasesComplete = body.arePhasesComplete;
     if (body.areSwimlanesComplete !== undefined) journey.areSwimlanesComplete = body.areSwimlanesComplete;
+    
+    // Auto-advance stage if we just named it
+    if (journey.stage === 'IDENTITY' && journey.name && journey.context) {
+        journey.stage = 'PHASES';
+    }
 
     journey = recalculateJourney(journey);
     await Store.save(journey);
+    console.log(`[DB] Updated Metadata: ${id} | Stage: ${journey.stage}`);
     return journey;
 });
 
@@ -185,9 +196,13 @@ server.put('/v1/journey-maps/:id/phases', async (request, reply) => {
 
     // Clear cells as structure changed significantly
     journey.cells = [];
+    
+    // Auto-advance stage
+    journey.stage = 'SWIMLANES';
 
     journey = recalculateJourney(journey);
     await Store.save(journey);
+    console.log(`[DB] Set Phases Bulk: ${id} | Count: ${journey.phases.length} | New Stage: ${journey.stage}`);
     return journey;
 });
 
@@ -265,9 +280,13 @@ server.put('/v1/journey-maps/:id/swimlanes', async (request, reply) => {
 
      // Clear cells as structure changed
      journey.cells = [];
+     
+     // Auto-advance stage
+     journey.stage = 'MATRIX_GENERATION';
 
     journey = recalculateJourney(journey);
     await Store.save(journey);
+    console.log(`[DB] Set Swimlanes Bulk: ${id} | Count: ${journey.swimlanes.length} | New Stage: ${journey.stage}`);
     return journey;
 });
 
@@ -292,9 +311,13 @@ server.post('/v1/journey-maps/:id/generate-matrix', async (request, reply) => {
             }
         }
     }
+    
+    // Auto-advance stage
+    journey.stage = 'CELL_POPULATION';
 
     journey = recalculateJourney(journey);
     await Store.save(journey);
+    console.log(`[DB] Matrix Generated: ${id} | Cells: ${journey.cells.length} | New Stage: ${journey.stage}`);
     return journey;
 });
 
@@ -313,6 +336,7 @@ server.put('/v1/journey-maps/:id/cells/:cellId', async (request, reply) => {
 
     journey = recalculateJourney(journey);
     await Store.save(journey);
+    console.log(`[DB] Cell Updated: ${id} | CellId: ${cellId} | Progress: ${Math.round(journey.metrics.percentCellsComplete * 100)}%`);
     return journey;
 });
 
@@ -340,6 +364,10 @@ server.post('/v1/journey-maps/:id/generate-artifacts', async (request, reply) =>
 
     journey.mermaid = { code: mermaidCode };
     journey.outputJson = { code: JSON.stringify(journey, null, 2) }; // Self-reference for now
+    
+    // Finalize stage
+    journey.stage = 'COMPLETE';
+    journey.status = 'READY_FOR_REVIEW';
 
     journey = recalculateJourney(journey);
     await Store.save(journey);

@@ -69,6 +69,7 @@ export const JourneyMapSchema = z.object({
   journeyMapId: z.string().uuid(),
   sessionId: z.string().uuid().optional(),
   status: z.enum(['DRAFT', 'IN_PROGRESS', 'READY_FOR_REVIEW', 'FINAL', 'ARCHIVED']),
+  stage: z.enum(['IDENTITY', 'JOURNEY_DEFINITION', 'PHASES', 'SWIMLANES', 'MATRIX_GENERATION', 'CELL_POPULATION', 'COMPLETE']),
   name: z.string(),
   role: z.string(),
   context: z.string(),

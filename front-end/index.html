@@ -81,8 +81,174 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      max-width: 900px;
+      width: 100%;
       margin: 0 auto;
+    }
+
+    .max-main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ========================================
+       CHAT CANVAS (LEFT)
+       ======================================== */
+    .max-chat-canvas {
+      flex: 1;
+      width: 50%;
+      border-right: 1px solid var(--max-color-border-subtle);
+      background: var(--max-color-surface-primary);
+      display: flex;
+      flex-direction: column;
+      color: var(--max-color-text-tertiary);
+      font-size: 14px;
+      overflow: hidden;
+    }
+
+    .journey-dashboard {
+      padding: 24px;
+      overflow-y: auto;
+      height: 100%;
+      width: 100%;
+    }
+
+    .journey-header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--max-color-border-subtle);
+      padding-bottom: 16px;
+    }
+
+    .journey-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--max-color-text-primary);
+      margin-bottom: 8px;
+    }
+
+    .journey-role {
+      font-size: 14px;
+      color: var(--max-color-accent);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .context-card {
+      background: var(--max-color-surface-secondary);
+      border: 1px solid var(--max-color-border);
+      border-radius: var(--max-radius-medium);
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .context-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--max-color-text-secondary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .context-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--max-color-text-primary);
+    }
+
+    /* Living Table */
+    .journey-table {
+      display: grid;
+      gap: 16px;
+      /* Grid template columns set dynamically via JS */
+    }
+
+    .phase-header {
+      font-weight: 600;
+      color: var(--max-color-text-primary);
+      text-align: center;
+      padding: 8px;
+      background: var(--max-color-surface-tertiary);
+      border-radius: var(--max-radius-small);
+      border: 1px solid var(--max-color-border);
+    }
+
+    .swimlane-header {
+      font-weight: 600;
+      color: var(--max-color-text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 12px;
+      border-right: 2px solid var(--max-color-border);
+    }
+
+    .journey-cell {
+      background: var(--max-color-surface-secondary);
+      border: 1px solid var(--max-color-border);
+      border-radius: var(--max-radius-small);
+      padding: 12px;
+      min-height: 100px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .journey-cell:hover {
+      border-color: var(--max-color-accent);
+      transform: translateY(-2px);
+      box-shadow: var(--max-shadow-soft);
+    }
+
+    .journey-cell.empty {
+      background: transparent;
+      border-style: dashed;
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .journey-cell.complete {
+      border-left: 3px solid #22c55e;
+    }
+
+    .cell-action {
+      font-weight: 500;
+      color: var(--max-color-text-primary);
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .cell-context {
+      font-size: 12px;
+      color: var(--max-color-text-secondary);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Modal / Detail View */
+    .cell-detail-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 10;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cell-detail-modal {
+      background: var(--max-color-surface-primary);
+      border: 1px solid var(--max-color-border);
+      border-radius: var(--max-radius-medium);
+      padding: 24px;
+      width: 80%;
+      max-width: 500px;
+      box-shadow: var(--max-shadow-glow);
     }
 
     /* ========================================
@@ -94,6 +260,7 @@
       justify-content: space-between;
       padding: 16px 24px;
       border-bottom: 1px solid var(--max-color-border-subtle);
+      flex-shrink: 0;
     }
 
     .max-logo {
@@ -152,13 +319,15 @@
     }
 
     /* ========================================
-       CHAT CONTAINER
+       CHAT CONTAINER (RIGHT)
        ======================================== */
     .max-chat-container {
       flex: 1;
+      width: 50%;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      background: var(--max-color-background);
     }
 
     /* ========================================
@@ -561,29 +730,17 @@
     /* ========================================
        RESPONSIVE
        ======================================== */
-    @media (max-width: 600px) {
-      .max-app {
-        max-width: 100%;
+    @media (max-width: 900px) {
+      .max-main-content {
+        flex-direction: column-reverse;
       }
-      
-      .max-messages {
-        padding: 16px;
+      .max-chat-canvas, .max-chat-container {
+        width: 100%;
+        height: 50%;
       }
-      
-      .max-input-area {
-        padding: 12px 16px 20px;
-      }
-      
-      .max-welcome h1 {
-        font-size: 24px;
-      }
-      
-      .max-suggestions {
-        flex-direction: column;
-      }
-
-      .max-status {
-        display: none;
+      .max-chat-canvas {
+        border-right: none;
+        border-top: 1px solid var(--max-color-border-subtle);
       }
     }
   </style>
@@ -609,27 +766,43 @@
       </div>
     </header>
 
-    <!-- Chat Container -->
-    <div class="max-chat-container">
+    <div class="max-main-content">
+      <!-- Chat Canvas (Left) -->
+      <div class="max-chat-canvas" id="chatCanvas">
+        <div class="journey-dashboard" id="journeyDashboard">
+           <div style="text-align: center; margin-top: 100px; opacity: 0.5;">
+              <p>Start a conversation to build the journey map.</p>
+           </div>
+        </div>
+      </div>
       
-      <!-- Messages Area -->
-      <div class="max-messages" id="messagesArea">
+      <!-- Cell Detail Modal (Hidden) -->
+      <div class="cell-detail-overlay" id="cellModal" onclick="closeCellModal(event)">
+        <div class="cell-detail-modal">
+          <h3 id="modalTitle" style="font-size: 18px; margin-bottom: 12px; color: var(--max-color-text-primary);">Action</h3>
+          <div id="modalContext" style="color: var(--max-color-text-secondary); line-height: 1.6;">Context</div>
+          <button onclick="closeCellModal(null)" style="margin-top: 20px; padding: 8px 16px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary); border-radius: 6px; cursor: pointer;">Close</button>
+        </div>
+      </div>
+
+      <!-- Chat Container (Right) -->
+      <div class="max-chat-container">
+        
+        <!-- Messages Area -->
+        <div class="max-messages" id="messagesArea">
         
         <!-- Welcome State -->
         <div class="max-welcome" id="welcomeState">
           <div class="max-welcome-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-              <path d="M2 17l10 5 10-5"/>
-              <path d="M2 12l10 5 10-5"/>
+              <path d="M9 18l6-6-6-6"/>
             </svg>
           </div>
-          <h1>How can I help you?</h1>
-          <p>I'm M.AX, powered by Gemini. Ask me anything or try one of these suggestions.</p>
+          <h1>Welcome to Journey Mapper</h1>
+          <p>I'm here to help you map out a user journey. To get started, please state your <strong>Name</strong> and <strong>Role</strong>.</p>
           <div class="max-suggestions">
-            <button class="max-suggestion" onclick="useSuggestion('Explain how this works')">Explain how this works</button>
-            <button class="max-suggestion" onclick="useSuggestion('Help me write code')">Help me write code</button>
-            <button class="max-suggestion" onclick="useSuggestion('Brainstorm ideas')">Brainstorm ideas</button>
+            <button class="max-suggestion" onclick="useSuggestion('I am Daniel, a Product Manager')">I am Daniel, a Product Manager</button>
+            <button class="max-suggestion" onclick="useSuggestion('I am Sarah, a UX Researcher')">I am Sarah, a UX Researcher</button>
           </div>
         </div>
 
@@ -657,7 +830,6 @@
           <kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for new line
         </div>
       </div>
-
     </div>
   </div>
 
@@ -668,7 +840,8 @@
     const state = {
       isStreaming: false,
       isConnected: false,
-      conversationHistory: []
+      conversationHistory: [],
+      sessionConfig: {}
     };
 
     // ===========================================
@@ -681,6 +854,172 @@
     const inputWrapper = document.getElementById('inputWrapper');
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
+    const journeyDashboard = document.getElementById('journeyDashboard');
+    let currentJourneyId = null;
+    let currentJourney = null; // Store full object
+    let lastJourneyVersion = 0;
+
+    // ===========================================
+    // Journey Visualization (Polling)
+    // ===========================================
+    async function pollJourneyState() {
+      if (!currentJourneyId) return;
+
+      try {
+        const response = await fetch(`/api/journey-state/${currentJourneyId}`);
+        if (!response.ok) return;
+        
+        const journey = await response.json();
+        
+        if (journey) {
+          lastJourneyVersion = journey.version;
+          currentJourney = journey; // Update global state
+          renderJourney(journey);
+        }
+      } catch (e) {
+        console.error("Polling error", e);
+      }
+    }
+
+    // Poll every 2 seconds
+    setInterval(pollJourneyState, 2000);
+
+    // Initial Poll
+    pollJourneyState();
+
+    // Modal Logic
+    function openCellModal(cellId) {
+        if (!currentJourney) return;
+        const cell = currentJourney.cells.find(c => c.cellId === cellId);
+        if (!cell) return;
+
+        document.getElementById('modalTitle').textContent = cell.action;
+        document.getElementById('modalContext').textContent = cell.context;
+        
+        const modal = document.getElementById('cellModal');
+        modal.style.display = 'flex';
+    }
+
+    function closeCellModal(event) {
+        // If event is provided (click outside), check target
+        if (event && event.target.id !== 'cellModal') return;
+        
+        document.getElementById('cellModal').style.display = 'none';
+    }
+
+    function renderJourney(journey) {
+        if (!journey) return;
+
+        let html = `
+            <div class="journey-header">
+                <div class="journey-title">${escapeHtml(journey.name) || 'Untitled Journey'}</div>
+                <div class="journey-role">${escapeHtml(journey.role) || 'Unknown Role'}</div>
+            </div>
+        `;
+
+        if (journey.context) {
+            html += `
+                <div class="context-card">
+                    <h3>Context</h3>
+                    <div class="context-content">${escapeHtml(journey.context)}</div>
+                </div>
+            `;
+        }
+
+        // Always render table if we have phases (even if no swimlanes yet, show header)
+        // OR if we have swimlanes (even if no phases yet, show rows)
+        if (journey.phases.length > 0 || journey.swimlanes.length > 0) {
+            // Grid Template: 1st col auto (swimlanes), rest 1fr (phases)
+            // If no phases, we just have one column for swimlane headers effectively
+            const gridTemplate = `150px ${journey.phases.length > 0 ? `repeat(${journey.phases.length}, 1fr)` : '1fr'}`;
+            
+            html += `<div class="journey-table" style="grid-template-columns: ${gridTemplate};">`;
+
+            // 1. Header Row
+            html += `<div></div>`; // Top-left corner empty
+            
+            if (journey.phases.length > 0) {
+                journey.phases.forEach(phase => {
+                    const desc = phase.description ? ` title="${escapeHtml(phase.description)}"` : '';
+                    html += `<div class="phase-header"${desc}>${escapeHtml(phase.name)}</div>`;
+                });
+            } else {
+                // Placeholder for phase area if empty
+                html += `<div class="phase-header" style="opacity: 0.5; font-style: italic;">Phases pending...</div>`;
+            }
+
+            // 2. Rows
+            if (journey.swimlanes.length > 0) {
+                journey.swimlanes.forEach(swimlane => {
+                    // Row Header
+                    const desc = swimlane.description ? ` title="${escapeHtml(swimlane.description)}"` : '';
+                    html += `<div class="swimlane-header"${desc}>${escapeHtml(swimlane.name)}</div>`;
+
+                    // Cells
+                    if (journey.phases.length > 0) {
+                        journey.phases.forEach(phase => {
+                            const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+                            
+                            if (cell && cell.action) {
+                                html += `
+                                    <div class="journey-cell complete" onclick="openCellModal('${cell.cellId}')">
+                                        <div class="cell-action">${escapeHtml(cell.action)}</div>
+                                        <div class="cell-context">${escapeHtml(cell.context)}</div>
+                                    </div>
+                                `;
+                            } else if (cell) {
+                                // Empty cell but exists
+                                html += `<div class="journey-cell empty"></div>`;
+                            } else {
+                                // Cell doesn't exist yet (matrix not generated)
+                                html += `<div class="journey-cell empty" style="border-style: none; background: rgba(255,255,255,0.02)"></div>`;
+                            }
+                        });
+                    } else {
+                         // No phases yet, just empty placeholder space for the row
+                         html += `<div class="journey-cell empty" style="border-style: none;"></div>`;
+                    }
+                });
+            } else {
+                // No swimlanes yet. If we have phases, show empty cells below them to imply structure
+                 if (journey.phases.length > 0) {
+                     html += `<div class="swimlane-header" style="opacity: 0.5; font-style: italic;">Swimlanes pending...</div>`;
+                     journey.phases.forEach(() => {
+                         html += `<div class="journey-cell empty" style="border-style: none;"></div>`;
+                     });
+                 }
+            }
+
+            html += `</div>`; // End table
+        }
+
+        journeyDashboard.innerHTML = html;
+    }
+
+    // Capture Journey ID from AI responses (simple heuristic for prototype)
+    // In a real app, the backend would send this in the metadata
+    function checkForJourneyId(text) {
+        // This is a hack for the prototype. Ideally the AI driver sends a structured event.
+        // We'll rely on the fact that we can just query the *latest* journey for this demo
+        // Or hardcode the ID if the AI mentions it. 
+        // Better yet, let's just fetch the list and grab the most recent one for now.
+        fetchLatestJourney();
+    }
+
+    async function fetchLatestJourney() {
+        try {
+             // We need a list endpoint, but Store.list exists in code. 
+             // Let's assume we can hit GET /v1/journey-maps (if we implemented list)
+             // Since we didn't expose list in API, we'll just check if we have one in local storage or 
+             // wait for the AI to "create" one and we'll sniff it.
+             
+             // WORKAROUND: The driver (server.js) should return the journey ID.
+             // For now, let's poll a "debug" endpoint or similar. 
+             // Actually, let's just rely on the user to paste it or the AI to say it? No, that's bad UX.
+             
+             // Real Fix: I'll update the server.js to return the journeyId in the chat response metadata.
+        } catch(e) {}
+    }
 
     // ===========================================
     // Connection Check
@@ -706,6 +1045,45 @@
 
     // Check connection on load
     checkConnection();
+
+    // ===========================================
+    // URL Parameter Handling
+    // ===========================================
+    function checkUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      
+      // Capture all potential context
+      state.sessionConfig = {
+          name: params.get('name'),
+          role: params.get('role'),
+          journeyName: params.get('journey'), // 'journey' param = Journey Name
+          welcomePrompt: params.get('welcome-prompt'),
+          journeyPrompt: params.get('journey-prompt') // 'journey-prompt' param = Custom Inquiry
+      };
+
+      // Clean up undefined/null values
+      Object.keys(state.sessionConfig).forEach(key => 
+          state.sessionConfig[key] === null && delete state.sessionConfig[key]
+      );
+
+      // Trigger AI Welcome if params exist
+      if (Object.keys(state.sessionConfig).length > 0) {
+          // If we have a custom welcome prompt OR just identity info, let the AI start.
+          // The AI will "welcome" the user.
+          startConversation();
+      }
+    }
+    
+    function startConversation() {
+        if (welcomeState) welcomeState.style.display = 'none';
+        
+        // Send a hidden "system start" signal
+        // We don't add this to the UI history as a user message
+        sendMessage(true); 
+    }
+    
+    // Check for params after a brief delay to ensure DOM is ready
+    setTimeout(checkUrlParams, 100);
 
     // ===========================================
     // Input Handling
@@ -745,33 +1123,81 @@
     }
 
     // ===========================================
+    // Typing Indicator
+    // ===========================================
+    function showTypingIndicator() {
+      if (document.getElementById('typingIndicator')) return;
+
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'max-typing';
+      typingDiv.id = 'typingIndicator';
+      
+      typingDiv.innerHTML = `
+        <div class="max-message-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="max-typing-dots">
+          <div class="max-typing-dot"></div>
+          <div class="max-typing-dot"></div>
+          <div class="max-typing-dot"></div>
+        </div>
+      `;
+
+      messagesArea.appendChild(typingDiv);
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) {
+        indicator.remove();
+      }
+    }
+
+    // ===========================================
     // Message Handling
     // ===========================================
-    async function sendMessage() {
-      const text = chatInput.value.trim();
-      if (!text || state.isStreaming) return;
+    async function sendMessage(isSystemStart = false) {
+      let text = '';
+      
+      if (isSystemStart) {
+          // Special signal text that won't be shown to user but triggers the backend
+          text = "START_SESSION"; 
+      } else {
+          text = chatInput.value.trim();
+          if (!text || state.isStreaming) return;
+      }
 
       // Hide welcome state
       if (welcomeState) {
         welcomeState.style.display = 'none';
       }
 
-      // Add user message
-      addMessage(text, 'user');
-      state.conversationHistory.push({ role: 'user', content: text });
-
-      // Clear input
-      chatInput.value = '';
-      chatInput.style.height = 'auto';
-      toggleSendButton();
+      // Add user message ONLY if it's not a system start
+      if (!isSystemStart) {
+          addMessage(text, 'user');
+          state.conversationHistory.push({ role: 'user', content: text });
+          
+          // Clear input
+          chatInput.value = '';
+          chatInput.style.height = 'auto';
+          toggleSendButton();
+      }
 
       // Disable input while streaming
       state.isStreaming = true;
       setInputEnabled(false);
 
-      // Create AI message container for streaming
-      const aiMessageEl = createStreamingMessage();
-      const bubbleEl = aiMessageEl.querySelector('.max-message-bubble');
+      // Show typing indicator immediately
+      showTypingIndicator();
+
+      // We will create the AI message bubble only when text actually arrives
+      let aiMessageEl = null;
+      let bubbleEl = null;
 
       try {
         // Start streaming request
@@ -780,7 +1206,9 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: text,
-            history: state.conversationHistory.slice(0, -1) // Exclude current message
+            history: state.conversationHistory.filter(h => h.content !== "START_SESSION"), // Don't send START_SESSION in history if it lingered
+            config: state.sessionConfig, // Pass the context/config
+            journeyId: currentJourneyId // Pass the ID so the model doesn't lose track
           })
         });
 
@@ -809,17 +1237,35 @@
                   throw new Error(data.error);
                 }
                 
+                // If we get text and haven't created the bubble yet, do it now
                 if (data.text) {
+                  if (!aiMessageEl) {
+                      removeTypingIndicator();
+                      aiMessageEl = createStreamingMessage();
+                      bubbleEl = aiMessageEl.querySelector('.max-message-bubble');
+                  }
+                  
                   fullResponse += data.text;
                   bubbleEl.innerHTML = formatMessage(fullResponse) + '<span class="streaming-cursor"></span>';
                   messagesArea.scrollTop = messagesArea.scrollHeight;
                 }
                 
                 if (data.done) {
-                  // Remove cursor, finalize message
-                  bubbleEl.innerHTML = formatMessage(fullResponse);
-                  addMessageActions(aiMessageEl);
-                  state.conversationHistory.push({ role: 'assistant', content: fullResponse });
+                  // If we finished but never got text (e.g. pure tool call?), ensure typing is gone
+                  if (!aiMessageEl) removeTypingIndicator();
+                  
+                  if (aiMessageEl) {
+                      // Remove cursor, finalize message
+                      bubbleEl.innerHTML = formatMessage(fullResponse);
+                      addMessageActions(aiMessageEl);
+                      state.conversationHistory.push({ role: 'assistant', content: fullResponse });
+                  }
+                  
+                  if (data.journeyId) {
+                      currentJourneyId = data.journeyId;
+                      // Trigger immediate poll
+                      pollJourneyState();
+                  }
                 }
               } catch (e) {
                 // Skip malformed JSON
@@ -833,8 +1279,14 @@
 
       } catch (error) {
         console.error('Streaming error:', error);
+        removeTypingIndicator();
         
         // Show error message
+        if (!aiMessageEl) {
+            aiMessageEl = createStreamingMessage();
+            bubbleEl = aiMessageEl.querySelector('.max-message-bubble');
+        }
+        
         bubbleEl.innerHTML = `<p>Sorry, I encountered an error: ${escapeHtml(error.message)}</p>
                              <p>Please make sure the server is running and try again.</p>`;
         aiMessageEl.classList.add('max-message--error');

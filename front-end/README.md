@@ -26,6 +26,10 @@ npx serve .
 open index.html
 ```
 
+## Vertex AI Models
+This project targets **Gemini 3.0 Pro** (`gemini-3.0-pro`) for its advanced reasoning capabilities required by the "Rigid Interviewer" pattern.
+See `INTEGRATION_GUIDE.md` for canonical model versioning details.
+
 ## File Structure
 
 ```

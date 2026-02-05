@@ -92,5 +92,1610 @@
     "createdAt": "2026-02-04T23:21:03.921Z",
     "updatedAt": "2026-02-04T23:21:03.921Z",
     "version": 1
+  },
+  "369c3eaa-2181-4bc8-8cbc-5b9acf11522e": {
+    "journeyMapId": "369c3eaa-2181-4bc8-8cbc-5b9acf11522e",
+    "sessionId": "6141b359-31c2-4354-968d-d5148c200413",
+    "status": "DRAFT",
+    "name": "Daniel's Journey Map",
+    "role": "Product Manager",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:29:55.163Z",
+    "updatedAt": "2026-02-04T23:29:55.163Z",
+    "version": 1
+  },
+  "07d67702-37d9-426d-86b3-fb4211315dfb": {
+    "journeyMapId": "07d67702-37d9-426d-86b3-fb4211315dfb",
+    "sessionId": "90891431-dba4-4e32-8e50-912725b03b2e",
+    "status": "DRAFT",
+    "name": "Daniel's Journey Map",
+    "role": "Product Manager",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:33:47.814Z",
+    "updatedAt": "2026-02-04T23:33:47.814Z",
+    "version": 1
+  },
+  "f412c8b1-140c-4c37-a99c-ff7d4559f4ad": {
+    "journeyMapId": "f412c8b1-140c-4c37-a99c-ff7d4559f4ad",
+    "sessionId": "f311f44e-05d0-4975-b525-5e399b47043e",
+    "status": "DRAFT",
+    "name": "My First Journey Map",
+    "role": "Journey Mapper",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:34:38.097Z",
+    "updatedAt": "2026-02-04T23:34:38.097Z",
+    "version": 1
+  },
+  "a0a92a97-acb7-43d1-ad62-b3174a9c9779": {
+    "journeyMapId": "a0a92a97-acb7-43d1-ad62-b3174a9c9779",
+    "sessionId": "bd4cbee8-4a20-4212-a3b8-97deaf7b0c1a",
+    "status": "DRAFT",
+    "name": "Ordering a coffee at a cafe",
+    "role": "Journey Map Creator",
+    "context": "Mapping the typical process a customer goes through when ordering a coffee at a cafe, from deciding to get coffee to enjoying the drink.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:35:49.975Z",
+    "updatedAt": "2026-02-04T23:36:02.983Z",
+    "version": 2
+  },
+  "5ff04358-8112-4e5c-b31a-7d03d34a8eab": {
+    "journeyMapId": "5ff04358-8112-4e5c-b31a-7d03d34a8eab",
+    "sessionId": "39e7917e-5383-4c34-9044-963be35e569d",
+    "status": "DRAFT",
+    "name": "Gary's Journey Map",
+    "role": "Boss",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:36:13.114Z",
+    "updatedAt": "2026-02-04T23:36:13.114Z",
+    "version": 1
+  },
+  "d560ac92-b7a1-4a41-be49-19d79b869229": {
+    "journeyMapId": "d560ac92-b7a1-4a41-be49-19d79b869229",
+    "sessionId": "d31836fe-9ff1-4790-adab-9ff71899df61",
+    "status": "DRAFT",
+    "name": "Online Food Ordering",
+    "role": "Journey Explorer",
+    "context": "Mapping the end-to-end process a user goes through when ordering food online, from deciding what to eat to receiving the delivery.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:36:58.052Z",
+    "updatedAt": "2026-02-04T23:37:11.489Z",
+    "version": 2
+  },
+  "a7aea8a6-b26b-43d1-8920-52bb09ea62db": {
+    "journeyMapId": "a7aea8a6-b26b-43d1-8920-52bb09ea62db",
+    "sessionId": "c78ddafd-b0f5-4bd4-aeb8-1f00d4deffd0",
+    "status": "DRAFT",
+    "name": "Daniel's Journey Map",
+    "role": "Product Manager",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:39:07.350Z",
+    "updatedAt": "2026-02-04T23:39:07.350Z",
+    "version": 1
+  },
+  "730005f5-c82b-4d03-bedf-98b620f15f5d": {
+    "journeyMapId": "730005f5-c82b-4d03-bedf-98b620f15f5d",
+    "sessionId": "c973ff9f-48a8-4506-9514-6da7f202f5c9",
+    "status": "DRAFT",
+    "name": "User Registration Flow",
+    "role": "Product Manager",
+    "context": "Mapping the user registration process from start to finish.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:39:20.308Z",
+    "updatedAt": "2026-02-04T23:39:22.274Z",
+    "version": 2
+  },
+  "540c0016-154a-4aaa-b1cc-33a13ec284fa": {
+    "journeyMapId": "540c0016-154a-4aaa-b1cc-33a13ec284fa",
+    "sessionId": "3eb35d27-74fb-4342-8326-758c07cf4cc3",
+    "status": "DRAFT",
+    "name": "User Registration flow",
+    "role": "Product Manager",
+    "context": "Mapping the User Registration flow.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "70c60e14-7fdb-48c6-a288-6938a43d8273",
+        "sequence": 1,
+        "name": "Sign Up",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "c90dce90-4ee8-4d06-885f-ff91beda1315",
+        "sequence": 2,
+        "name": "Verify Email",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "3bf1fbf4-70b8-47c1-967e-b563e94f193c",
+        "sequence": 3,
+        "name": "Onboarding",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 3,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:39:32.446Z",
+    "updatedAt": "2026-02-04T23:39:38.808Z",
+    "version": 3
+  },
+  "e2cc278b-3c93-4450-ba5b-582630d94036": {
+    "journeyMapId": "e2cc278b-3c93-4450-ba5b-582630d94036",
+    "sessionId": "e17dd4ad-64d7-460d-81ab-dd3d43e05456",
+    "status": "DRAFT",
+    "name": "User Registration Flow",
+    "role": "Product Manager",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:39:56.297Z",
+    "updatedAt": "2026-02-04T23:39:56.297Z",
+    "version": 1
+  },
+  "72bd829d-ebc9-4b39-b739-5f7b367c0258": {
+    "journeyMapId": "72bd829d-ebc9-4b39-b739-5f7b367c0258",
+    "sessionId": "1eef15a7-e10c-4a4f-852e-268e7b178ea9",
+    "status": "DRAFT",
+    "name": "Draft",
+    "role": "Product Manager",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:40:03.936Z",
+    "updatedAt": "2026-02-04T23:40:03.936Z",
+    "version": 1
+  },
+  "8148b373-1fc4-460b-8591-e569ca437798": {
+    "journeyMapId": "8148b373-1fc4-460b-8591-e569ca437798",
+    "sessionId": "c58d308e-bfc2-403d-9505-434d92c7e874",
+    "status": "DRAFT",
+    "name": "Draft",
+    "role": "Product Manager",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:40:13.784Z",
+    "updatedAt": "2026-02-04T23:40:13.784Z",
+    "version": 1
+  },
+  "bbe28ab7-2eb5-428b-b585-4ffccfef1a6b": {
+    "journeyMapId": "bbe28ab7-2eb5-428b-b585-4ffccfef1a6b",
+    "sessionId": "3e5a122f-a19f-431e-9165-14da3bd52e83",
+    "status": "DRAFT",
+    "name": "Gary's Journey Map",
+    "role": "Boss",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:40:20.173Z",
+    "updatedAt": "2026-02-04T23:40:20.173Z",
+    "version": 1
+  },
+  "cf5c89b8-6123-473e-9503-d70e57be85c1": {
+    "journeyMapId": "cf5c89b8-6123-473e-9503-d70e57be85c1",
+    "sessionId": "dd7dbe87-5d98-43ca-8d62-fdb33154d69b",
+    "status": "DRAFT",
+    "name": "Login",
+    "role": "Boss",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:40:23.871Z",
+    "updatedAt": "2026-02-04T23:40:23.871Z",
+    "version": 1
+  },
+  "7b428309-928c-48cf-9037-ed49ddc5c054": {
+    "journeyMapId": "7b428309-928c-48cf-9037-ed49ddc5c054",
+    "sessionId": "89d9ead2-2fd6-434d-a31c-113b4dd36b17",
+    "status": "DRAFT",
+    "name": "Draft Journey Map",
+    "role": "Vet",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:40:27.359Z",
+    "updatedAt": "2026-02-04T23:40:27.359Z",
+    "version": 1
+  },
+  "7a914953-bddd-4094-b448-c0cf99901710": {
+    "journeyMapId": "7a914953-bddd-4094-b448-c0cf99901710",
+    "sessionId": "4c810685-26d5-474e-b420-ee5ce5888e2b",
+    "status": "DRAFT",
+    "name": "Login",
+    "role": "Boss",
+    "context": "User Login Process",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:40:29.403Z",
+    "updatedAt": "2026-02-04T23:40:29.403Z",
+    "version": 1
+  },
+  "b9b42fe8-fb85-4e2a-96f7-16f21f8eb922": {
+    "journeyMapId": "b9b42fe8-fb85-4e2a-96f7-16f21f8eb922",
+    "sessionId": "050868ed-9f0b-4df5-8252-a247da2eb607",
+    "status": "DRAFT",
+    "name": "Login",
+    "role": "Boss",
+    "context": "Users type. They hit go. If it doesn't work, they try again.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "6493bfdb-c53e-4e0b-9c5b-f91ab746f9e9",
+        "sequence": 1,
+        "name": "Enter info",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "51ca5048-32cf-4213-8bbc-e6ac3b988aea",
+        "sequence": 2,
+        "name": "Submit",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "5393dfa9-2a51-4400-98e4-ba531b1bfa91",
+        "sequence": 3,
+        "name": "Fail, then try again. Or succeed.",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "6cdddbbf-a5c0-4103-84bc-790beb9d5361",
+        "sequence": 1,
+        "name": "User",
+        "description": "",
+        "context": ""
+      },
+      {
+        "swimlaneId": "814f141d-16bf-4eec-9298-5fef71fc1d2c",
+        "sequence": 2,
+        "name": "System",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 3,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 6,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:40:38.130Z",
+    "updatedAt": "2026-02-04T23:41:00.509Z",
+    "version": 4
+  },
+  "94275ee4-03d3-4763-aad1-6a4bcfc87623": {
+    "journeyMapId": "94275ee4-03d3-4763-aad1-6a4bcfc87623",
+    "sessionId": "74415c7c-cebc-47a9-80db-91d94da301c0",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Draft",
+    "role": "Product Manager",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:50:23.835Z",
+    "updatedAt": "2026-02-04T23:50:23.835Z",
+    "version": 1
+  },
+  "2a39bb1c-f568-42fa-8fbf-7301010ef437": {
+    "journeyMapId": "2a39bb1c-f568-42fa-8fbf-7301010ef437",
+    "sessionId": "0128ece6-6ed8-42a9-a350-3b3c7d7abdda",
+    "status": "DRAFT",
+    "stage": "PHASES",
+    "name": "User Registration flow",
+    "role": "Product Manager",
+    "context": "It's a critical journey for our new users.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:50:28.139Z",
+    "updatedAt": "2026-02-04T23:50:29.367Z",
+    "version": 2
+  },
+  "7a84d07f-8853-4618-81ed-8e27604b608c": {
+    "journeyMapId": "7a84d07f-8853-4618-81ed-8e27604b608c",
+    "sessionId": "9e92a76a-dc92-477e-8bb4-8fa418f9b2cf",
+    "status": "DRAFT",
+    "stage": "SWIMLANES",
+    "name": "User Registration flow",
+    "role": "Product Manager",
+    "context": "It's a critical journey for our new users.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "d69a28c3-0191-4f2a-982d-ae217a9c9ce7",
+        "sequence": 1,
+        "name": "Sign Up",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "97cd7d8e-4879-464f-998a-09a58b2510b4",
+        "sequence": 2,
+        "name": "Verify Email",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "3b27746d-3134-4919-a166-ebbe599f3588",
+        "sequence": 3,
+        "name": "Onboarding",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 3,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:50:39.282Z",
+    "updatedAt": "2026-02-04T23:50:43.420Z",
+    "version": 3
+  },
+  "a4c55c9e-d5f3-4135-9527-a8182c8e0526": {
+    "journeyMapId": "a4c55c9e-d5f3-4135-9527-a8182c8e0526",
+    "sessionId": "9a5b1a76-ff8f-4c93-aa3b-55d153a89af8",
+    "status": "DRAFT",
+    "stage": "MATRIX_GENERATION",
+    "name": "User Registration flow",
+    "role": "Product Manager",
+    "context": "It's a critical journey for our new users.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "d10358d6-655e-4ebb-8369-3b5f744a744a",
+        "sequence": 1,
+        "name": "Sign Up",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "634c1e45-2dfc-4662-8a7a-0906bbac09f2",
+        "sequence": 2,
+        "name": "Verify Email",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "7450a2af-e228-428c-abfa-74b5f0c73146",
+        "sequence": 3,
+        "name": "Onboarding",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "98c24672-8f94-4a8d-9167-40acaa313d2f",
+        "sequence": 1,
+        "name": "User",
+        "description": "",
+        "context": ""
+      },
+      {
+        "swimlaneId": "ae44c808-8aa4-49df-9f84-dc1dabed3982",
+        "sequence": 2,
+        "name": "System",
+        "description": "",
+        "context": ""
+      },
+      {
+        "swimlaneId": "33160389-052c-43cb-9e94-db8fbf6b7a44",
+        "sequence": 3,
+        "name": "Email Service",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 3,
+      "totalSwimlanes": 3,
+      "totalCellsExpected": 9,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:50:55.381Z",
+    "updatedAt": "2026-02-04T23:51:00.107Z",
+    "version": 4
+  },
+  "f9a629ef-424e-4d5c-9643-91ab8bedd072": {
+    "journeyMapId": "f9a629ef-424e-4d5c-9643-91ab8bedd072",
+    "sessionId": "db1532ee-0ba1-480d-95f3-3d3b04a562e0",
+    "status": "DRAFT",
+    "stage": "MATRIX_GENERATION",
+    "name": "User Registration flow",
+    "role": "Product Manager",
+    "context": "It's a critical journey for our new users.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "d52abeb9-8f23-4b81-8634-47f1fee09b14",
+        "sequence": 1,
+        "name": "Sign Up",
+        "description": "User signs up",
+        "context": ""
+      },
+      {
+        "phaseId": "21b03898-a5d8-4b95-a840-8446058c7cd4",
+        "sequence": 2,
+        "name": "Verify Email",
+        "description": "User verifies email",
+        "context": ""
+      },
+      {
+        "phaseId": "736e22f9-8d7a-454c-a553-0b8b522b1e04",
+        "sequence": 3,
+        "name": "Onboarding",
+        "description": "User completes onboarding",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "f3fb9650-1ebd-4532-9747-f79b0893ad81",
+        "sequence": 1,
+        "name": "User",
+        "description": "The end-user of the system",
+        "context": ""
+      },
+      {
+        "swimlaneId": "f498655f-f4eb-48ef-8502-6f0d33433c37",
+        "sequence": 2,
+        "name": "System",
+        "description": "The application or platform",
+        "context": ""
+      },
+      {
+        "swimlaneId": "5c7e080c-c116-4920-be24-dfa15b4b5bac",
+        "sequence": 3,
+        "name": "Email Service",
+        "description": "The service responsible for sending emails",
+        "context": ""
+      }
+    ],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 3,
+      "totalSwimlanes": 3,
+      "totalCellsExpected": 9,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:51:17.845Z",
+    "updatedAt": "2026-02-04T23:51:22.106Z",
+    "version": 4
+  },
+  "438cd2e3-0ad0-4e31-8214-2554577b3d74": {
+    "journeyMapId": "438cd2e3-0ad0-4e31-8214-2554577b3d74",
+    "sessionId": "cb817532-9bb3-48a9-9525-c52d2f47ecfe",
+    "status": "DRAFT",
+    "stage": "MATRIX_GENERATION",
+    "name": "User Registration flow",
+    "role": "Product Manager",
+    "context": "It's a critical journey for our new users.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "1fb5b737-5fb4-4bb9-a68c-0be1085c01dd",
+        "sequence": 1,
+        "name": "Sign Up",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "b522e46f-a5c0-4e72-ab4d-e17554cd642c",
+        "sequence": 2,
+        "name": "Verify Email",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "f2be87d1-0318-4bbe-866f-d907d1020bca",
+        "sequence": 3,
+        "name": "Onboarding",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "9c1e921f-61b4-4b71-a640-937a74b4d04c",
+        "sequence": 1,
+        "name": "User",
+        "description": "",
+        "context": ""
+      },
+      {
+        "swimlaneId": "6123a4ad-cba4-47e7-9365-d49318955b02",
+        "sequence": 2,
+        "name": "System",
+        "description": "",
+        "context": ""
+      },
+      {
+        "swimlaneId": "8bfe46ce-1d06-4e74-9f0f-dc044e39e25c",
+        "sequence": 3,
+        "name": "Email Service",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 3,
+      "totalSwimlanes": 3,
+      "totalCellsExpected": 9,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:51:32.665Z",
+    "updatedAt": "2026-02-04T23:51:37.917Z",
+    "version": 4
+  },
+  "6fcd5e8d-73e5-4dd0-9461-56801eef8053": {
+    "journeyMapId": "6fcd5e8d-73e5-4dd0-9461-56801eef8053",
+    "sessionId": "8cfcf45c-9fba-4f30-8b2c-3dd94b40455d",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Draft",
+    "role": "Boss",
+    "context": "Gary",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:51:43.626Z",
+    "updatedAt": "2026-02-04T23:51:43.626Z",
+    "version": 1
+  },
+  "63be2f19-46a6-4256-9f1a-118a2c6b756e": {
+    "journeyMapId": "63be2f19-46a6-4256-9f1a-118a2c6b756e",
+    "sessionId": "bd1c3239-f518-489f-8862-8164dbd608c2",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Gary",
+    "role": "Boss",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:51:47.177Z",
+    "updatedAt": "2026-02-04T23:51:47.177Z",
+    "version": 1
+  },
+  "f9af12c0-6e10-4f07-b530-2393dad3c537": {
+    "journeyMapId": "f9af12c0-6e10-4f07-b530-2393dad3c537",
+    "sessionId": "11af7611-8a15-4cb8-8c1a-1bcbf38be777",
+    "status": "DRAFT",
+    "stage": "PHASES",
+    "name": "Login",
+    "role": "Boss",
+    "context": "It's how you get in. To... *things*. Obviously.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:51:53.947Z",
+    "updatedAt": "2026-02-04T23:51:55.739Z",
+    "version": 2
+  },
+  "e789d2fa-0693-4034-b95c-4f81ac74094a": {
+    "journeyMapId": "e789d2fa-0693-4034-b95c-4f81ac74094a",
+    "sessionId": "69fc4e7c-5a14-4e82-b580-417b37499d36",
+    "status": "DRAFT",
+    "stage": "SWIMLANES",
+    "name": "Login",
+    "role": "Boss",
+    "context": "Gary is the user.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "66f88fe3-f60a-4abc-93fa-1cd86518e105",
+        "sequence": 1,
+        "name": "Open the Application",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "de2d3e8e-3607-48e4-bfff-a63fbea02eb0",
+        "sequence": 2,
+        "name": "See the Login Screen",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "3330c3dd-25c8-436a-8c48-675e4a6070ea",
+        "sequence": 3,
+        "name": "Type Username",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "bfdc381f-c972-489c-8403-24218471be5f",
+        "sequence": 4,
+        "name": "Type Password",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "d37a5df8-f6e6-49e8-af86-58b75fcf38be",
+        "sequence": 5,
+        "name": "Click the Button",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 5,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:52:07.765Z",
+    "updatedAt": "2026-02-04T23:52:09.537Z",
+    "version": 2
+  },
+  "d097a5af-dc22-42ed-9330-5ea6533a8ed2": {
+    "journeyMapId": "d097a5af-dc22-42ed-9330-5ea6533a8ed2",
+    "sessionId": "29b3f439-a377-4b0c-9b18-0c0b7d8c1a2f",
+    "status": "DRAFT",
+    "stage": "MATRIX_GENERATION",
+    "name": "Login",
+    "role": "Boss",
+    "context": "It's how you get in. To... *things*. Obviously.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "3173ecb0-5d2d-4251-85f4-d5a1c4daadf6",
+        "sequence": 1,
+        "name": "Open the Application",
+        "description": "The user launches the application.",
+        "context": ""
+      },
+      {
+        "phaseId": "433fa80c-79e7-4031-8839-4f53e694337f",
+        "sequence": 2,
+        "name": "See the Login Screen",
+        "description": "The login interface is displayed.",
+        "context": ""
+      },
+      {
+        "phaseId": "befb879a-4702-4d40-b4e1-269bd60da008",
+        "sequence": 3,
+        "name": "Type Username",
+        "description": "The user inputs their username.",
+        "context": ""
+      },
+      {
+        "phaseId": "d2a5ba03-03f5-46d8-8600-17c3ab9f7b68",
+        "sequence": 4,
+        "name": "Type Password",
+        "description": "The user inputs their password.",
+        "context": ""
+      },
+      {
+        "phaseId": "e812010a-3719-4339-bc25-c6e010af7eaa",
+        "sequence": 5,
+        "name": "Click the Button",
+        "description": "The user initiates the login attempt.",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "037d0025-7376-4536-ba3b-7f4fd4f32481",
+        "sequence": 1,
+        "name": "User",
+        "description": "The person attempting to log in.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "89ab6c2a-589f-4f18-b5cc-439430f73dc3",
+        "sequence": 2,
+        "name": "System",
+        "description": "The application or service handling the login.",
+        "context": ""
+      }
+    ],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 5,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 10,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:52:26.021Z",
+    "updatedAt": "2026-02-04T23:52:32.566Z",
+    "version": 4
+  },
+  "45623bcc-e1ba-4be9-aeb7-ad73716de6e7": {
+    "journeyMapId": "45623bcc-e1ba-4be9-aeb7-ad73716de6e7",
+    "sessionId": "d94faeba-0bbe-40e3-8a47-368e1abde058",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Mailman",
+    "role": "Mailman",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:52:30.196Z",
+    "updatedAt": "2026-02-04T23:52:30.196Z",
+    "version": 1
+  },
+  "53f9b2af-9b4a-47f3-99be-9c5a9b0e5c88": {
+    "journeyMapId": "53f9b2af-9b4a-47f3-99be-9c5a9b0e5c88",
+    "sessionId": "c4241ca4-d224-40da-901f-be0e294eea11",
+    "status": "DRAFT",
+    "stage": "MATRIX_GENERATION",
+    "name": "Login",
+    "role": "Boss",
+    "context": "It's how you get in. To... *things*. Obviously.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "02994411-e36a-4d05-8666-76c11d906f36",
+        "sequence": 1,
+        "name": "Open the Application",
+        "description": "The user initiates the application.",
+        "context": ""
+      },
+      {
+        "phaseId": "7559ff77-63c1-49e5-9ce0-cacd0392319a",
+        "sequence": 2,
+        "name": "See the Login Screen",
+        "description": "The login interface is displayed.",
+        "context": ""
+      },
+      {
+        "phaseId": "999f0178-e843-43b0-bda6-9a68a5df113b",
+        "sequence": 3,
+        "name": "Type Username",
+        "description": "The user enters their username.",
+        "context": ""
+      },
+      {
+        "phaseId": "09729b6b-5d77-450a-aebe-46afbb6fe278",
+        "sequence": 4,
+        "name": "Type Password",
+        "description": "The user enters their password.",
+        "context": ""
+      },
+      {
+        "phaseId": "cb3d24df-8833-4438-a311-a65f72be36de",
+        "sequence": 5,
+        "name": "Click the Button",
+        "description": "The user submits their credentials.",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "5e6b370e-7267-401c-8369-f05a3ff91434",
+        "sequence": 1,
+        "name": "User",
+        "description": "The person interacting with the application.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "7dbc91be-a987-445a-92ca-2265fc845968",
+        "sequence": 2,
+        "name": "System",
+        "description": "The application or backend services.",
+        "context": ""
+      }
+    ],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 5,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 10,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:52:43.018Z",
+    "updatedAt": "2026-02-04T23:52:47.624Z",
+    "version": 4
+  },
+  "26bc209b-371b-4b71-abf6-dfdc0b96d2f6": {
+    "journeyMapId": "26bc209b-371b-4b71-abf6-dfdc0b96d2f6",
+    "sessionId": "e37c3139-a4b1-43ef-a0ce-cbbc60e20506",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Draft",
+    "role": "ninja",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:55:34.284Z",
+    "updatedAt": "2026-02-04T23:55:34.284Z",
+    "version": 1
+  },
+  "69a93cbe-cb92-416a-ae8c-6a74d833662e": {
+    "journeyMapId": "69a93cbe-cb92-416a-ae8c-6a74d833662e",
+    "sessionId": "28993cf2-f8e2-4973-8151-d99a58cc2de9",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Daniel",
+    "role": "ninja",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:56:59.046Z",
+    "updatedAt": "2026-02-04T23:56:59.046Z",
+    "version": 1
+  },
+  "7f76ca1d-e602-4dc8-b132-325459e1719c": {
+    "journeyMapId": "7f76ca1d-e602-4dc8-b132-325459e1719c",
+    "sessionId": "13802e60-ecdc-4a39-89f5-e3c2809336dd",
+    "status": "DRAFT",
+    "stage": "PHASES",
+    "name": "Contract Killing",
+    "role": "ninja",
+    "context": "The process involves getting the target's name, finding out where they live, buying nunchuks, waiting until night, smack them in the head, photograph the body, and collect money.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:58:04.758Z",
+    "updatedAt": "2026-02-04T23:58:06.336Z",
+    "version": 2
+  },
+  "54db22f7-4096-45c1-a230-87369f26739f": {
+    "journeyMapId": "54db22f7-4096-45c1-a230-87369f26739f",
+    "sessionId": "8aac42d5-624a-4608-989a-5c4bbe7221a6",
+    "status": "DRAFT",
+    "stage": "SWIMLANES",
+    "name": "Contract Killing",
+    "role": "ninja",
+    "context": "The process involves getting the target's name, finding out where they live, buying nunchuks, waiting until night, smacking them in the head, photographing the body, and collecting money.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "e283376b-72e4-4b53-be02-9fc0d9b85d1c",
+        "sequence": 1,
+        "name": "Target Identification",
+        "description": "Getting their name.",
+        "context": ""
+      },
+      {
+        "phaseId": "8876599f-63e8-4dfd-b5cc-ab74105ce816",
+        "sequence": 2,
+        "name": "Location Scouting",
+        "description": "Finding out where they live.",
+        "context": ""
+      },
+      {
+        "phaseId": "6663f18f-c332-418e-9cdb-d63807cd46da",
+        "sequence": 3,
+        "name": "Acquisition of Tools",
+        "description": "Buying nunchuks.",
+        "context": ""
+      },
+      {
+        "phaseId": "01b19177-f61b-4cc9-9c65-70ca59c1d001",
+        "sequence": 4,
+        "name": "Staging",
+        "description": "Waiting until night.",
+        "context": ""
+      },
+      {
+        "phaseId": "986c5704-f89f-44ad-8308-02bb75fa1a25",
+        "sequence": 5,
+        "name": "Execution",
+        "description": "Smacking them in the head.",
+        "context": ""
+      },
+      {
+        "phaseId": "d73f8907-c897-436b-8df9-2733762a45a5",
+        "sequence": 6,
+        "name": "Evidence Collection",
+        "description": "Photographing the body.",
+        "context": ""
+      },
+      {
+        "phaseId": "0976f508-3429-4d20-9c92-b77f6ef74a43",
+        "sequence": 7,
+        "name": "Remuneration",
+        "description": "Collecting money.",
+        "context": ""
+      }
+    ],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 7,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-04T23:58:50.489Z",
+    "updatedAt": "2026-02-04T23:58:55.242Z",
+    "version": 3
+  },
+  "23002c78-e354-4259-8724-4e34d9ea72c7": {
+    "journeyMapId": "23002c78-e354-4259-8724-4e34d9ea72c7",
+    "sessionId": "d3e95693-e3b5-4790-9f57-e2f36f120312",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Daniel",
+    "role": "chef",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T00:05:55.733Z",
+    "updatedAt": "2026-02-05T00:05:55.733Z",
+    "version": 1
+  },
+  "53b4d7f3-2a18-4f8e-b55c-18e98bb5f0b5": {
+    "journeyMapId": "53b4d7f3-2a18-4f8e-b55c-18e98bb5f0b5",
+    "sessionId": "d5b02b3d-bae3-478e-936a-29bf94610477",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Daniel's Cookie Journey",
+    "role": "Chef",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T00:06:17.045Z",
+    "updatedAt": "2026-02-05T00:06:17.045Z",
+    "version": 1
+  },
+  "b521302d-f9e5-4d12-85ae-33288e6193ef": {
+    "journeyMapId": "b521302d-f9e5-4d12-85ae-33288e6193ef",
+    "sessionId": "7123cadb-1908-4265-9eb6-1adc1ef7626d",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Daniel",
+    "role": "chef",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T00:06:35.873Z",
+    "updatedAt": "2026-02-05T00:06:35.873Z",
+    "version": 1
   }
 }
