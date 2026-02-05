@@ -72,7 +72,7 @@ STATE MACHINE:
 10. **Capture Cells (Loop)**: 
     *   **Logic**: Iterate through every Phase x Swimlane intersection.
     *   **Prompt**: Construct a natural language prompt using the SWIMLANE and PHASE name/description. Ask "what happens here" and probe once for context.
-    *   **Action**: Call \`update_cell\` to save.
+    *   **Action**: Call \`update_cell\` to save. You can identify the cell by \`phaseName\` and \`swimlaneName\` if you don't have the UUID.
     *   **Gate**: The AI does not let the conversation proceed until CELLS are known.
 11. **Completion**: 
     *   **Action**: Call \`generate_artifacts\` when done.
@@ -260,16 +260,18 @@ const JOURNEY_TOOLS = [
             },
             {
                 name: "update_cell",
-                description: "Save a specific action/pain-point for a specific cell intersection.",
+                description: "Save a specific action/pain-point for a specific cell intersection. You can identify the cell by its ID *OR* by providing the Phase Name and Swimlane Name.",
                 parameters: {
                     type: "OBJECT",
                     properties: {
                         journeyMapId: { type: "STRING" },
-                        cellId: { type: "STRING", description: "The UUID of the cell being updated" },
+                        cellId: { type: "STRING", description: "The UUID of the cell (Optional if names provided)" },
+                        phaseName: { type: "STRING", description: "Name of the phase (Optional if cellId provided)" },
+                        swimlaneName: { type: "STRING", description: "Name of the swimlane (Optional if cellId provided)" },
                         action: { type: "STRING", description: "Succinct action title" },
                         context: { type: "STRING", description: "Detailed context" }
                     },
-                    required: ["journeyMapId", "cellId", "action"]
+                    required: ["journeyMapId", "action"]
                 }
             },
             {
@@ -414,7 +416,36 @@ async function executeTool(name, args) {
                 response = await fetch(`${api}/v1/journey-maps/${args.journeyMapId}/generate-matrix`, { method: 'POST', headers, body: '{}' });
                 break;
             case 'update_cell':
-                response = await fetch(`${api}/v1/journey-maps/${args.journeyMapId}/cells/${args.cellId}`, { method: 'PUT', headers, body: JSON.stringify(args) });
+                let targetCellId = args.cellId;
+
+                // Robust Lookup by Name if ID is missing
+                if (!targetCellId && args.phaseName && args.swimlaneName) {
+                    console.log(`🔍 Looking up cell by name: ${args.phaseName} x ${args.swimlaneName}`);
+                    const journey = await getJourneyState(args.journeyMapId);
+                    if (journey) {
+                        // fuzzy match helpers
+                        const findMatch = (list, name) => list.find(item => item.name.toLowerCase().trim() === name.toLowerCase().trim());
+                        
+                        const phase = findMatch(journey.phases, args.phaseName);
+                        const swimlane = findMatch(journey.swimlanes, args.swimlaneName);
+                        
+                        if (phase && swimlane) {
+                            const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+                            if (cell) {
+                                targetCellId = cell.cellId;
+                                console.log(`✅ Found Cell ID: ${targetCellId}`);
+                            }
+                        } else {
+                            console.warn(`⚠️ Could not find phase/swimlane match. P:${!!phase} S:${!!swimlane}`);
+                        }
+                    }
+                }
+
+                if (!targetCellId) {
+                    return { error: "Missing cellId and could not resolve phaseName/swimlaneName to a valid cell. Please ensure names match exactly." };
+                }
+
+                response = await fetch(`${api}/v1/journey-maps/${args.journeyMapId}/cells/${targetCellId}`, { method: 'PUT', headers, body: JSON.stringify(args) });
                 break;
             case 'generate_artifacts':
                 response = await fetch(`${api}/v1/journey-maps/${args.journeyMapId}/generate-artifacts`, { method: 'POST', headers, body: '{}' });

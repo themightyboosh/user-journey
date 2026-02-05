@@ -2959,5 +2959,270 @@
     "createdAt": "2026-02-05T12:00:35.045Z",
     "updatedAt": "2026-02-05T12:07:12.774Z",
     "version": 4
+  },
+  "49a12663-595c-4e6d-8391-2b8e4b77ddc1": {
+    "journeyMapId": "49a12663-595c-4e6d-8391-2b8e4b77ddc1",
+    "sessionId": "5eaa5478-c7d1-40c1-ace1-a5a7836d1f2c",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Draft",
+    "role": "Product Manager",
+    "context": "User is Daniel",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T12:44:21.919Z",
+    "updatedAt": "2026-02-05T12:44:21.919Z",
+    "version": 1
+  },
+  "9f1ca75f-e08e-4a18-83bb-55769bbba188": {
+    "journeyMapId": "9f1ca75f-e08e-4a18-83bb-55769bbba188",
+    "sessionId": "a43d3bf9-9f7c-4b86-9d5c-21a0193fe170",
+    "status": "DRAFT",
+    "stage": "CELL_POPULATION",
+    "name": "Entering time",
+    "role": "Product Manager",
+    "context": "Its really hard work",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "c9b46bf1-e60a-42a7-8351-a9d6af2bbb8b",
+        "sequence": 1,
+        "name": "Launch App",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "70283fb0-448f-4301-af1d-f94a00deb755",
+        "sequence": 2,
+        "name": "Enter the Time",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "c7a50931-da7c-499d-8bb4-0ad760e7a223",
+        "sequence": 3,
+        "name": "Add notes",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "78d3344e-1a55-4ca7-b4bc-522a2b4f7128",
+        "sequence": 1,
+        "name": "Me",
+        "description": "",
+        "context": ""
+      },
+      {
+        "swimlaneId": "6ae30e2f-a6bd-40cf-80af-c747c78b1ea1",
+        "sequence": 2,
+        "name": "AirBase",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "ea52f4e3-0eb3-431f-aa09-fde9246db8e1",
+        "phaseId": "c9b46bf1-e60a-42a7-8351-a9d6af2bbb8b",
+        "swimlaneId": "78d3344e-1a55-4ca7-b4bc-522a2b4f7128",
+        "action": "It hurts",
+        "context": "It dries my skin"
+      },
+      {
+        "cellId": "f1e20d6b-0a18-4dc3-a90b-abf82894d6d7",
+        "phaseId": "c9b46bf1-e60a-42a7-8351-a9d6af2bbb8b",
+        "swimlaneId": "6ae30e2f-a6bd-40cf-80af-c747c78b1ea1",
+        "action": "It makes me coffee",
+        "context": "It uses a coffee maker"
+      },
+      {
+        "cellId": "b39e5bf2-aa28-4bc1-ab67-64be08ba15af",
+        "phaseId": "70283fb0-448f-4301-af1d-f94a00deb755",
+        "swimlaneId": "78d3344e-1a55-4ca7-b4bc-522a2b4f7128",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "00dc0ccb-6931-4a94-806f-643738d30846",
+        "phaseId": "70283fb0-448f-4301-af1d-f94a00deb755",
+        "swimlaneId": "6ae30e2f-a6bd-40cf-80af-c747c78b1ea1",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "07860904-d2e7-4026-abea-da30c769ffa2",
+        "phaseId": "c7a50931-da7c-499d-8bb4-0ad760e7a223",
+        "swimlaneId": "78d3344e-1a55-4ca7-b4bc-522a2b4f7128",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "fc5c906b-646f-4ab0-8543-4493a35ce16e",
+        "phaseId": "c7a50931-da7c-499d-8bb4-0ad760e7a223",
+        "swimlaneId": "6ae30e2f-a6bd-40cf-80af-c747c78b1ea1",
+        "action": "",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 3,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 6,
+      "totalCellsPresent": 6,
+      "totalCellsCompleted": 2,
+      "percentCellsComplete": 33.33333333333333
+    },
+    "createdAt": "2026-02-05T12:45:05.314Z",
+    "updatedAt": "2026-02-05T12:53:15.273Z",
+    "version": 9
+  },
+  "35e316b3-e0ca-4196-baa4-ea679d3cc4f4": {
+    "journeyMapId": "35e316b3-e0ca-4196-baa4-ea679d3cc4f4",
+    "sessionId": "cc6a89ae-20e1-4595-b97e-2c9b66290087",
+    "status": "READY_FOR_REVIEW",
+    "stage": "COMPLETE",
+    "name": "Entering Time",
+    "role": "Product Manager",
+    "context": "Entering TimeEntering Time",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "75c68453-1fcb-4c53-a70d-345e36e4c97c",
+        "sequence": 1,
+        "name": "launch app",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "b72b87bd-19a2-41d2-b42a-6d70375262d7",
+        "sequence": 2,
+        "name": "enter time",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "9e248c1e-ed48-48f9-86d6-00f66a110f4b",
+        "sequence": 3,
+        "name": "call HR",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "2f46c144-872c-44f6-8db7-398fd78d6c90",
+        "sequence": 1,
+        "name": "AirBase",
+        "description": "for time entry",
+        "context": ""
+      },
+      {
+        "swimlaneId": "41b533f1-96df-4ad2-88cc-61d5b4ba2054",
+        "sequence": 2,
+        "name": "Me",
+        "description": "the user",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "fdac29d5-708b-4f56-90db-b307b42458b0",
+        "phaseId": "75c68453-1fcb-4c53-a70d-345e36e4c97c",
+        "swimlaneId": "2f46c144-872c-44f6-8db7-398fd78d6c90",
+        "action": "Its loading",
+        "context": ""
+      },
+      {
+        "cellId": "53f653ea-0b97-4ff1-afc3-64074bd8de3a",
+        "phaseId": "75c68453-1fcb-4c53-a70d-345e36e4c97c",
+        "swimlaneId": "41b533f1-96df-4ad2-88cc-61d5b4ba2054",
+        "action": "Install security USB device",
+        "context": ""
+      },
+      {
+        "cellId": "f9d0c0d9-2ccf-4c40-9e1f-1277368c2a4b",
+        "phaseId": "b72b87bd-19a2-41d2-b42a-6d70375262d7",
+        "swimlaneId": "2f46c144-872c-44f6-8db7-398fd78d6c90",
+        "action": "I fill a form",
+        "context": ""
+      },
+      {
+        "cellId": "dc7f9bc6-52af-448b-b6fe-9d25f1bae976",
+        "phaseId": "b72b87bd-19a2-41d2-b42a-6d70375262d7",
+        "swimlaneId": "41b533f1-96df-4ad2-88cc-61d5b4ba2054",
+        "action": "I need to figure out what I did",
+        "context": ""
+      },
+      {
+        "cellId": "c4c4b815-2db8-4b47-bf03-f1f380d494af",
+        "phaseId": "9e248c1e-ed48-48f9-86d6-00f66a110f4b",
+        "swimlaneId": "2f46c144-872c-44f6-8db7-398fd78d6c90",
+        "action": "Look up client MSAa",
+        "context": ""
+      },
+      {
+        "cellId": "aafa36f7-24cb-447a-9737-c3df0c2c3676",
+        "phaseId": "9e248c1e-ed48-48f9-86d6-00f66a110f4b",
+        "swimlaneId": "41b533f1-96df-4ad2-88cc-61d5b4ba2054",
+        "action": "Taking a break",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 3,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 6,
+      "totalCellsPresent": 6,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T12:57:37.897Z",
+    "updatedAt": "2026-02-05T13:23:42.156Z",
+    "version": 13,
+    "mermaid": {
+      "code": "journey\n    title Entering Time\n    section launch app\n    section enter time\n    section call HR\n"
+    },
+    "outputJson": {
+      "code": "{\n  \"journeyMapId\": \"35e316b3-e0ca-4196-baa4-ea679d3cc4f4\",\n  \"sessionId\": \"cc6a89ae-20e1-4595-b97e-2c9b66290087\",\n  \"status\": \"DRAFT\",\n  \"stage\": \"CELL_POPULATION\",\n  \"name\": \"Entering Time\",\n  \"role\": \"Product Manager\",\n  \"context\": \"Entering TimeEntering Time\",\n  \"arePhasesComplete\": false,\n  \"areSwimlanesComplete\": false,\n  \"completionStatus\": {\n    \"name\": true,\n    \"role\": true,\n    \"context\": true,\n    \"phases\": false,\n    \"swimlanes\": false,\n    \"cells\": false\n  },\n  \"phases\": [\n    {\n      \"phaseId\": \"75c68453-1fcb-4c53-a70d-345e36e4c97c\",\n      \"sequence\": 1,\n      \"name\": \"launch app\",\n      \"description\": \"\",\n      \"context\": \"\"\n    },\n    {\n      \"phaseId\": \"b72b87bd-19a2-41d2-b42a-6d70375262d7\",\n      \"sequence\": 2,\n      \"name\": \"enter time\",\n      \"description\": \"\",\n      \"context\": \"\"\n    },\n    {\n      \"phaseId\": \"9e248c1e-ed48-48f9-86d6-00f66a110f4b\",\n      \"sequence\": 3,\n      \"name\": \"call HR\",\n      \"description\": \"\",\n      \"context\": \"\"\n    }\n  ],\n  \"swimlanes\": [\n    {\n      \"swimlaneId\": \"2f46c144-872c-44f6-8db7-398fd78d6c90\",\n      \"sequence\": 1,\n      \"name\": \"AirBase\",\n      \"description\": \"for time entry\",\n      \"context\": \"\"\n    },\n    {\n      \"swimlaneId\": \"41b533f1-96df-4ad2-88cc-61d5b4ba2054\",\n      \"sequence\": 2,\n      \"name\": \"Me\",\n      \"description\": \"the user\",\n      \"context\": \"\"\n    }\n  ],\n  \"cells\": [\n    {\n      \"cellId\": \"fdac29d5-708b-4f56-90db-b307b42458b0\",\n      \"phaseId\": \"75c68453-1fcb-4c53-a70d-345e36e4c97c\",\n      \"swimlaneId\": \"2f46c144-872c-44f6-8db7-398fd78d6c90\",\n      \"action\": \"Its loading\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"53f653ea-0b97-4ff1-afc3-64074bd8de3a\",\n      \"phaseId\": \"75c68453-1fcb-4c53-a70d-345e36e4c97c\",\n      \"swimlaneId\": \"41b533f1-96df-4ad2-88cc-61d5b4ba2054\",\n      \"action\": \"Install security USB device\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"f9d0c0d9-2ccf-4c40-9e1f-1277368c2a4b\",\n      \"phaseId\": \"b72b87bd-19a2-41d2-b42a-6d70375262d7\",\n      \"swimlaneId\": \"2f46c144-872c-44f6-8db7-398fd78d6c90\",\n      \"action\": \"I fill a form\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"dc7f9bc6-52af-448b-b6fe-9d25f1bae976\",\n      \"phaseId\": \"b72b87bd-19a2-41d2-b42a-6d70375262d7\",\n      \"swimlaneId\": \"41b533f1-96df-4ad2-88cc-61d5b4ba2054\",\n      \"action\": \"I need to figure out what I did\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"c4c4b815-2db8-4b47-bf03-f1f380d494af\",\n      \"phaseId\": \"9e248c1e-ed48-48f9-86d6-00f66a110f4b\",\n      \"swimlaneId\": \"2f46c144-872c-44f6-8db7-398fd78d6c90\",\n      \"action\": \"Look up client MSAa\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"aafa36f7-24cb-447a-9737-c3df0c2c3676\",\n      \"phaseId\": \"9e248c1e-ed48-48f9-86d6-00f66a110f4b\",\n      \"swimlaneId\": \"41b533f1-96df-4ad2-88cc-61d5b4ba2054\",\n      \"action\": \"Taking a break\",\n      \"context\": \"\"\n    }\n  ],\n  \"metrics\": {\n    \"totalPhases\": 3,\n    \"totalSwimlanes\": 2,\n    \"totalCellsExpected\": 6,\n    \"totalCellsPresent\": 6,\n    \"totalCellsCompleted\": 0,\n    \"percentCellsComplete\": 0\n  },\n  \"createdAt\": \"2026-02-05T12:57:37.897Z\",\n  \"updatedAt\": \"2026-02-05T13:23:23.014Z\",\n  \"version\": 12,\n  \"mermaid\": {\n    \"code\": \"journey\\n    title Entering Time\\n    section launch app\\n    section enter time\\n    section call HR\\n\"\n  }\n}"
+    }
   }
 }
