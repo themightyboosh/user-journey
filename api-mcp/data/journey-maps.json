@@ -1697,5 +1697,1267 @@
     "createdAt": "2026-02-05T00:06:35.873Z",
     "updatedAt": "2026-02-05T00:06:35.873Z",
     "version": 1
+  },
+  "9c737cd1-2753-4a1d-8845-3b4fa6fa4cbb": {
+    "journeyMapId": "9c737cd1-2753-4a1d-8845-3b4fa6fa4cbb",
+    "sessionId": "28fb3652-d60e-4674-953d-5701470d4c81",
+    "status": "DRAFT",
+    "stage": "MATRIX_GENERATION",
+    "name": "Cooking a 5-course meal",
+    "role": "Customer Support",
+    "context": "Safety is the number one priority here.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "4a7293a5-19ed-4f88-8cfb-6f1afecbbf64",
+        "sequence": 1,
+        "name": "Check-in",
+        "description": "Description for Check-in",
+        "context": ""
+      },
+      {
+        "phaseId": "81cb765e-5377-4acf-bfc8-b065ed145ead",
+        "sequence": 2,
+        "name": "Security",
+        "description": "Description for Security",
+        "context": ""
+      },
+      {
+        "phaseId": "6732070c-23a4-4299-9d7c-7945cf23d5bc",
+        "sequence": 3,
+        "name": "Boarding",
+        "description": "Description for Boarding",
+        "context": ""
+      },
+      {
+        "phaseId": "e5fb3fcc-c364-45c5-aa1f-3cc4dce009aa",
+        "sequence": 4,
+        "name": "Flight",
+        "description": "Description for Flight",
+        "context": ""
+      },
+      {
+        "phaseId": "2502e545-83fc-430d-9550-473d42428fd7",
+        "sequence": 5,
+        "name": "Landing",
+        "description": "Description for Landing",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "ca9f1e77-f10d-4024-b167-4039b1596413",
+        "sequence": 1,
+        "name": "Agent",
+        "description": "Role of Agent",
+        "context": ""
+      },
+      {
+        "swimlaneId": "295284d8-7c9c-4838-86d7-971e4b017695",
+        "sequence": 2,
+        "name": "Knowledge Base",
+        "description": "Role of Knowledge Base",
+        "context": ""
+      },
+      {
+        "swimlaneId": "bad9070f-d1d8-40a1-8659-981b4f7faaf6",
+        "sequence": 3,
+        "name": "Engineering",
+        "description": "Role of Engineering",
+        "context": ""
+      },
+      {
+        "swimlaneId": "43848f87-bfcb-4f9b-ac9a-2cf4c4a0e0b0",
+        "sequence": 4,
+        "name": "Customer",
+        "description": "Role of Customer",
+        "context": ""
+      }
+    ],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 5,
+      "totalSwimlanes": 4,
+      "totalCellsExpected": 20,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T01:27:03.866Z",
+    "updatedAt": "2026-02-05T01:27:09.900Z",
+    "version": 4
+  },
+  "3e0ac421-f382-4cd4-8046-fb8c89afca55": {
+    "journeyMapId": "3e0ac421-f382-4cd4-8046-fb8c89afca55",
+    "sessionId": "b3a56033-0d4c-44a2-92c0-d55ea0027983",
+    "status": "DRAFT",
+    "stage": "MATRIX_GENERATION",
+    "name": "Handling a support ticket",
+    "role": "Software Engineer",
+    "context": "Focus on the emotional highs and lows of the user.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "bb8ff49c-0c8a-46b6-a2a5-c0e50459c545",
+        "sequence": 1,
+        "name": "Triage",
+        "description": "Description for Triage",
+        "context": ""
+      },
+      {
+        "phaseId": "848e2895-691a-481f-9d56-7513a232de0d",
+        "sequence": 2,
+        "name": "Investigation",
+        "description": "Description for Investigation",
+        "context": ""
+      },
+      {
+        "phaseId": "b8583d09-77d0-4b99-ab59-2e4c00576429",
+        "sequence": 3,
+        "name": "Resolution",
+        "description": "Description for Resolution",
+        "context": ""
+      },
+      {
+        "phaseId": "a68fd574-5a21-4fcc-9774-11412a75c698",
+        "sequence": 4,
+        "name": "Follow-up",
+        "description": "Description for Follow-up",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "9531a269-7668-4153-a2f7-b0e62abc411f",
+        "sequence": 1,
+        "name": "User",
+        "description": "Role of User",
+        "context": ""
+      },
+      {
+        "swimlaneId": "9aedabfb-fd5c-4f73-94a1-6216f803f70e",
+        "sequence": 2,
+        "name": "System",
+        "description": "Role of System",
+        "context": ""
+      },
+      {
+        "swimlaneId": "2db448f9-70d0-4f08-9726-8b0fdba960ae",
+        "sequence": 3,
+        "name": "Admin",
+        "description": "Role of Admin",
+        "context": ""
+      }
+    ],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 4,
+      "totalSwimlanes": 3,
+      "totalCellsExpected": 12,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T01:27:22.854Z",
+    "updatedAt": "2026-02-05T01:27:28.882Z",
+    "version": 4
+  },
+  "e215f428-78ac-412f-9aa4-e7a8afda9fd3": {
+    "journeyMapId": "e215f428-78ac-412f-9aa4-e7a8afda9fd3",
+    "sessionId": "351ae3be-5294-43a3-af12-1d93726ed27c",
+    "status": "DRAFT",
+    "stage": "CELL_POPULATION",
+    "name": "Onboarding a new user",
+    "role": "Software Engineer",
+    "context": "Focus on the emotional highs and lows of the user.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "3a768d6b-f306-41a1-967a-8ac94db7113b",
+        "sequence": 1,
+        "name": "Check-in",
+        "description": "Description for Check-in",
+        "context": ""
+      },
+      {
+        "phaseId": "9a91f3a8-c3ce-4f85-8f6e-78a4e5450438",
+        "sequence": 2,
+        "name": "Security",
+        "description": "Description for Security",
+        "context": ""
+      },
+      {
+        "phaseId": "970b6183-137a-4241-8686-69ddbaffcd46",
+        "sequence": 3,
+        "name": "Boarding",
+        "description": "Description for Boarding",
+        "context": ""
+      },
+      {
+        "phaseId": "094a2024-c129-4464-bdab-83b7b428afd5",
+        "sequence": 4,
+        "name": "Flight",
+        "description": "Description for Flight",
+        "context": ""
+      },
+      {
+        "phaseId": "95f8b098-5011-4743-ae2a-f083325060be",
+        "sequence": 5,
+        "name": "Landing",
+        "description": "Description for Landing",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "2a6e5859-c65d-41f1-92c6-ff2682163452",
+        "sequence": 1,
+        "name": "Chef",
+        "description": "Role of Chef",
+        "context": ""
+      },
+      {
+        "swimlaneId": "1a3e4ce8-8e52-4d30-9a31-15e5bfa11b39",
+        "sequence": 2,
+        "name": "Sous Chef",
+        "description": "Role of Sous Chef",
+        "context": ""
+      },
+      {
+        "swimlaneId": "2ff90995-ac89-4472-889d-29631f2a8d14",
+        "sequence": 3,
+        "name": "Waiter",
+        "description": "Role of Waiter",
+        "context": ""
+      },
+      {
+        "swimlaneId": "edb87b5f-1f1e-4da5-a134-19c94a45aaa7",
+        "sequence": 4,
+        "name": "Customer",
+        "description": "Role of Customer",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "918452bb-f096-4a0f-a737-c919a151157c",
+        "phaseId": "3a768d6b-f306-41a1-967a-8ac94db7113b",
+        "swimlaneId": "2a6e5859-c65d-41f1-92c6-ff2682163452",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "89191608-16af-491b-ae1d-7f37c66e702e",
+        "phaseId": "3a768d6b-f306-41a1-967a-8ac94db7113b",
+        "swimlaneId": "1a3e4ce8-8e52-4d30-9a31-15e5bfa11b39",
+        "action": "Sous Chef performs Check-in",
+        "context": "Detailed context about how Sous Chef handles the Check-in step in this journey."
+      },
+      {
+        "cellId": "f3769ca6-5daf-4358-9800-9645520fde16",
+        "phaseId": "3a768d6b-f306-41a1-967a-8ac94db7113b",
+        "swimlaneId": "2ff90995-ac89-4472-889d-29631f2a8d14",
+        "action": "Waiter performs Check-in",
+        "context": "Detailed context about how Waiter handles the Check-in step in this journey."
+      },
+      {
+        "cellId": "845b0dd7-510b-41a9-b329-2d2839d5259c",
+        "phaseId": "3a768d6b-f306-41a1-967a-8ac94db7113b",
+        "swimlaneId": "edb87b5f-1f1e-4da5-a134-19c94a45aaa7",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "9d9d5709-d85a-47d0-b6c3-eb625d5dbe73",
+        "phaseId": "9a91f3a8-c3ce-4f85-8f6e-78a4e5450438",
+        "swimlaneId": "2a6e5859-c65d-41f1-92c6-ff2682163452",
+        "action": "Chef performs Security",
+        "context": "Detailed context about how Chef handles the Security step in this journey."
+      },
+      {
+        "cellId": "3d1bbcb0-0cfe-4c65-9ac0-f6000904d2a6",
+        "phaseId": "9a91f3a8-c3ce-4f85-8f6e-78a4e5450438",
+        "swimlaneId": "1a3e4ce8-8e52-4d30-9a31-15e5bfa11b39",
+        "action": "Sous Chef performs Security",
+        "context": "Detailed context about how Sous Chef handles the Security step in this journey."
+      },
+      {
+        "cellId": "1cfefd63-92a3-4bbf-b36b-c30fec20f2f4",
+        "phaseId": "9a91f3a8-c3ce-4f85-8f6e-78a4e5450438",
+        "swimlaneId": "2ff90995-ac89-4472-889d-29631f2a8d14",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "c2661e03-7714-4a26-adbb-32b4c9d2b3a8",
+        "phaseId": "9a91f3a8-c3ce-4f85-8f6e-78a4e5450438",
+        "swimlaneId": "edb87b5f-1f1e-4da5-a134-19c94a45aaa7",
+        "action": "Customer performs Security",
+        "context": "Detailed context about how Customer handles the Security step in this journey."
+      },
+      {
+        "cellId": "f23f7ab5-8bb1-4868-9a02-0e95a2c6b4e8",
+        "phaseId": "970b6183-137a-4241-8686-69ddbaffcd46",
+        "swimlaneId": "2a6e5859-c65d-41f1-92c6-ff2682163452",
+        "action": "Chef performs Boarding",
+        "context": "Detailed context about how Chef handles the Boarding step in this journey."
+      },
+      {
+        "cellId": "5c039e3e-3c9a-4c3a-9092-3ff14bd3f155",
+        "phaseId": "970b6183-137a-4241-8686-69ddbaffcd46",
+        "swimlaneId": "1a3e4ce8-8e52-4d30-9a31-15e5bfa11b39",
+        "action": "Sous Chef performs Boarding",
+        "context": "Detailed context about how Sous Chef handles the Boarding step in this journey."
+      },
+      {
+        "cellId": "aefdf121-1fcd-4472-b4bd-3bd0b46d7ebb",
+        "phaseId": "970b6183-137a-4241-8686-69ddbaffcd46",
+        "swimlaneId": "2ff90995-ac89-4472-889d-29631f2a8d14",
+        "action": "Waiter performs Boarding",
+        "context": "Detailed context about how Waiter handles the Boarding step in this journey."
+      },
+      {
+        "cellId": "ad90302b-5619-44f4-909c-41c32c174891",
+        "phaseId": "970b6183-137a-4241-8686-69ddbaffcd46",
+        "swimlaneId": "edb87b5f-1f1e-4da5-a134-19c94a45aaa7",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "f16ce1ca-c19e-4212-aa40-9053edc67e9e",
+        "phaseId": "094a2024-c129-4464-bdab-83b7b428afd5",
+        "swimlaneId": "2a6e5859-c65d-41f1-92c6-ff2682163452",
+        "action": "Chef performs Flight",
+        "context": "Detailed context about how Chef handles the Flight step in this journey."
+      },
+      {
+        "cellId": "117d1d55-13f9-4dbc-8ae4-41eb73fb0609",
+        "phaseId": "094a2024-c129-4464-bdab-83b7b428afd5",
+        "swimlaneId": "1a3e4ce8-8e52-4d30-9a31-15e5bfa11b39",
+        "action": "Sous Chef performs Flight",
+        "context": "Detailed context about how Sous Chef handles the Flight step in this journey."
+      },
+      {
+        "cellId": "71b5599d-0ef8-4f2b-8aeb-7924dd76688a",
+        "phaseId": "094a2024-c129-4464-bdab-83b7b428afd5",
+        "swimlaneId": "2ff90995-ac89-4472-889d-29631f2a8d14",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "7980b536-527d-408d-932c-39a6eaef1bca",
+        "phaseId": "094a2024-c129-4464-bdab-83b7b428afd5",
+        "swimlaneId": "edb87b5f-1f1e-4da5-a134-19c94a45aaa7",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "2d99241e-f208-4d01-8ed0-4b1a0109252d",
+        "phaseId": "95f8b098-5011-4743-ae2a-f083325060be",
+        "swimlaneId": "2a6e5859-c65d-41f1-92c6-ff2682163452",
+        "action": "Chef performs Landing",
+        "context": "Detailed context about how Chef handles the Landing step in this journey."
+      },
+      {
+        "cellId": "f7c1a0c2-15cf-460b-9eb1-59986da116ec",
+        "phaseId": "95f8b098-5011-4743-ae2a-f083325060be",
+        "swimlaneId": "1a3e4ce8-8e52-4d30-9a31-15e5bfa11b39",
+        "action": "Sous Chef performs Landing",
+        "context": "Detailed context about how Sous Chef handles the Landing step in this journey."
+      },
+      {
+        "cellId": "e7387b0f-6581-4119-a8b0-2fb1745f6302",
+        "phaseId": "95f8b098-5011-4743-ae2a-f083325060be",
+        "swimlaneId": "2ff90995-ac89-4472-889d-29631f2a8d14",
+        "action": "Waiter performs Landing",
+        "context": "Detailed context about how Waiter handles the Landing step in this journey."
+      },
+      {
+        "cellId": "2f30cfb5-85ef-42c5-a5db-b0eba1242a7f",
+        "phaseId": "95f8b098-5011-4743-ae2a-f083325060be",
+        "swimlaneId": "edb87b5f-1f1e-4da5-a134-19c94a45aaa7",
+        "action": "",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 5,
+      "totalSwimlanes": 4,
+      "totalCellsExpected": 20,
+      "totalCellsPresent": 20,
+      "totalCellsCompleted": 13,
+      "percentCellsComplete": 65
+    },
+    "createdAt": "2026-02-05T01:27:55.075Z",
+    "updatedAt": "2026-02-05T01:28:08.289Z",
+    "version": 18
+  },
+  "bdfd4313-d624-4127-8f34-dfc9725bfc70": {
+    "journeyMapId": "bdfd4313-d624-4127-8f34-dfc9725bfc70",
+    "sessionId": "e047dbc0-15ce-44e1-9cb0-8c28a86d979d",
+    "status": "DRAFT",
+    "stage": "MATRIX_GENERATION",
+    "name": "Flying a plane from NY to London",
+    "role": "Customer Support",
+    "context": "Safety is the number one priority here.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "9091fb96-f791-412c-9c06-791ea642f5f8",
+        "sequence": 1,
+        "name": "Prep",
+        "description": "Description for Prep",
+        "context": ""
+      },
+      {
+        "phaseId": "6241bad5-ae8b-489a-b21a-7c14a7172b1c",
+        "sequence": 2,
+        "name": "Cook",
+        "description": "Description for Cook",
+        "context": ""
+      },
+      {
+        "phaseId": "6f82a561-d110-4b46-acaa-62b575908ef5",
+        "sequence": 3,
+        "name": "Serve",
+        "description": "Description for Serve",
+        "context": ""
+      },
+      {
+        "phaseId": "4c69ceed-f4eb-49ca-b553-ef952e358016",
+        "sequence": 4,
+        "name": "Clean",
+        "description": "Description for Clean",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "94788772-f9db-4a4c-bbda-167e9e9a6b68",
+        "sequence": 1,
+        "name": "User",
+        "description": "Role of User",
+        "context": ""
+      },
+      {
+        "swimlaneId": "d20c8f7f-703f-406a-9942-651ad29bcafd",
+        "sequence": 2,
+        "name": "System",
+        "description": "Role of System",
+        "context": ""
+      },
+      {
+        "swimlaneId": "9b999582-d0d2-4f20-8abf-197255f9d52a",
+        "sequence": 3,
+        "name": "Admin",
+        "description": "Role of Admin",
+        "context": ""
+      }
+    ],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 4,
+      "totalSwimlanes": 3,
+      "totalCellsExpected": 12,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T01:29:41.466Z",
+    "updatedAt": "2026-02-05T01:29:41.780Z",
+    "version": 4
+  },
+  "9445ab30-68c9-446d-9d7a-af6842303d08": {
+    "journeyMapId": "9445ab30-68c9-446d-9d7a-af6842303d08",
+    "sessionId": "a61146c0-a4ae-4752-b255-c806c2e80efb",
+    "status": "DRAFT",
+    "stage": "CELL_POPULATION",
+    "name": "Onboarding a new user",
+    "role": "Pilot",
+    "context": "This is a critical process that often fails due to lack of documentation.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "4b15e162-cffc-499f-b752-be0f935c881d",
+        "sequence": 1,
+        "name": "Discovery",
+        "description": "Description for Discovery",
+        "context": ""
+      },
+      {
+        "phaseId": "10dcad1e-300e-4cf7-8fd2-7123cdb3016e",
+        "sequence": 2,
+        "name": "Definition",
+        "description": "Description for Definition",
+        "context": ""
+      },
+      {
+        "phaseId": "0d1bcff0-c12a-4d39-8024-48895c34b47e",
+        "sequence": 3,
+        "name": "Development",
+        "description": "Description for Development",
+        "context": ""
+      },
+      {
+        "phaseId": "a5fd2f3a-de53-4a2e-9377-774bff3e13f5",
+        "sequence": 4,
+        "name": "Delivery",
+        "description": "Description for Delivery",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "d08dbf8d-e788-4904-8b19-d14f08aa35c6",
+        "sequence": 1,
+        "name": "Passenger",
+        "description": "Role of Passenger",
+        "context": ""
+      },
+      {
+        "swimlaneId": "76393628-cd6b-444b-937e-27817fc0fa4e",
+        "sequence": 2,
+        "name": "Gate Agent",
+        "description": "Role of Gate Agent",
+        "context": ""
+      },
+      {
+        "swimlaneId": "e851f8d8-e9bc-4d89-97fa-8f867c60e623",
+        "sequence": 3,
+        "name": "Pilot",
+        "description": "Role of Pilot",
+        "context": ""
+      },
+      {
+        "swimlaneId": "007e0653-972c-469e-852f-61c6c7b71433",
+        "sequence": 4,
+        "name": "Air Traffic Control",
+        "description": "Role of Air Traffic Control",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "ed2116a5-7aa2-403a-b7d6-034969742f21",
+        "phaseId": "4b15e162-cffc-499f-b752-be0f935c881d",
+        "swimlaneId": "d08dbf8d-e788-4904-8b19-d14f08aa35c6",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "ae97a379-ab23-4a73-b66c-ccedfdbfffc2",
+        "phaseId": "4b15e162-cffc-499f-b752-be0f935c881d",
+        "swimlaneId": "76393628-cd6b-444b-937e-27817fc0fa4e",
+        "action": "Gate Agent performs Discovery",
+        "context": "Detailed context about how Gate Agent handles the Discovery step in this journey."
+      },
+      {
+        "cellId": "588ae97a-3fed-4c4b-96dc-2a55838eac7a",
+        "phaseId": "4b15e162-cffc-499f-b752-be0f935c881d",
+        "swimlaneId": "e851f8d8-e9bc-4d89-97fa-8f867c60e623",
+        "action": "Pilot performs Discovery",
+        "context": "Detailed context about how Pilot handles the Discovery step in this journey."
+      },
+      {
+        "cellId": "9c7a0675-b604-4b7f-89ea-c224d810dd9d",
+        "phaseId": "4b15e162-cffc-499f-b752-be0f935c881d",
+        "swimlaneId": "007e0653-972c-469e-852f-61c6c7b71433",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "1dd851a5-d650-48c0-b9ed-905ea997b93d",
+        "phaseId": "10dcad1e-300e-4cf7-8fd2-7123cdb3016e",
+        "swimlaneId": "d08dbf8d-e788-4904-8b19-d14f08aa35c6",
+        "action": "Passenger performs Definition",
+        "context": "Detailed context about how Passenger handles the Definition step in this journey."
+      },
+      {
+        "cellId": "5fe326ab-381f-4b67-abc3-63936e7354b7",
+        "phaseId": "10dcad1e-300e-4cf7-8fd2-7123cdb3016e",
+        "swimlaneId": "76393628-cd6b-444b-937e-27817fc0fa4e",
+        "action": "Gate Agent performs Definition",
+        "context": "Detailed context about how Gate Agent handles the Definition step in this journey."
+      },
+      {
+        "cellId": "dbada3a6-88fb-4722-92d1-c37168e4ec36",
+        "phaseId": "10dcad1e-300e-4cf7-8fd2-7123cdb3016e",
+        "swimlaneId": "e851f8d8-e9bc-4d89-97fa-8f867c60e623",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "2654a089-f2d8-4af9-a4d7-32f9020d0749",
+        "phaseId": "10dcad1e-300e-4cf7-8fd2-7123cdb3016e",
+        "swimlaneId": "007e0653-972c-469e-852f-61c6c7b71433",
+        "action": "Air Traffic Control performs Definition",
+        "context": "Detailed context about how Air Traffic Control handles the Definition step in this journey."
+      },
+      {
+        "cellId": "653875a8-acfc-4bdc-b681-8202b6ccd309",
+        "phaseId": "0d1bcff0-c12a-4d39-8024-48895c34b47e",
+        "swimlaneId": "d08dbf8d-e788-4904-8b19-d14f08aa35c6",
+        "action": "Passenger performs Development",
+        "context": "Detailed context about how Passenger handles the Development step in this journey."
+      },
+      {
+        "cellId": "cd06ad5c-770e-4445-9604-4dc23ee545f6",
+        "phaseId": "0d1bcff0-c12a-4d39-8024-48895c34b47e",
+        "swimlaneId": "76393628-cd6b-444b-937e-27817fc0fa4e",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "d8a5b6dc-0c2e-4a28-8947-3a6d88a9b9e2",
+        "phaseId": "0d1bcff0-c12a-4d39-8024-48895c34b47e",
+        "swimlaneId": "e851f8d8-e9bc-4d89-97fa-8f867c60e623",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "d33d3867-9875-4e5e-b940-fb7f7d8afdbb",
+        "phaseId": "0d1bcff0-c12a-4d39-8024-48895c34b47e",
+        "swimlaneId": "007e0653-972c-469e-852f-61c6c7b71433",
+        "action": "Air Traffic Control performs Development",
+        "context": "Detailed context about how Air Traffic Control handles the Development step in this journey."
+      },
+      {
+        "cellId": "95dd089f-b3ea-4f0d-81f2-672769fddf0e",
+        "phaseId": "a5fd2f3a-de53-4a2e-9377-774bff3e13f5",
+        "swimlaneId": "d08dbf8d-e788-4904-8b19-d14f08aa35c6",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "58e2392a-d031-4c99-b8ab-5a3e7745a87e",
+        "phaseId": "a5fd2f3a-de53-4a2e-9377-774bff3e13f5",
+        "swimlaneId": "76393628-cd6b-444b-937e-27817fc0fa4e",
+        "action": "Gate Agent performs Delivery",
+        "context": "Detailed context about how Gate Agent handles the Delivery step in this journey."
+      },
+      {
+        "cellId": "6c4fdf96-81dc-429c-b462-b77e2a2ecc28",
+        "phaseId": "a5fd2f3a-de53-4a2e-9377-774bff3e13f5",
+        "swimlaneId": "e851f8d8-e9bc-4d89-97fa-8f867c60e623",
+        "action": "Pilot performs Delivery",
+        "context": "Detailed context about how Pilot handles the Delivery step in this journey."
+      },
+      {
+        "cellId": "9bb63b0c-7da6-4056-85ca-c72567cd287f",
+        "phaseId": "a5fd2f3a-de53-4a2e-9377-774bff3e13f5",
+        "swimlaneId": "007e0653-972c-469e-852f-61c6c7b71433",
+        "action": "Air Traffic Control performs Delivery",
+        "context": "Detailed context about how Air Traffic Control handles the Delivery step in this journey."
+      }
+    ],
+    "metrics": {
+      "totalPhases": 4,
+      "totalSwimlanes": 4,
+      "totalCellsExpected": 16,
+      "totalCellsPresent": 16,
+      "totalCellsCompleted": 10,
+      "percentCellsComplete": 62.5
+    },
+    "createdAt": "2026-02-05T01:29:42.516Z",
+    "updatedAt": "2026-02-05T01:29:43.060Z",
+    "version": 15
+  },
+  "de57d35b-357d-4761-9a6b-92d5db40c727": {
+    "journeyMapId": "de57d35b-357d-4761-9a6b-92d5db40c727",
+    "sessionId": "cc2921ec-ecdc-4d86-9900-6495fda950c5",
+    "status": "DRAFT",
+    "stage": "CELL_POPULATION",
+    "name": "Handling a support ticket",
+    "role": "UX Designer",
+    "context": "This is a critical process that often fails due to lack of documentation.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "624c7633-9c34-4815-9776-20cff61d4ec1",
+        "sequence": 1,
+        "name": "Check-in",
+        "description": "Description for Check-in",
+        "context": ""
+      },
+      {
+        "phaseId": "a03c2ea3-b4e4-4e9e-b845-aed40270e138",
+        "sequence": 2,
+        "name": "Security",
+        "description": "Description for Security",
+        "context": ""
+      },
+      {
+        "phaseId": "d68ff457-072f-46c3-afcb-454d3a42c00b",
+        "sequence": 3,
+        "name": "Boarding",
+        "description": "Description for Boarding",
+        "context": ""
+      },
+      {
+        "phaseId": "174d8765-2b40-43db-8f3f-9f8cfe62b2ef",
+        "sequence": 4,
+        "name": "Flight",
+        "description": "Description for Flight",
+        "context": ""
+      },
+      {
+        "phaseId": "2fd33c51-10dc-4d3c-b198-34796be3880f",
+        "sequence": 5,
+        "name": "Landing",
+        "description": "Description for Landing",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "83ab029c-4c5a-47d5-859a-33a97d4722a0",
+        "sequence": 1,
+        "name": "Chef",
+        "description": "Role of Chef",
+        "context": ""
+      },
+      {
+        "swimlaneId": "67db549e-087c-4214-b457-964b6c328013",
+        "sequence": 2,
+        "name": "Sous Chef",
+        "description": "Role of Sous Chef",
+        "context": ""
+      },
+      {
+        "swimlaneId": "2d98426d-f55f-461a-bd46-1cc1126f5f1c",
+        "sequence": 3,
+        "name": "Waiter",
+        "description": "Role of Waiter",
+        "context": ""
+      },
+      {
+        "swimlaneId": "c63ccc8f-13be-4923-bb46-4865fdce1420",
+        "sequence": 4,
+        "name": "Customer",
+        "description": "Role of Customer",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "bbd425a4-e6ef-4617-a3b4-5c00534f5878",
+        "phaseId": "624c7633-9c34-4815-9776-20cff61d4ec1",
+        "swimlaneId": "83ab029c-4c5a-47d5-859a-33a97d4722a0",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "45f401b3-f598-4192-989f-453f890621e8",
+        "phaseId": "624c7633-9c34-4815-9776-20cff61d4ec1",
+        "swimlaneId": "67db549e-087c-4214-b457-964b6c328013",
+        "action": "Sous Chef performs Check-in",
+        "context": "Detailed context about how Sous Chef handles the Check-in step in this journey."
+      },
+      {
+        "cellId": "1119e18a-47fc-4a2d-a071-84bf84a78ab5",
+        "phaseId": "624c7633-9c34-4815-9776-20cff61d4ec1",
+        "swimlaneId": "2d98426d-f55f-461a-bd46-1cc1126f5f1c",
+        "action": "Waiter performs Check-in",
+        "context": "Detailed context about how Waiter handles the Check-in step in this journey."
+      },
+      {
+        "cellId": "786b0a01-a7c2-4adc-a977-ccd0994e76e1",
+        "phaseId": "624c7633-9c34-4815-9776-20cff61d4ec1",
+        "swimlaneId": "c63ccc8f-13be-4923-bb46-4865fdce1420",
+        "action": "Customer performs Check-in",
+        "context": "Detailed context about how Customer handles the Check-in step in this journey."
+      },
+      {
+        "cellId": "d47f000c-5f68-4c76-871f-3a81484bd72d",
+        "phaseId": "a03c2ea3-b4e4-4e9e-b845-aed40270e138",
+        "swimlaneId": "83ab029c-4c5a-47d5-859a-33a97d4722a0",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "99f0af22-2b31-46d3-bf95-53e73cbab5f9",
+        "phaseId": "a03c2ea3-b4e4-4e9e-b845-aed40270e138",
+        "swimlaneId": "67db549e-087c-4214-b457-964b6c328013",
+        "action": "Sous Chef performs Security",
+        "context": "Detailed context about how Sous Chef handles the Security step in this journey."
+      },
+      {
+        "cellId": "7249fece-a221-4005-857a-414e313ac8e3",
+        "phaseId": "a03c2ea3-b4e4-4e9e-b845-aed40270e138",
+        "swimlaneId": "2d98426d-f55f-461a-bd46-1cc1126f5f1c",
+        "action": "Waiter performs Security",
+        "context": "Detailed context about how Waiter handles the Security step in this journey."
+      },
+      {
+        "cellId": "57090e6a-131c-4227-b599-a41609216e36",
+        "phaseId": "a03c2ea3-b4e4-4e9e-b845-aed40270e138",
+        "swimlaneId": "c63ccc8f-13be-4923-bb46-4865fdce1420",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "3da86a2c-c60b-49a7-928d-dbe5620bdf18",
+        "phaseId": "d68ff457-072f-46c3-afcb-454d3a42c00b",
+        "swimlaneId": "83ab029c-4c5a-47d5-859a-33a97d4722a0",
+        "action": "Chef performs Boarding",
+        "context": "Detailed context about how Chef handles the Boarding step in this journey."
+      },
+      {
+        "cellId": "1b450d35-a5f6-43bb-ab94-13c2c3c5e8ad",
+        "phaseId": "d68ff457-072f-46c3-afcb-454d3a42c00b",
+        "swimlaneId": "67db549e-087c-4214-b457-964b6c328013",
+        "action": "Sous Chef performs Boarding",
+        "context": "Detailed context about how Sous Chef handles the Boarding step in this journey."
+      },
+      {
+        "cellId": "d403cd50-4347-452f-8332-f7edd7d581c9",
+        "phaseId": "d68ff457-072f-46c3-afcb-454d3a42c00b",
+        "swimlaneId": "2d98426d-f55f-461a-bd46-1cc1126f5f1c",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "56370e23-2537-4c18-93e6-e11725813e97",
+        "phaseId": "d68ff457-072f-46c3-afcb-454d3a42c00b",
+        "swimlaneId": "c63ccc8f-13be-4923-bb46-4865fdce1420",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "e9de8d85-2933-4031-a118-4111688505c1",
+        "phaseId": "174d8765-2b40-43db-8f3f-9f8cfe62b2ef",
+        "swimlaneId": "83ab029c-4c5a-47d5-859a-33a97d4722a0",
+        "action": "Chef performs Flight",
+        "context": "Detailed context about how Chef handles the Flight step in this journey."
+      },
+      {
+        "cellId": "a199530c-4e05-457a-ba32-0eac343f0893",
+        "phaseId": "174d8765-2b40-43db-8f3f-9f8cfe62b2ef",
+        "swimlaneId": "67db549e-087c-4214-b457-964b6c328013",
+        "action": "Sous Chef performs Flight",
+        "context": "Detailed context about how Sous Chef handles the Flight step in this journey."
+      },
+      {
+        "cellId": "eb71bd23-6efe-4b97-a267-25ed31dfba0b",
+        "phaseId": "174d8765-2b40-43db-8f3f-9f8cfe62b2ef",
+        "swimlaneId": "2d98426d-f55f-461a-bd46-1cc1126f5f1c",
+        "action": "Waiter performs Flight",
+        "context": "Detailed context about how Waiter handles the Flight step in this journey."
+      },
+      {
+        "cellId": "ad1d80f4-2614-422b-ad34-ae7e2d7e8325",
+        "phaseId": "174d8765-2b40-43db-8f3f-9f8cfe62b2ef",
+        "swimlaneId": "c63ccc8f-13be-4923-bb46-4865fdce1420",
+        "action": "Customer performs Flight",
+        "context": "Detailed context about how Customer handles the Flight step in this journey."
+      },
+      {
+        "cellId": "25787a2f-85f2-4155-8c18-a4bc2d63c798",
+        "phaseId": "2fd33c51-10dc-4d3c-b198-34796be3880f",
+        "swimlaneId": "83ab029c-4c5a-47d5-859a-33a97d4722a0",
+        "action": "Chef performs Landing",
+        "context": "Detailed context about how Chef handles the Landing step in this journey."
+      },
+      {
+        "cellId": "76e5e3ab-d1ef-4555-9007-ee8ceef92a59",
+        "phaseId": "2fd33c51-10dc-4d3c-b198-34796be3880f",
+        "swimlaneId": "67db549e-087c-4214-b457-964b6c328013",
+        "action": "Sous Chef performs Landing",
+        "context": "Detailed context about how Sous Chef handles the Landing step in this journey."
+      },
+      {
+        "cellId": "7f7aa15c-1edd-4945-af48-73308802589c",
+        "phaseId": "2fd33c51-10dc-4d3c-b198-34796be3880f",
+        "swimlaneId": "2d98426d-f55f-461a-bd46-1cc1126f5f1c",
+        "action": "Waiter performs Landing",
+        "context": "Detailed context about how Waiter handles the Landing step in this journey."
+      },
+      {
+        "cellId": "c87a839d-6de0-4afa-9366-d0bbc4733171",
+        "phaseId": "2fd33c51-10dc-4d3c-b198-34796be3880f",
+        "swimlaneId": "c63ccc8f-13be-4923-bb46-4865fdce1420",
+        "action": "Customer performs Landing",
+        "context": "Detailed context about how Customer handles the Landing step in this journey."
+      }
+    ],
+    "metrics": {
+      "totalPhases": 5,
+      "totalSwimlanes": 4,
+      "totalCellsExpected": 20,
+      "totalCellsPresent": 20,
+      "totalCellsCompleted": 15,
+      "percentCellsComplete": 75
+    },
+    "createdAt": "2026-02-05T01:29:43.787Z",
+    "updatedAt": "2026-02-05T01:29:44.336Z",
+    "version": 20
+  },
+  "fb8e1ede-d258-4d75-96d2-a344a5b4f437": {
+    "journeyMapId": "fb8e1ede-d258-4d75-96d2-a344a5b4f437",
+    "sessionId": "e6395076-0d23-4612-bc82-1efa3aa31898",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Draft Journey 01:29:45",
+    "role": "UX Designer",
+    "context": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T01:29:45.047Z",
+    "updatedAt": "2026-02-05T01:29:45.047Z",
+    "version": 1
+  },
+  "8b833900-3152-4dfb-93a9-f31897c367cd": {
+    "journeyMapId": "8b833900-3152-4dfb-93a9-f31897c367cd",
+    "sessionId": "4acd59e0-d9ad-4029-9e60-3182636cea24",
+    "status": "DRAFT",
+    "stage": "CELL_POPULATION",
+    "name": "Flying a plane from NY to London",
+    "role": "Software Engineer",
+    "context": "This is a critical process that often fails due to lack of documentation.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "6d4ac6cf-309a-4ce5-a642-4a52af593e65",
+        "sequence": 1,
+        "name": "Prep",
+        "description": "Description for Prep",
+        "context": ""
+      },
+      {
+        "phaseId": "ba6757cf-b6fb-4453-8369-334e6baa4341",
+        "sequence": 2,
+        "name": "Cook",
+        "description": "Description for Cook",
+        "context": ""
+      },
+      {
+        "phaseId": "524ab2b0-460c-413b-aead-e9bdb65c9cf5",
+        "sequence": 3,
+        "name": "Serve",
+        "description": "Description for Serve",
+        "context": ""
+      },
+      {
+        "phaseId": "4e6032f1-200c-4089-9a5a-e3a33d066bed",
+        "sequence": 4,
+        "name": "Clean",
+        "description": "Description for Clean",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "d9812e00-1941-4c94-969d-3255a99c902d",
+        "sequence": 1,
+        "name": "Chef",
+        "description": "Role of Chef",
+        "context": ""
+      },
+      {
+        "swimlaneId": "6528f2e3-4253-48d8-a77c-8a756a14651f",
+        "sequence": 2,
+        "name": "Sous Chef",
+        "description": "Role of Sous Chef",
+        "context": ""
+      },
+      {
+        "swimlaneId": "ea6db0fc-7d5d-45f8-9357-9b27a7d5ccd0",
+        "sequence": 3,
+        "name": "Waiter",
+        "description": "Role of Waiter",
+        "context": ""
+      },
+      {
+        "swimlaneId": "76b4c167-05d1-41ba-a66e-1340163456f5",
+        "sequence": 4,
+        "name": "Customer",
+        "description": "Role of Customer",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "d274c489-a659-45fa-830b-a73815cfe1c7",
+        "phaseId": "6d4ac6cf-309a-4ce5-a642-4a52af593e65",
+        "swimlaneId": "d9812e00-1941-4c94-969d-3255a99c902d",
+        "action": "Chef performs Prep",
+        "context": "Detailed context about how Chef handles the Prep step in this journey."
+      },
+      {
+        "cellId": "4b2022ef-73f5-4a56-adfb-da0d0807ca38",
+        "phaseId": "6d4ac6cf-309a-4ce5-a642-4a52af593e65",
+        "swimlaneId": "6528f2e3-4253-48d8-a77c-8a756a14651f",
+        "action": "Sous Chef performs Prep",
+        "context": "Detailed context about how Sous Chef handles the Prep step in this journey."
+      },
+      {
+        "cellId": "84178ed2-651f-4a4f-96dc-0d221751e054",
+        "phaseId": "6d4ac6cf-309a-4ce5-a642-4a52af593e65",
+        "swimlaneId": "ea6db0fc-7d5d-45f8-9357-9b27a7d5ccd0",
+        "action": "Waiter performs Prep",
+        "context": "Detailed context about how Waiter handles the Prep step in this journey."
+      },
+      {
+        "cellId": "a76d6423-9a37-4bb8-8348-65abe0e0605b",
+        "phaseId": "6d4ac6cf-309a-4ce5-a642-4a52af593e65",
+        "swimlaneId": "76b4c167-05d1-41ba-a66e-1340163456f5",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "a93c66c9-14ae-46e3-9595-15eb3a1eba6f",
+        "phaseId": "ba6757cf-b6fb-4453-8369-334e6baa4341",
+        "swimlaneId": "d9812e00-1941-4c94-969d-3255a99c902d",
+        "action": "Chef performs Cook",
+        "context": "Detailed context about how Chef handles the Cook step in this journey."
+      },
+      {
+        "cellId": "7ec28ab6-80fe-4ecf-9f82-28f046240c7f",
+        "phaseId": "ba6757cf-b6fb-4453-8369-334e6baa4341",
+        "swimlaneId": "6528f2e3-4253-48d8-a77c-8a756a14651f",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "758eb3ec-7bdd-4fe1-8f2c-8e6c37c6c4f2",
+        "phaseId": "ba6757cf-b6fb-4453-8369-334e6baa4341",
+        "swimlaneId": "ea6db0fc-7d5d-45f8-9357-9b27a7d5ccd0",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "8e53e70c-4900-4fc3-b38d-415aeb5195eb",
+        "phaseId": "ba6757cf-b6fb-4453-8369-334e6baa4341",
+        "swimlaneId": "76b4c167-05d1-41ba-a66e-1340163456f5",
+        "action": "Customer performs Cook",
+        "context": "Detailed context about how Customer handles the Cook step in this journey."
+      },
+      {
+        "cellId": "5a82ed4d-65d7-417f-86d9-713cc93d94b1",
+        "phaseId": "524ab2b0-460c-413b-aead-e9bdb65c9cf5",
+        "swimlaneId": "d9812e00-1941-4c94-969d-3255a99c902d",
+        "action": "Chef performs Serve",
+        "context": "Detailed context about how Chef handles the Serve step in this journey."
+      },
+      {
+        "cellId": "bfefcec4-4d95-46b5-88e6-c6b107636b73",
+        "phaseId": "524ab2b0-460c-413b-aead-e9bdb65c9cf5",
+        "swimlaneId": "6528f2e3-4253-48d8-a77c-8a756a14651f",
+        "action": "Sous Chef performs Serve",
+        "context": "Detailed context about how Sous Chef handles the Serve step in this journey."
+      },
+      {
+        "cellId": "60f1c0a4-71c2-470a-aba4-8d63d2ab5348",
+        "phaseId": "524ab2b0-460c-413b-aead-e9bdb65c9cf5",
+        "swimlaneId": "ea6db0fc-7d5d-45f8-9357-9b27a7d5ccd0",
+        "action": "Waiter performs Serve",
+        "context": "Detailed context about how Waiter handles the Serve step in this journey."
+      },
+      {
+        "cellId": "19659619-16ba-455f-9cef-fbe83df3dee4",
+        "phaseId": "524ab2b0-460c-413b-aead-e9bdb65c9cf5",
+        "swimlaneId": "76b4c167-05d1-41ba-a66e-1340163456f5",
+        "action": "Customer performs Serve",
+        "context": "Detailed context about how Customer handles the Serve step in this journey."
+      },
+      {
+        "cellId": "b3a7d415-be80-4917-bd6b-876769cca4c7",
+        "phaseId": "4e6032f1-200c-4089-9a5a-e3a33d066bed",
+        "swimlaneId": "d9812e00-1941-4c94-969d-3255a99c902d",
+        "action": "Chef performs Clean",
+        "context": "Detailed context about how Chef handles the Clean step in this journey."
+      },
+      {
+        "cellId": "e6f9f083-91ee-450a-806b-e0addb0ab50c",
+        "phaseId": "4e6032f1-200c-4089-9a5a-e3a33d066bed",
+        "swimlaneId": "6528f2e3-4253-48d8-a77c-8a756a14651f",
+        "action": "Sous Chef performs Clean",
+        "context": "Detailed context about how Sous Chef handles the Clean step in this journey."
+      },
+      {
+        "cellId": "0e7fa1aa-9e76-420b-b922-d70839402ea0",
+        "phaseId": "4e6032f1-200c-4089-9a5a-e3a33d066bed",
+        "swimlaneId": "ea6db0fc-7d5d-45f8-9357-9b27a7d5ccd0",
+        "action": "Waiter performs Clean",
+        "context": "Detailed context about how Waiter handles the Clean step in this journey."
+      },
+      {
+        "cellId": "38c0731b-a8a2-4ef7-97f8-0c357115b200",
+        "phaseId": "4e6032f1-200c-4089-9a5a-e3a33d066bed",
+        "swimlaneId": "76b4c167-05d1-41ba-a66e-1340163456f5",
+        "action": "",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 4,
+      "totalSwimlanes": 4,
+      "totalCellsExpected": 16,
+      "totalCellsPresent": 16,
+      "totalCellsCompleted": 12,
+      "percentCellsComplete": 75
+    },
+    "createdAt": "2026-02-05T01:29:45.841Z",
+    "updatedAt": "2026-02-05T01:29:46.390Z",
+    "version": 17
+  },
+  "9e9f3592-40c3-4c97-a3c6-6417d3b87c35": {
+    "journeyMapId": "9e9f3592-40c3-4c97-a3c6-6417d3b87c35",
+    "sessionId": "c21cbc19-e620-43e4-baef-ac1d0d301e0e",
+    "status": "DRAFT",
+    "stage": "MATRIX_GENERATION",
+    "name": "Entering time at the end of each project",
+    "role": "Product Manager",
+    "context": "Entering time at the end of each project.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "context": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "de3d389e-0c22-4710-b1ca-614f2279b8d5",
+        "sequence": 1,
+        "name": "Launch app",
+        "description": "Launch the time entry application",
+        "context": ""
+      },
+      {
+        "phaseId": "0b37af4f-c709-4f85-8c18-16a9928a9145",
+        "sequence": 2,
+        "name": "Enter time per project",
+        "description": "Input the time spent for each project",
+        "context": ""
+      },
+      {
+        "phaseId": "2a498d45-506a-42af-b80b-8c26081f43e6",
+        "sequence": 3,
+        "name": "Annotate",
+        "description": "Add notes or details to the time entries",
+        "context": ""
+      },
+      {
+        "phaseId": "8d421957-fbff-4d40-be78-7ac8c163872d",
+        "sequence": 4,
+        "name": "Submit time",
+        "description": "Finalize and submit the time entries",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "9ff01c9c-4be5-4766-aa91-5758d511e9b1",
+        "sequence": 1,
+        "name": "Project Manager",
+        "description": "",
+        "context": ""
+      },
+      {
+        "swimlaneId": "d36c9d95-587b-4283-94d1-3db0300bcf8d",
+        "sequence": 2,
+        "name": "Airbase",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 4,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 8,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T12:00:35.045Z",
+    "updatedAt": "2026-02-05T12:07:12.774Z",
+    "version": 4
   }
 }

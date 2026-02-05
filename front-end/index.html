@@ -95,8 +95,10 @@
        CHAT CANVAS (LEFT)
        ======================================== */
     .max-chat-canvas {
-      flex: 1;
-      width: 50%;
+      flex: 0 0 70% !important;
+      width: 70% !important;
+      max-width: 70% !important;
+      min-width: 70% !important;
       border-right: 1px solid var(--max-color-border-subtle);
       background: var(--max-color-surface-primary);
       display: flex;
@@ -322,8 +324,10 @@
        CHAT CONTAINER (RIGHT)
        ======================================== */
     .max-chat-container {
-      flex: 1;
-      width: 50%;
+      flex: 0 0 30% !important;
+      width: 30% !important;
+      max-width: 30% !important;
+      min-width: 30% !important;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -730,12 +734,15 @@
     /* ========================================
        RESPONSIVE
        ======================================== */
-    @media (max-width: 900px) {
+    @media (max-width: 768px) {
       .max-main-content {
         flex-direction: column-reverse;
       }
       .max-chat-canvas, .max-chat-container {
-        width: 100%;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        flex: auto !important;
         height: 50%;
       }
       .max-chat-canvas {
@@ -991,6 +998,18 @@
             }
 
             html += `</div>`; // End table
+        } else {
+            // Placeholder when we have a journey but no grid yet
+            html += `
+                <div style="text-align: center; margin-top: 60px; opacity: 0.5; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; color: var(--max-color-text-tertiary);">
+                        <path d="M9 18l6-6-6-6"/>
+                        <path d="M21 12h-8"/>
+                        <path d="M3 12h8"/>
+                    </svg>
+                    <p>Describe your process to generate the map structure...</p>
+                </div>
+            `;
         }
 
         journeyDashboard.innerHTML = html;
@@ -1052,13 +1071,21 @@
     function checkUrlParams() {
       const params = new URLSearchParams(window.location.search);
       
+      const journeyId = params.get('journeyId');
+      if (journeyId) {
+          currentJourneyId = journeyId;
+          // Immediate poll to render
+          pollJourneyState();
+      }
+
       // Capture all potential context
       state.sessionConfig = {
           name: params.get('name'),
           role: params.get('role'),
           journeyName: params.get('journey'), // 'journey' param = Journey Name
           welcomePrompt: params.get('welcome-prompt'),
-          journeyPrompt: params.get('journey-prompt') // 'journey-prompt' param = Custom Inquiry
+          journeyPrompt: params.get('journey-prompt'), // 'journey-prompt' param = Custom Inquiry
+          journeyId: journeyId // Pass ID to config so chat knows about it
       };
 
       // Clean up undefined/null values
@@ -1066,10 +1093,15 @@
           state.sessionConfig[key] === null && delete state.sessionConfig[key]
       );
 
-      // Trigger AI Welcome if params exist
-      if (Object.keys(state.sessionConfig).length > 0) {
-          // If we have a custom welcome prompt OR just identity info, let the AI start.
-          // The AI will "welcome" the user.
+      // Trigger AI Welcome if params exist (but only if we don't have a journeyId already loaded)
+      // If we loaded a journeyId, the user likely wants to see the map first, 
+      // OR continue the chat. 
+      
+      // Decision: If name/role/prompts are present, start conversation. 
+      // If ONLY journeyId is present, just show the map.
+      const hasIdentity = state.sessionConfig.name || state.sessionConfig.role || state.sessionConfig.welcomePrompt;
+      
+      if (hasIdentity) {
           startConversation();
       }
     }

@@ -411,13 +411,13 @@ async function executeTool(name, args) {
                 response = await fetch(`${api}/v1/journey-maps/${args.journeyMapId}/swimlanes`, { method: 'PUT', headers, body: JSON.stringify(args) });
                 break;
             case 'generate_matrix':
-                response = await fetch(`${api}/v1/journey-maps/${args.journeyMapId}:generate-matrix`, { method: 'POST', headers });
+                response = await fetch(`${api}/v1/journey-maps/${args.journeyMapId}/generate-matrix`, { method: 'POST', headers, body: '{}' });
                 break;
             case 'update_cell':
                 response = await fetch(`${api}/v1/journey-maps/${args.journeyMapId}/cells/${args.cellId}`, { method: 'PUT', headers, body: JSON.stringify(args) });
                 break;
             case 'generate_artifacts':
-                response = await fetch(`${api}/v1/journey-maps/${args.journeyMapId}:generate-artifacts`, { method: 'POST', headers });
+                response = await fetch(`${api}/v1/journey-maps/${args.journeyMapId}/generate-artifacts`, { method: 'POST', headers, body: '{}' });
                 break;
             default:
                 return { error: `Unknown tool: ${name}` };
