@@ -23,7 +23,8 @@ export function calculateMetrics(journey: JourneyMap): DerivedMetricsObject {
 }
 
 export function isCellComplete(cell: CellObject): boolean {
-  return cell.action.trim().length > 0 && cell.context.trim().length > 0;
+  // Description is now the main content, headline is the title
+  return cell.headline.trim().length > 0 && cell.description.trim().length > 0;
 }
 
 export function calculateCompletionStatus(journey: JourneyMap): CompletionStatusObject {
@@ -31,7 +32,7 @@ export function calculateCompletionStatus(journey: JourneyMap): CompletionStatus
     return {
         name: journey.name.trim().length > 0 && journey.name !== "Draft", // Basic check
         role: journey.role.trim().length > 0,
-        context: journey.context.trim().length > 0,
+        description: journey.description.trim().length > 0,
         phases: journey.phases.length >= 1 && journey.arePhasesComplete,
         swimlanes: journey.swimlanes.length >= 1 && journey.areSwimlanesComplete,
         cells: metrics.percentCellsComplete === 100 && metrics.totalCellsExpected > 0

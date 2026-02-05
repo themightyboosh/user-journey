@@ -101,7 +101,7 @@ async function seed() {
         method: 'PATCH',
         body: JSON.stringify({
             name: journeyName,
-            context: context
+            description: context
         })
     });
     console.log(`✅ [${journeyId}] Metadata Set ("${journeyName}")`);

@@ -1,0 +1,435 @@
+// ===========================================
+// Shared Journey Renderer
+// ===========================================
+
+// Helper: Escape HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Helper: Format Markdown-like text
+function formatMessage(text) {
+    if (!text) return '';
+    
+    // Basic markdown-like formatting
+    let formatted = escapeHtml(text);
+    
+    // Code blocks
+    formatted = formatted.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+    
+    // Inline code
+    formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Headers (###)
+    formatted = formatted.replace(/^###\s+(.*$)/gm, '<h3>$1</h3>');
+    
+    // Bold
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    // Italic
+    formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    
+    // Line breaks to paragraphs
+    formatted = formatted
+      .split(/\n\n+/)
+      .map(para => para.trim())
+      .filter(para => para)
+      .map(para => {
+        // Check if it's a list
+        if (para.match(/^[-*•]\s/m)) {
+          const items = para.split(/\n/).map(item => 
+            `<li>${item.replace(/^[-*•]\s*/, '')}</li>`
+          ).join('');
+          return `<ul>${items}</ul>`;
+        }
+        // Check if it's a numbered list
+        if (para.match(/^\d+\.\s/m)) {
+          const items = para.split(/\n/).map(item => 
+            `<li>${item.replace(/^\d+\.\s*/, '')}</li>`
+          ).join('');
+          return `<ol>${items}</ol>`;
+        }
+        return `<p>${para.replace(/\n/g, '<br>')}</p>`;
+      })
+      .join('');
+    
+    return formatted;
+}
+
+// Global state for modal
+let currentRenderedJourney = null;
+
+// Modal Logic
+function openCellModal(cellId) {
+    if (!currentRenderedJourney) return;
+    const cell = currentRenderedJourney.cells.find(c => c.cellId === cellId);
+    if (!cell) return;
+
+    const titleEl = document.getElementById('modalTitle');
+    const contextEl = document.getElementById('modalContext');
+    const modal = document.getElementById('cellModal');
+
+    if (titleEl) titleEl.textContent = cell.headline;
+    
+    if (contextEl) {
+        const descHtml = formatMessage(cell.description);
+        const contextHtml = cell.context ? `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--max-color-border); font-size: 13px; color: var(--max-color-text-tertiary);"><strong>Notes:</strong><br>${formatMessage(cell.context)}</div>` : '';
+        contextEl.innerHTML = descHtml + contextHtml;
+    }
+    
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeCellModal(event) {
+    // If event is provided (click outside), check target
+    if (event && event.target.id !== 'cellModal') return;
+    
+    const modal = document.getElementById('cellModal');
+    if (modal) modal.style.display = 'none';
+}
+
+// Main Render Function
+function renderJourney(journey, targetElementId = 'journeyDashboard') {
+    const container = document.getElementById(targetElementId);
+    if (!container || !journey) return;
+
+    // Update global state for modals
+    currentRenderedJourney = journey;
+
+    let roleDisplay = escapeHtml(journey.role) || 'Unknown Role';
+    if (journey.userName) {
+        roleDisplay = `<span style="font-weight: 700; color: var(--max-color-text-primary);">${escapeHtml(journey.userName)}</span>, ${roleDisplay}`;
+    }
+
+    const maxLogoSvg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128.5 42.6" style="height: 28px; width: auto; flex-shrink: 0;">
+            <path d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3V9.1C0,6.2.7,3.9,2.2,2.5,3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.7.4-1.8.6-3.2.6s-2.5-.2-3.2-.6c-.8-.4-1.4-1-1.8-1.8-.4-.8-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0l.2.1Z" style="fill: var(--max-color-accent);"/>
+            <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c.1-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4.1.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c.1,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c.1,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z" style="fill: var(--max-color-text-primary);"/>
+            <path d="M97.8,42.6c-1.1,0-2.2-.3-3.2-.8s-1.9-1.3-2.5-2.3c-.7-1-1-2.2-1-3.7,0-1.9.5-3.5,1.6-4.7,1-1.2,2.4-2.5,4.1-3.9,1.2-.9,2.4-1.7,3.5-2.6,1.2-.9,2.3-1.8,3.5-2.7-.8-.7-1.9-1.6-3.2-2.7s-2.6-2.2-3.9-3.3c-1.7-1.4-3.1-2.8-4.1-4.1s-1.5-2.9-1.5-5c0-1.4.4-2.6,1-3.7.7-1,1.5-1.8,2.5-2.3,1-.5,2.1-.8,3.2-.8s2.5.3,3.4.8c.9.6,1.7,1.3,2.4,2.2s1.4,2,2,3.2c1,1.9,1.8,3.7,2.5,5.3s1.3,2.8,1.6,3.7c.3-.9.9-2.1,1.6-3.7.7-1.6,1.6-3.4,2.5-5.3.6-1.2,1.3-2.3,2-3.2.7-.9,1.5-1.7,2.4-2.2,1.1-.5,2.2-.8,3.5-.8s2.2.3,3.3.8c1,.5,1.9,1.3,2.5,2.4.7,1,1,2.2,1,3.7,0,2.1-.5,3.7-1.5,5-1,1.3-2.4,2.7-4.1,4.1-1.2,1-2.3,2-3.5,3s-2.3,2-3.5,2.9c.8.6,1.9,1.4,3.1,2.3,1.2,1,2.5,2,3.7,3,1.7,1.4,3.1,2.7,4.1,3.9,1,1.2,1.6,2.8,1.6,4.7s-.3,2.6-1,3.7c-.7,1-1.5,1.8-2.5,2.3s-2.1.8-3.3.8c-1.3,0-2.5-.3-3.4-.9-.9-.5-1.7-1.3-2.4-2.2-.7-1-1.4-2-2-3.2-.9-1.7-1.7-3.3-2.4-4.7-.8-1.4-1.3-2.7-1.7-3.7-.3,1-.9,2.3-1.7,3.7-.8,1.5-1.6,3-2.4,4.6-1,1.8-2,3.3-3.1,4.5s-2.7,1.8-4.7,1.8h0v.1Z" style="fill: var(--max-color-text-primary);"/>
+        </svg>
+    `;
+
+    let html = `
+        <div class="journey-header">
+            <div class="journey-title" style="display: flex; align-items: center; gap: 16px;">
+                ${maxLogoSvg}
+                <span>${escapeHtml(journey.name) || 'Untitled Journey'}</span>
+            </div>
+            <div class="journey-role">${roleDisplay}</div>
+        </div>
+    `;
+
+    if (journey.description) {
+        html += `
+            <div class="context-card">
+                <h3>Description</h3>
+                <div class="context-content">${escapeHtml(journey.description)}</div>
+            </div>
+        `;
+    }
+
+    // Always render table if we have phases or swimlanes
+    if (journey.phases.length > 0 || journey.swimlanes.length > 0) {
+        // Grid Template
+        const gridTemplate = `150px ${journey.phases.length > 0 ? `repeat(${journey.phases.length}, 1fr)` : '1fr'}`;
+        
+        html += `<div class="journey-table" style="grid-template-columns: ${gridTemplate};">`;
+
+        // 1. Header Row
+        html += `<div></div>`; // Top-left corner empty
+        
+        if (journey.phases.length > 0) {
+            journey.phases.forEach(phase => {
+                const desc = phase.description ? ` title="${escapeHtml(phase.description)}"` : '';
+                html += `<div class="phase-header"${desc}>${escapeHtml(phase.name)}</div>`;
+            });
+        } else {
+            html += `<div class="phase-header" style="opacity: 0.5; font-style: italic;">Phases pending...</div>`;
+        }
+
+        // 2. Rows
+        if (journey.swimlanes.length > 0) {
+            journey.swimlanes.forEach(swimlane => {
+                // Row Header
+                const desc = swimlane.description ? ` title="${escapeHtml(swimlane.description)}"` : '';
+                html += `<div class="swimlane-header"${desc}>
+                            <div class="swimlane-name">${escapeHtml(swimlane.name)}</div>
+                            ${swimlane.description ? `<div class="swimlane-desc">${escapeHtml(swimlane.description)}</div>` : ''}
+                         </div>`;
+
+                // Cells
+                if (journey.phases.length > 0) {
+                    journey.phases.forEach(phase => {
+                        const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+                        
+                        if (cell && cell.headline) {
+                            html += `
+                                <div class="journey-cell complete" onclick="openCellModal('${cell.cellId}')">
+                                    <div class="cell-action">${escapeHtml(cell.headline)}</div>
+                                    <div class="cell-context">${escapeHtml(cell.description)}</div>
+                                </div>
+                            `;
+                        } else if (cell) {
+                            html += `<div class="journey-cell empty"></div>`;
+                        } else {
+                            html += `<div class="journey-cell empty" style="border-style: none; background: rgba(255,255,255,0.02)"></div>`;
+                        }
+                    });
+                } else {
+                     html += `<div class="journey-cell empty" style="border-style: none;"></div>`;
+                }
+            });
+        } else {
+             if (journey.phases.length > 0) {
+                 html += `<div class="swimlane-header" style="opacity: 0.5; font-style: italic;">Swimlanes pending...</div>`;
+                 journey.phases.forEach(() => {
+                     html += `<div class="journey-cell empty" style="border-style: none;"></div>`;
+                 });
+             }
+        }
+
+        html += `</div>`; // End table
+
+        // --- MOBILE VIEW (List by Phase) ---
+        html += `<div class="journey-mobile-list">`;
+        
+        if (journey.phases.length > 0) {
+            journey.phases.forEach(phase => {
+                html += `<div class="mobile-phase-group">`;
+                html += `<div class="mobile-phase-header">${escapeHtml(phase.name)}</div>`;
+                
+                if (journey.swimlanes.length > 0) {
+                    journey.swimlanes.forEach(swimlane => {
+                        const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+                        
+                        if (cell) {
+                            let contentHtml = '';
+                            if (cell.headline) {
+                                contentHtml = `
+                                    <div class="cell-action">${escapeHtml(cell.headline)}</div>
+                                    <div class="cell-context">${escapeHtml(cell.description)}</div>
+                                `;
+                            } else {
+                                contentHtml = `<div style="font-style: italic; opacity: 0.5;">Pending...</div>`;
+                            }
+
+                            html += `
+                                <div class="mobile-card" onclick="openCellModal('${cell.cellId}')">
+                                    <div class="mobile-card-label">${escapeHtml(swimlane.name)}</div>
+                                    ${contentHtml}
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                     html += `<div style="padding: 16px; opacity: 0.5;">No swimlanes yet.</div>`;
+                }
+                html += `</div>`; // End group
+            });
+        } else {
+             html += `<div style="padding: 16px; opacity: 0.5;">Phases pending...</div>`;
+        }
+        html += `</div>`;
+
+    // Render Final Artifacts if Complete
+    if (journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE') {
+        html += `
+            <div class="final-artifacts" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--max-color-border);">
+                
+                ${journey.anythingElse ? `
+                <div class="context-card" style="border-left: 3px solid var(--max-color-accent);">
+                    <h3>Additional Context</h3>
+                    <div class="context-content">${formatMessage(journey.anythingElse)}</div>
+                </div>` : ''}
+
+                ${journey.summaryOfFindings ? `
+                <div class="context-card">
+                    <h3>Summary of Findings</h3>
+                    <div class="context-content">${formatMessage(journey.summaryOfFindings)}</div>
+                </div>` : ''}
+
+                ${journey.mentalModels ? `
+                <div class="context-card">
+                    <h3>Mental Models</h3>
+                    <div class="context-content">${formatMessage(journey.mentalModels)}</div>
+                </div>` : ''}
+
+                <div class="action-area" data-html2canvas-ignore="true" style="display: flex; justify-content: center; gap: 16px; margin-top: 40px; padding-bottom: 40px; flex-wrap: wrap;">
+                    <button onclick="exportToPdf('${targetElementId}')" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        Export PDF
+                    </button>
+                    <button onclick="exportToFigJam()" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                        Export to FigJam
+                    </button>
+                    <button onclick="copyConversation()" id="copyConvBtn" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Copy Conversation
+                    </button>
+                    <button onclick="startNewJourney()" class="max-send-button" style="width: auto; padding: 12px 24px; gap: 8px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Do Another Journey
+                    </button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0.5; gap: 24px; padding-top: 40px;">
+                <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end)); border-radius: 24px; display: flex; align-items: center; justify-content: center; box-shadow: var(--max-shadow-glow);">
+                    <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128.5 42.6" style="width: 60px; height: auto;">
+                        <path d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3V9.1C0,6.2.7,3.9,2.2,2.5,3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.7.4-1.8.6-3.2.6s-2.5-.2-3.2-.6c-.8-.4-1.4-1-1.8-1.8-.4-.8-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0l.2.1Z" style="fill: #ffffff;"/>
+                        <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c.1-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4.1.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c.1,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c.1,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z" style="fill: #ffffff;"/>
+                        <path d="M97.8,42.6c-1.1,0-2.2-.3-3.2-.8s-1.9-1.3-2.5-2.3c-.7-1-1-2.2-1-3.7,0-1.9.5-3.5,1.6-4.7,1-1.2,2.4-2.5,4.1-3.9,1.2-.9,2.4-1.7,3.5-2.6,1.2-.9,2.3-1.8,3.5-2.7-.8-.7-1.9-1.6-3.2-2.7s-2.6-2.2-3.9-3.3c-1.7-1.4-3.1-2.8-4.1-4.1s-1.5-2.9-1.5-5c0-1.4.4-2.6,1-3.7.7-1,1.5-1.8,2.5-2.3,1-.5,2.1-.8,3.2-.8s2.5.3,3.4.8c.9.6,1.7,1.3,2.4,2.2s1.4,2,2,3.2c1,1.9,1.8,3.7,2.5,5.3s1.3,2.8,1.6,3.7c.3-.9.9-2.1,1.6-3.7.7-1.6,1.6-3.4,2.5-5.3.6-1.2,1.3-2.3,2-3.2.7-.9,1.5-1.7,2.4-2.2,1.1-.5,2.2-.8,3.5-.8s2.2.3,3.3.8c1,.5,1.9,1.3,2.5,2.4.7,1,1,2.2,1,3.7,0,2.1-.5,3.7-1.5,5-1,1.3-2.4,2.7-4.1,4.1-1.2,1-2.3,2-3.5,3s-2.3,2-3.5,2.9c.8.6,1.9,1.4,3.1,2.3,1.2,1,2.5,2,3.7,3,1.7,1.4,3.1,2.7,4.1,3.9,1,1.2,1.6,2.8,1.6,4.7s-.3,2.6-1,3.7c-.7,1-1.5,1.8-2.5,2.3s-2.1.8-3.3.8c-1.3,0-2.5-.3-3.4-.9-.9-.5-1.7-1.3-2.4-2.2-.7-1-1.4-2-2-3.2-.9-1.7-1.7-3.3-2.4-4.7-.8-1.4-1.3-2.7-1.7-3.7-.3,1-.9,2.3-1.7,3.7-.8,1.5-1.6,3-2.4,4.6-1,1.8-2,3.3-3.1,4.5s-2.7,1.8-4.7,1.8h0v.1Z" style="fill: #ffffff;"/>
+                    </svg>
+                </div>
+                <p>Start a conversation to build the journey map.</p>
+            </div>
+        `;
+    }
+
+    }
+
+    container.innerHTML = html;
+}
+
+// Export to PDF
+function exportToPdf(targetElementId = 'journeyDashboard') {
+    const element = document.getElementById(targetElementId);
+    if (!element) return;
+    
+    // Add PDF styling class
+    element.classList.add('pdf-export-mode');
+
+    const opt = {
+      margin:       0.2, // Small margin
+      filename:     `journey-map-${new Date().toISOString().split('T')[0]}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Remove PDF styling class
+        element.classList.remove('pdf-export-mode');
+    });
+}
+
+// FigJam Modal Logic
+function ensureFigJamModal() {
+    if (document.getElementById('figJamModal')) return;
+
+    const modalHtml = `
+        <div class="cell-detail-overlay" id="figJamModal" style="z-index: 100; display: none;">
+            <div class="cell-detail-modal" style="text-align: center; max-width: 420px;">
+                <div style="width: 64px; height: 64px; background: rgba(34, 197, 94, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" style="width: 32px; height: 32px;">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <h3 style="font-size: 20px; font-weight: 600; color: var(--max-color-text-primary); margin-bottom: 12px;">Data Copied to Clipboard!</h3>
+                <p style="color: var(--max-color-text-secondary); margin-bottom: 24px; line-height: 1.5; font-size: 14px;">
+                    Your journey map data is ready for FigJam.
+                </p>
+                <div style="background: var(--max-color-surface-secondary); border: 1px solid var(--max-color-border); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: left;">
+                    <div style="color: var(--max-color-text-tertiary); font-size: 11px; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.05em;">NEXT STEPS</div>
+                    <div style="display: flex; gap: 12px; flex-direction: column;">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <div style="width: 24px; height: 24px; background: var(--max-color-surface-tertiary); border-radius: 50%; color: var(--max-color-text-primary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">1</div>
+                            <div style="color: var(--max-color-text-primary); font-size: 14px;">Go to the <strong>FigJam</strong> tab (opened for you)</div>
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <div style="width: 24px; height: 24px; background: var(--max-color-surface-tertiary); border-radius: 50%; color: var(--max-color-text-primary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">2</div>
+                            <div style="color: var(--max-color-text-primary); font-size: 14px;">Press <kbd style="background: var(--max-color-surface-tertiary); padding: 2px 6px; border-radius: 4px; font-family: inherit; font-size: 12px; border: 1px solid var(--max-color-border);">Cmd</kbd> + <kbd style="background: var(--max-color-surface-tertiary); padding: 2px 6px; border-radius: 4px; font-family: inherit; font-size: 12px; border: 1px solid var(--max-color-border);">V</kbd> to paste</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="closeFigJamModal()" style="flex: 1; padding: 12px; background: transparent; border: 1px solid var(--max-color-border); color: var(--max-color-text-secondary); border-radius: 8px; cursor: pointer; font-weight: 500;">Close</button>
+                    <button onclick="window.open('https://figjam.new', '_blank'); closeFigJamModal()" class="max-send-button" style="flex: 1; justify-content: center; width: auto; background: #9747FF; border: none; color: white;">
+                        Open FigJam Again
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-left: 8px;">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeFigJamModal() {
+    const modal = document.getElementById('figJamModal');
+    if (modal) modal.style.display = 'none';
+}
+
+// Export to FigJam (CSV Copy)
+function exportToFigJam() {
+    if (!currentRenderedJourney) return;
+    
+    // Create CSV content
+    // Format: Phase, Swimlane, Headline, Description
+    let csvContent = "Phase,Swimlane,Headline,Description\n";
+    
+    currentRenderedJourney.phases.forEach(phase => {
+        currentRenderedJourney.swimlanes.forEach(swimlane => {
+            const cell = currentRenderedJourney.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+            if (cell && cell.headline) {
+                // Escape quotes
+                const p = `"${phase.name.replace(/"/g, '""')}"`;
+                const s = `"${swimlane.name.replace(/"/g, '""')}"`;
+                const h = `"${cell.headline.replace(/"/g, '""')}"`;
+                const d = `"${cell.description.replace(/"/g, '""')}"`;
+                csvContent += `${p},${s},${h},${d}\n`;
+            }
+        });
+    });
+
+    ensureFigJamModal();
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(csvContent).then(() => {
+        // Automatically open FigJam.new
+        window.open('https://figjam.new', '_blank');
+        
+        // Show guidance modal
+        const modal = document.getElementById('figJamModal');
+        if (modal) modal.style.display = 'flex';
+        
+    }).catch(err => {
+        console.error("Failed to copy CSV", err);
+        // Fallback to download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "journey-map.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        alert("CSV downloaded instead of copied. Please drag this file into FigJam.");
+    });
+}

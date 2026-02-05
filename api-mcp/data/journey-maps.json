@@ -3224,5 +3224,792 @@
     "outputJson": {
       "code": "{\n  \"journeyMapId\": \"35e316b3-e0ca-4196-baa4-ea679d3cc4f4\",\n  \"sessionId\": \"cc6a89ae-20e1-4595-b97e-2c9b66290087\",\n  \"status\": \"DRAFT\",\n  \"stage\": \"CELL_POPULATION\",\n  \"name\": \"Entering Time\",\n  \"role\": \"Product Manager\",\n  \"context\": \"Entering TimeEntering Time\",\n  \"arePhasesComplete\": false,\n  \"areSwimlanesComplete\": false,\n  \"completionStatus\": {\n    \"name\": true,\n    \"role\": true,\n    \"context\": true,\n    \"phases\": false,\n    \"swimlanes\": false,\n    \"cells\": false\n  },\n  \"phases\": [\n    {\n      \"phaseId\": \"75c68453-1fcb-4c53-a70d-345e36e4c97c\",\n      \"sequence\": 1,\n      \"name\": \"launch app\",\n      \"description\": \"\",\n      \"context\": \"\"\n    },\n    {\n      \"phaseId\": \"b72b87bd-19a2-41d2-b42a-6d70375262d7\",\n      \"sequence\": 2,\n      \"name\": \"enter time\",\n      \"description\": \"\",\n      \"context\": \"\"\n    },\n    {\n      \"phaseId\": \"9e248c1e-ed48-48f9-86d6-00f66a110f4b\",\n      \"sequence\": 3,\n      \"name\": \"call HR\",\n      \"description\": \"\",\n      \"context\": \"\"\n    }\n  ],\n  \"swimlanes\": [\n    {\n      \"swimlaneId\": \"2f46c144-872c-44f6-8db7-398fd78d6c90\",\n      \"sequence\": 1,\n      \"name\": \"AirBase\",\n      \"description\": \"for time entry\",\n      \"context\": \"\"\n    },\n    {\n      \"swimlaneId\": \"41b533f1-96df-4ad2-88cc-61d5b4ba2054\",\n      \"sequence\": 2,\n      \"name\": \"Me\",\n      \"description\": \"the user\",\n      \"context\": \"\"\n    }\n  ],\n  \"cells\": [\n    {\n      \"cellId\": \"fdac29d5-708b-4f56-90db-b307b42458b0\",\n      \"phaseId\": \"75c68453-1fcb-4c53-a70d-345e36e4c97c\",\n      \"swimlaneId\": \"2f46c144-872c-44f6-8db7-398fd78d6c90\",\n      \"action\": \"Its loading\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"53f653ea-0b97-4ff1-afc3-64074bd8de3a\",\n      \"phaseId\": \"75c68453-1fcb-4c53-a70d-345e36e4c97c\",\n      \"swimlaneId\": \"41b533f1-96df-4ad2-88cc-61d5b4ba2054\",\n      \"action\": \"Install security USB device\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"f9d0c0d9-2ccf-4c40-9e1f-1277368c2a4b\",\n      \"phaseId\": \"b72b87bd-19a2-41d2-b42a-6d70375262d7\",\n      \"swimlaneId\": \"2f46c144-872c-44f6-8db7-398fd78d6c90\",\n      \"action\": \"I fill a form\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"dc7f9bc6-52af-448b-b6fe-9d25f1bae976\",\n      \"phaseId\": \"b72b87bd-19a2-41d2-b42a-6d70375262d7\",\n      \"swimlaneId\": \"41b533f1-96df-4ad2-88cc-61d5b4ba2054\",\n      \"action\": \"I need to figure out what I did\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"c4c4b815-2db8-4b47-bf03-f1f380d494af\",\n      \"phaseId\": \"9e248c1e-ed48-48f9-86d6-00f66a110f4b\",\n      \"swimlaneId\": \"2f46c144-872c-44f6-8db7-398fd78d6c90\",\n      \"action\": \"Look up client MSAa\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"aafa36f7-24cb-447a-9737-c3df0c2c3676\",\n      \"phaseId\": \"9e248c1e-ed48-48f9-86d6-00f66a110f4b\",\n      \"swimlaneId\": \"41b533f1-96df-4ad2-88cc-61d5b4ba2054\",\n      \"action\": \"Taking a break\",\n      \"context\": \"\"\n    }\n  ],\n  \"metrics\": {\n    \"totalPhases\": 3,\n    \"totalSwimlanes\": 2,\n    \"totalCellsExpected\": 6,\n    \"totalCellsPresent\": 6,\n    \"totalCellsCompleted\": 0,\n    \"percentCellsComplete\": 0\n  },\n  \"createdAt\": \"2026-02-05T12:57:37.897Z\",\n  \"updatedAt\": \"2026-02-05T13:23:23.014Z\",\n  \"version\": 12,\n  \"mermaid\": {\n    \"code\": \"journey\\n    title Entering Time\\n    section launch app\\n    section enter time\\n    section call HR\\n\"\n  }\n}"
     }
+  },
+  "b7636f59-0e19-4c52-b012-87937d281db4": {
+    "journeyMapId": "b7636f59-0e19-4c52-b012-87937d281db4",
+    "sessionId": "a580a94e-c68c-4be1-97e7-624c7e141f59",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "Draft Journey",
+    "role": "Architect",
+    "description": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T19:32:56.628Z",
+    "updatedAt": "2026-02-05T19:32:56.628Z",
+    "version": 1
+  },
+  "dcd19448-088f-4855-86ea-467ad7db7566": {
+    "journeyMapId": "dcd19448-088f-4855-86ea-467ad7db7566",
+    "sessionId": "f9c082be-f061-4818-b1ff-3ae0eb524c34",
+    "status": "READY_FOR_REVIEW",
+    "stage": "COMPLETE",
+    "name": "A Day at the Quarry",
+    "role": "Construction Worker",
+    "description": "The user hates their quarry gig. There are also radiation leaks at the quarry.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "8aea9cb0-a6e8-4712-8e99-826774bfde37",
+        "sequence": 1,
+        "name": "Find a rock",
+        "description": "Find a rock",
+        "context": ""
+      },
+      {
+        "phaseId": "340eb035-f747-44ae-b46b-f9d7c3a4f77f",
+        "sequence": 2,
+        "name": "Smash a rock",
+        "description": "Smash a rock",
+        "context": ""
+      },
+      {
+        "phaseId": "c0e2a0f3-7743-43c8-a6e3-83d14f0ec4cf",
+        "sequence": 3,
+        "name": "Collect rock pieces",
+        "description": "Collect rock pieces",
+        "context": ""
+      },
+      {
+        "phaseId": "6bbfd5ef-4146-499e-b413-e4293683e294",
+        "sequence": 4,
+        "name": "Put rock in a hole",
+        "description": "Put rock in a hole",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "e0cdd92c-be46-4e0b-a8c0-b754196557a5",
+        "sequence": 1,
+        "name": "Animal",
+        "description": "The dinosaur they ride on",
+        "context": ""
+      },
+      {
+        "swimlaneId": "ff11de36-b89e-4359-95c5-3e32633181ed",
+        "sequence": 2,
+        "name": "Task",
+        "description": "The activity they perform",
+        "context": ""
+      },
+      {
+        "swimlaneId": "11dd1be8-69c8-4423-bb9b-d15af2a183b6",
+        "sequence": 3,
+        "name": "Pain Point",
+        "description": "The pain they experience",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "6c9947e9-5540-4d94-98c3-92ef212e6531",
+        "phaseId": "8aea9cb0-a6e8-4712-8e99-826774bfde37",
+        "swimlaneId": "e0cdd92c-be46-4e0b-a8c0-b754196557a5",
+        "action": "T-Rex bites me",
+        "context": "The dinosaur is a T-Rex and it bites me."
+      },
+      {
+        "cellId": "86ebbdd6-69fb-44b4-92cf-3563312082fa",
+        "phaseId": "8aea9cb0-a6e8-4712-8e99-826774bfde37",
+        "swimlaneId": "ff11de36-b89e-4359-95c5-3e32633181ed",
+        "action": "Rocks that smell like pizza",
+        "context": ""
+      },
+      {
+        "cellId": "18f0544c-47e7-4fbb-badc-2471776cb350",
+        "phaseId": "8aea9cb0-a6e8-4712-8e99-826774bfde37",
+        "swimlaneId": "11dd1be8-69c8-4423-bb9b-d15af2a183b6",
+        "action": "Allergic to pizza smell",
+        "context": "The user is allergic to the smell of pizza, which is a problem because they are looking for rocks that smell like pizza."
+      },
+      {
+        "cellId": "4e9dc2e4-3e34-42fe-884c-54964c436d13",
+        "phaseId": "340eb035-f747-44ae-b46b-f9d7c3a4f77f",
+        "swimlaneId": "e0cdd92c-be46-4e0b-a8c0-b754196557a5",
+        "action": "Riding a lizard",
+        "context": "The user rides a lizard during the \"Smash a rock\" phase."
+      },
+      {
+        "cellId": "3e646264-41dd-4129-9d41-f31399e20ba1",
+        "phaseId": "340eb035-f747-44ae-b46b-f9d7c3a4f77f",
+        "swimlaneId": "ff11de36-b89e-4359-95c5-3e32633181ed",
+        "action": "Lift arms up",
+        "context": ""
+      },
+      {
+        "cellId": "8027e8ba-84e6-40f7-8338-a92d9ea4aa92",
+        "phaseId": "340eb035-f747-44ae-b46b-f9d7c3a4f77f",
+        "swimlaneId": "11dd1be8-69c8-4423-bb9b-d15af2a183b6",
+        "action": "Lizard bites me",
+        "context": "The lizard keeps biting me"
+      },
+      {
+        "cellId": "0276cd8e-9b27-4c55-835e-eb9a0a3d255f",
+        "phaseId": "c0e2a0f3-7743-43c8-a6e3-83d14f0ec4cf",
+        "swimlaneId": "e0cdd92c-be46-4e0b-a8c0-b754196557a5",
+        "action": "Pulled by sled-coyotes",
+        "context": "I am now being pulled by a group of sled-coyotes"
+      },
+      {
+        "cellId": "1df799b9-35ac-45d6-a7f5-b4936aa1e4ce",
+        "phaseId": "c0e2a0f3-7743-43c8-a6e3-83d14f0ec4cf",
+        "swimlaneId": "ff11de36-b89e-4359-95c5-3e32633181ed",
+        "action": "Use musket and battle axe",
+        "context": "I use a musket and battle axe to collect rock pieces."
+      },
+      {
+        "cellId": "94c92fda-8b20-4ea8-84d1-ea6f3c307bed",
+        "phaseId": "c0e2a0f3-7743-43c8-a6e3-83d14f0ec4cf",
+        "swimlaneId": "11dd1be8-69c8-4423-bb9b-d15af2a183b6",
+        "action": "Axe never sharp, tangles in beard",
+        "context": "The axe is never sharpe and it tangles in my beard"
+      },
+      {
+        "cellId": "6fd5382a-ef96-4706-b5e1-0b430084bc95",
+        "phaseId": "6bbfd5ef-4146-499e-b413-e4293683e294",
+        "swimlaneId": "e0cdd92c-be46-4e0b-a8c0-b754196557a5",
+        "action": "I am now using a babble fish",
+        "context": ""
+      },
+      {
+        "cellId": "daae18a1-7747-4294-be76-1165a70ce2c7",
+        "phaseId": "6bbfd5ef-4146-499e-b413-e4293683e294",
+        "swimlaneId": "ff11de36-b89e-4359-95c5-3e32633181ed",
+        "action": "Use a 44 mm tube and a firecracker",
+        "context": "I use a 44 mm tube and a firecracker to do this"
+      },
+      {
+        "cellId": "bc1400ad-5b9c-48a7-8275-0f9714842121",
+        "phaseId": "6bbfd5ef-4146-499e-b413-e4293683e294",
+        "swimlaneId": "11dd1be8-69c8-4423-bb9b-d15af2a183b6",
+        "action": "Unnecessary feeding of babble fish",
+        "context": "The babble fish is really not needed, but I still have to feed it."
+      }
+    ],
+    "metrics": {
+      "totalPhases": 4,
+      "totalSwimlanes": 3,
+      "totalCellsExpected": 12,
+      "totalCellsPresent": 12,
+      "totalCellsCompleted": 9,
+      "percentCellsComplete": 75
+    },
+    "createdAt": "2026-02-05T19:54:27.372Z",
+    "updatedAt": "2026-02-05T20:05:10.539Z",
+    "version": 19,
+    "mermaid": {
+      "code": "journey\n    title A Day at the Quarry\n    section Find a rock\n      Animal: 3: T-Rex bites me\n      Pain Point: 3: Allergic to pizza smell\n    section Smash a rock\n      Animal: 3: Riding a lizard\n      Pain Point: 3: Lizard bites me\n    section Collect rock pieces\n      Animal: 3: Pulled by sled-coyotes\n      Task: 3: Use musket and battle axe\n      Pain Point: 3: Axe never sharp, tangles in beard\n    section Put rock in a hole\n      Task: 3: Use a 44 mm tube and a firecracker\n      Pain Point: 3: Unnecessary feeding of babble fish\n"
+    },
+    "outputJson": {
+      "code": "{\n  \"journeyMapId\": \"dcd19448-088f-4855-86ea-467ad7db7566\",\n  \"sessionId\": \"f9c082be-f061-4818-b1ff-3ae0eb524c34\",\n  \"status\": \"DRAFT\",\n  \"stage\": \"CELL_POPULATION\",\n  \"name\": \"A Day at the Quarry\",\n  \"role\": \"Construction Worker\",\n  \"description\": \"The user hates their quarry gig. There are also radiation leaks at the quarry.\",\n  \"arePhasesComplete\": false,\n  \"areSwimlanesComplete\": false,\n  \"completionStatus\": {\n    \"name\": true,\n    \"role\": true,\n    \"description\": true,\n    \"phases\": false,\n    \"swimlanes\": false,\n    \"cells\": false\n  },\n  \"phases\": [\n    {\n      \"phaseId\": \"8aea9cb0-a6e8-4712-8e99-826774bfde37\",\n      \"sequence\": 1,\n      \"name\": \"Find a rock\",\n      \"description\": \"Find a rock\",\n      \"context\": \"\"\n    },\n    {\n      \"phaseId\": \"340eb035-f747-44ae-b46b-f9d7c3a4f77f\",\n      \"sequence\": 2,\n      \"name\": \"Smash a rock\",\n      \"description\": \"Smash a rock\",\n      \"context\": \"\"\n    },\n    {\n      \"phaseId\": \"c0e2a0f3-7743-43c8-a6e3-83d14f0ec4cf\",\n      \"sequence\": 3,\n      \"name\": \"Collect rock pieces\",\n      \"description\": \"Collect rock pieces\",\n      \"context\": \"\"\n    },\n    {\n      \"phaseId\": \"6bbfd5ef-4146-499e-b413-e4293683e294\",\n      \"sequence\": 4,\n      \"name\": \"Put rock in a hole\",\n      \"description\": \"Put rock in a hole\",\n      \"context\": \"\"\n    }\n  ],\n  \"swimlanes\": [\n    {\n      \"swimlaneId\": \"e0cdd92c-be46-4e0b-a8c0-b754196557a5\",\n      \"sequence\": 1,\n      \"name\": \"Animal\",\n      \"description\": \"The dinosaur they ride on\",\n      \"context\": \"\"\n    },\n    {\n      \"swimlaneId\": \"ff11de36-b89e-4359-95c5-3e32633181ed\",\n      \"sequence\": 2,\n      \"name\": \"Task\",\n      \"description\": \"The activity they perform\",\n      \"context\": \"\"\n    },\n    {\n      \"swimlaneId\": \"11dd1be8-69c8-4423-bb9b-d15af2a183b6\",\n      \"sequence\": 3,\n      \"name\": \"Pain Point\",\n      \"description\": \"The pain they experience\",\n      \"context\": \"\"\n    }\n  ],\n  \"cells\": [\n    {\n      \"cellId\": \"6c9947e9-5540-4d94-98c3-92ef212e6531\",\n      \"phaseId\": \"8aea9cb0-a6e8-4712-8e99-826774bfde37\",\n      \"swimlaneId\": \"e0cdd92c-be46-4e0b-a8c0-b754196557a5\",\n      \"action\": \"T-Rex bites me\",\n      \"context\": \"The dinosaur is a T-Rex and it bites me.\"\n    },\n    {\n      \"cellId\": \"86ebbdd6-69fb-44b4-92cf-3563312082fa\",\n      \"phaseId\": \"8aea9cb0-a6e8-4712-8e99-826774bfde37\",\n      \"swimlaneId\": \"ff11de36-b89e-4359-95c5-3e32633181ed\",\n      \"action\": \"Rocks that smell like pizza\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"18f0544c-47e7-4fbb-badc-2471776cb350\",\n      \"phaseId\": \"8aea9cb0-a6e8-4712-8e99-826774bfde37\",\n      \"swimlaneId\": \"11dd1be8-69c8-4423-bb9b-d15af2a183b6\",\n      \"action\": \"Allergic to pizza smell\",\n      \"context\": \"The user is allergic to the smell of pizza, which is a problem because they are looking for rocks that smell like pizza.\"\n    },\n    {\n      \"cellId\": \"4e9dc2e4-3e34-42fe-884c-54964c436d13\",\n      \"phaseId\": \"340eb035-f747-44ae-b46b-f9d7c3a4f77f\",\n      \"swimlaneId\": \"e0cdd92c-be46-4e0b-a8c0-b754196557a5\",\n      \"action\": \"Riding a lizard\",\n      \"context\": \"The user rides a lizard during the \\\"Smash a rock\\\" phase.\"\n    },\n    {\n      \"cellId\": \"3e646264-41dd-4129-9d41-f31399e20ba1\",\n      \"phaseId\": \"340eb035-f747-44ae-b46b-f9d7c3a4f77f\",\n      \"swimlaneId\": \"ff11de36-b89e-4359-95c5-3e32633181ed\",\n      \"action\": \"Lift arms up\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"8027e8ba-84e6-40f7-8338-a92d9ea4aa92\",\n      \"phaseId\": \"340eb035-f747-44ae-b46b-f9d7c3a4f77f\",\n      \"swimlaneId\": \"11dd1be8-69c8-4423-bb9b-d15af2a183b6\",\n      \"action\": \"Lizard bites me\",\n      \"context\": \"The lizard keeps biting me\"\n    },\n    {\n      \"cellId\": \"0276cd8e-9b27-4c55-835e-eb9a0a3d255f\",\n      \"phaseId\": \"c0e2a0f3-7743-43c8-a6e3-83d14f0ec4cf\",\n      \"swimlaneId\": \"e0cdd92c-be46-4e0b-a8c0-b754196557a5\",\n      \"action\": \"Pulled by sled-coyotes\",\n      \"context\": \"I am now being pulled by a group of sled-coyotes\"\n    },\n    {\n      \"cellId\": \"1df799b9-35ac-45d6-a7f5-b4936aa1e4ce\",\n      \"phaseId\": \"c0e2a0f3-7743-43c8-a6e3-83d14f0ec4cf\",\n      \"swimlaneId\": \"ff11de36-b89e-4359-95c5-3e32633181ed\",\n      \"action\": \"Use musket and battle axe\",\n      \"context\": \"I use a musket and battle axe to collect rock pieces.\"\n    },\n    {\n      \"cellId\": \"94c92fda-8b20-4ea8-84d1-ea6f3c307bed\",\n      \"phaseId\": \"c0e2a0f3-7743-43c8-a6e3-83d14f0ec4cf\",\n      \"swimlaneId\": \"11dd1be8-69c8-4423-bb9b-d15af2a183b6\",\n      \"action\": \"Axe never sharp, tangles in beard\",\n      \"context\": \"The axe is never sharpe and it tangles in my beard\"\n    },\n    {\n      \"cellId\": \"6fd5382a-ef96-4706-b5e1-0b430084bc95\",\n      \"phaseId\": \"6bbfd5ef-4146-499e-b413-e4293683e294\",\n      \"swimlaneId\": \"e0cdd92c-be46-4e0b-a8c0-b754196557a5\",\n      \"action\": \"I am now using a babble fish\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"daae18a1-7747-4294-be76-1165a70ce2c7\",\n      \"phaseId\": \"6bbfd5ef-4146-499e-b413-e4293683e294\",\n      \"swimlaneId\": \"ff11de36-b89e-4359-95c5-3e32633181ed\",\n      \"action\": \"Use a 44 mm tube and a firecracker\",\n      \"context\": \"I use a 44 mm tube and a firecracker to do this\"\n    },\n    {\n      \"cellId\": \"bc1400ad-5b9c-48a7-8275-0f9714842121\",\n      \"phaseId\": \"6bbfd5ef-4146-499e-b413-e4293683e294\",\n      \"swimlaneId\": \"11dd1be8-69c8-4423-bb9b-d15af2a183b6\",\n      \"action\": \"Unnecessary feeding of babble fish\",\n      \"context\": \"The babble fish is really not needed, but I still have to feed it.\"\n    }\n  ],\n  \"metrics\": {\n    \"totalPhases\": 4,\n    \"totalSwimlanes\": 3,\n    \"totalCellsExpected\": 12,\n    \"totalCellsPresent\": 12,\n    \"totalCellsCompleted\": 9,\n    \"percentCellsComplete\": 75\n  },\n  \"createdAt\": \"2026-02-05T19:54:27.372Z\",\n  \"updatedAt\": \"2026-02-05T20:04:42.563Z\",\n  \"version\": 18,\n  \"mermaid\": {\n    \"code\": \"journey\\n    title A Day at the Quarry\\n    section Find a rock\\n      Animal: 3: T-Rex bites me\\n      Pain Point: 3: Allergic to pizza smell\\n    section Smash a rock\\n      Animal: 3: Riding a lizard\\n      Pain Point: 3: Lizard bites me\\n    section Collect rock pieces\\n      Animal: 3: Pulled by sled-coyotes\\n      Task: 3: Use musket and battle axe\\n      Pain Point: 3: Axe never sharp, tangles in beard\\n    section Put rock in a hole\\n      Task: 3: Use a 44 mm tube and a firecracker\\n      Pain Point: 3: Unnecessary feeding of babble fish\\n\"\n  }\n}"
+    },
+    "summaryOfFindings": "Fred Flintstone, a construction worker, experiences a highly challenging and frustrating 'Day at the Quarry.' The journey is characterized by unexpected and often painful interactions with various animals, physically demanding tasks, and a pervasive sense of inefficiency and danger.\n\n*   **Phase 1: Find a rock**\n    *   **Animal:** A T-Rex, which bites Fred, causing pain and difficulty.\n    *   **Task:** Searching for 'pizza-smelling rocks,' a unique and specific requirement.\n    *   **Pain Point:** Fred is allergic to pizza, making the search for pizza-smelling rocks a miserable experience due to his allergy.\n*   **Phase 2: Smash a rock**\n    *   **Animal:** A lizard, which also bites Fred, adding to his pain and frustration.\n    *   **Task:** Involves significant physical effort, specifically lifting arms up.\n    *   **Pain Point:** The lizard constantly bites Fred, making the task difficult and unpleasant.\n*   **Phase 3: Collect rock pieces**\n    *   **Animal:** Pulled by a group of sled-coyotes, indicating a chaotic and perhaps uncontrolled mode of transport.\n    *   **Task:** Uses a musket and battle axe, suggesting a violent and inefficient method of collection.\n    *   **Pain Point:** The battle axe is never sharp and constantly tangles in Fred's beard, hindering the task and causing frustration.\n*   **Phase 4: Put rock in a hole**\n    *   **Animal:** Utilizes a babble fish, which is deemed unnecessary.\n    *   **Task:** Involves a dangerous method using a 44mm tube and a firecracker.\n    *   **Pain Point:** Fred is forced to feed the babble fish, despite it being unneeded for the task, highlighting inefficiency and wasted effort.\n\n**Overall Context:** The journey is further complicated by the presence of 'radiation leaks at the quarry,' adding a layer of significant danger and health risk to an already arduous job. Fred's initial statement 'I hate it' is consistently reinforced by the details of his daily experiences, which are fraught with pain, inefficiency, and danger.",
+    "mentalModels": "1.  **Survival as the Primary Goal:** Fred's actions and descriptions suggest that his primary mental model is one of survival in a hostile and unpredictable environment. The constant animal attacks, dangerous tools, and radiation leaks point to a daily struggle for self-preservation rather than efficient work.\n2.  **Acceptance of Absurdity/Inefficiency:** Despite the clear inefficiencies (unnecessary babble fish, dull axe, biting animals), Fred describes these as part of his routine. This suggests a mental model where the absurd and inefficient are simply 'how things are done' in his workplace, rather than something to be questioned or changed.\n3.  **Physical Labor and Endurance:** The repeated emphasis on physical effort (lifting arms, using heavy tools) and enduring pain (bites, allergies) indicates a mental model centered around physical endurance as a core requirement of his job, often without clear purpose or reward.\n4.  **External Locus of Control:** Many of Fred's pain points (animals biting, dull axe, unnecessary feeding) are external factors seemingly beyond his control. This suggests a mental model where he is a reactive participant in his work, rather than an agent who can influence or improve his conditions.\n5.  **Sensory-Driven Work:** The 'pizza-smelling rocks' indicate a unique, sensory-driven approach to task execution, which then ironically conflicts with his personal allergies, highlighting a disconnect between task requirements and personal well-being."
+  },
+  "86958dfb-2a2f-40a6-9672-13dc37375ba8": {
+    "journeyMapId": "86958dfb-2a2f-40a6-9672-13dc37375ba8",
+    "sessionId": "2b39eedc-b9e3-4550-a565-b3bb1337562e",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "name": "A Day at the Quarry",
+    "role": "Construction Worker",
+    "description": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T20:09:18.182Z",
+    "updatedAt": "2026-02-05T20:09:21.060Z",
+    "version": 2
+  },
+  "55ccd543-634c-4fb5-b65e-73597f0928a3": {
+    "journeyMapId": "55ccd543-634c-4fb5-b65e-73597f0928a3",
+    "sessionId": "7244a8d3-aa87-42b8-9de3-92458fd1b4ee",
+    "status": "DRAFT",
+    "stage": "CELL_POPULATION",
+    "name": "A Day at the Quarry",
+    "role": "Construction Worker",
+    "description": "The user hates their job. They wake up every day and eat bats.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "11d81092-051f-4107-88bc-d6db4f5718d9",
+        "sequence": 1,
+        "name": "Find a Rock",
+        "description": "The process of locating a suitable rock.",
+        "context": ""
+      },
+      {
+        "phaseId": "05fb094b-e41f-4bed-882b-db6fe6e644c6",
+        "sequence": 2,
+        "name": "Beat a Rock",
+        "description": "The act of breaking or shaping the rock.",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "6d6d54bb-105a-4eb4-881c-d748c37fe388",
+        "sequence": 1,
+        "name": "Animal",
+        "description": "The dinosaur they ride on",
+        "context": ""
+      },
+      {
+        "swimlaneId": "80c810a5-e8fb-49f1-a7c9-e072cdc343c9",
+        "sequence": 2,
+        "name": "Task",
+        "description": "The activity they perform",
+        "context": ""
+      },
+      {
+        "swimlaneId": "7010a7cd-adfc-448d-8884-938a7e83d690",
+        "sequence": 3,
+        "name": "Pain Point",
+        "description": "The pain they experience",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "a1b81a38-413b-4942-a2c5-8073d9234e58",
+        "phaseId": "11d81092-051f-4107-88bc-d6db4f5718d9",
+        "swimlaneId": "6d6d54bb-105a-4eb4-881c-d748c37fe388",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "06bb93c8-9780-4c62-b48a-f4e969bac598",
+        "phaseId": "11d81092-051f-4107-88bc-d6db4f5718d9",
+        "swimlaneId": "80c810a5-e8fb-49f1-a7c9-e072cdc343c9",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "8a33615b-fd3c-4da4-bcde-e6f472ec7150",
+        "phaseId": "11d81092-051f-4107-88bc-d6db4f5718d9",
+        "swimlaneId": "7010a7cd-adfc-448d-8884-938a7e83d690",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "0a336bab-e587-48e1-83a9-07799fb2a8f5",
+        "phaseId": "05fb094b-e41f-4bed-882b-db6fe6e644c6",
+        "swimlaneId": "6d6d54bb-105a-4eb4-881c-d748c37fe388",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "017ece5b-d42f-4680-82b4-ec77a39932fa",
+        "phaseId": "05fb094b-e41f-4bed-882b-db6fe6e644c6",
+        "swimlaneId": "80c810a5-e8fb-49f1-a7c9-e072cdc343c9",
+        "action": "",
+        "context": ""
+      },
+      {
+        "cellId": "12858976-0f66-4ba8-b22f-195aa12db002",
+        "phaseId": "05fb094b-e41f-4bed-882b-db6fe6e644c6",
+        "swimlaneId": "7010a7cd-adfc-448d-8884-938a7e83d690",
+        "action": "",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 2,
+      "totalSwimlanes": 3,
+      "totalCellsExpected": 6,
+      "totalCellsPresent": 6,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T20:15:33.453Z",
+    "updatedAt": "2026-02-05T20:16:37.963Z",
+    "version": 5
+  },
+  "823f9e1f-ae5f-4e49-8ab9-074b771f7e03": {
+    "journeyMapId": "823f9e1f-ae5f-4e49-8ab9-074b771f7e03",
+    "sessionId": "14652c72-1410-40b9-8876-ad4f98484ada",
+    "status": "DRAFT",
+    "stage": "PHASES",
+    "name": "Stopping Leaks",
+    "role": "pipefitter",
+    "description": "I help people from losing their homes by stopping leaks as they damage homes.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T21:17:48.497Z",
+    "updatedAt": "2026-02-05T21:18:37.194Z",
+    "version": 2
+  },
+  "d484c032-843a-4454-a640-3b1a9081f48e": {
+    "journeyMapId": "d484c032-843a-4454-a640-3b1a9081f48e",
+    "sessionId": "a9f5d2e6-fdf4-4895-b363-daacb688588d",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "userName": "Petro",
+    "name": "Cat Breeding Journey",
+    "role": "cat breeder",
+    "description": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T22:05:09.890Z",
+    "updatedAt": "2026-02-05T22:05:09.890Z",
+    "version": 1
+  },
+  "9e0ce118-54f7-47e3-9bc3-8042d951c928": {
+    "journeyMapId": "9e0ce118-54f7-47e3-9bc3-8042d951c928",
+    "sessionId": "94505b6a-ab71-4edd-84ef-110feae1c16f",
+    "status": "DRAFT",
+    "stage": "CELL_POPULATION",
+    "userName": "Petro",
+    "name": "Cat Shaving Journey",
+    "role": "cat breeder",
+    "description": "Securing and shaving cats to ensure pet owner satisfaction and a hair-free home.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "b9f90cd2-5107-44c2-8505-162957d2e129",
+        "sequence": 1,
+        "name": "Clean cat",
+        "description": "Preparing the cat for shaving by cleaning it.",
+        "context": ""
+      },
+      {
+        "phaseId": "cad7d575-8f92-48ed-af32-8ceddd828fac",
+        "sequence": 2,
+        "name": "Shave cat",
+        "description": "Performing the actual shaving of the cat.",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "1cfa2a20-1d4f-469e-9c10-a4944b531f3b",
+        "sequence": 1,
+        "name": "Breed",
+        "description": "Tracking the specific breed of the cat being groomed, as different breeds may have unique grooming needs or temperaments.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "1ddbc654-aa03-4f4c-99a4-84ba299fe09f",
+        "sequence": 2,
+        "name": "Painpoints",
+        "description": "Identifying and documenting any difficulties, challenges, or negative experiences encountered during the cat shaving process.",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "d3a901fb-1afe-4e3e-8a99-9bcb05fa8f6b",
+        "phaseId": "b9f90cd2-5107-44c2-8505-162957d2e129",
+        "swimlaneId": "1cfa2a20-1d4f-469e-9c10-a4944b531f3b",
+        "headline": "Scissors Breaking on Persian Cats",
+        "description": "The long, coarse hair of Persian cats, often tangled and matted, causes scissors to break during the cleaning process. This significantly slows down the cleaning, necessitates frequent changes of tools, and leads to considerable frustration.",
+        "context": ""
+      },
+      {
+        "cellId": "fd29c61f-b046-414e-95b7-e9db0320466b",
+        "phaseId": "b9f90cd2-5107-44c2-8505-162957d2e129",
+        "swimlaneId": "1ddbc654-aa03-4f4c-99a4-84ba299fe09f",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "4a40e73d-e794-4704-8b8d-ef36c64287f3",
+        "phaseId": "cad7d575-8f92-48ed-af32-8ceddd828fac",
+        "swimlaneId": "1cfa2a20-1d4f-469e-9c10-a4944b531f3b",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "82e0bd39-6603-43ec-9355-09c0098e0aee",
+        "phaseId": "cad7d575-8f92-48ed-af32-8ceddd828fac",
+        "swimlaneId": "1ddbc654-aa03-4f4c-99a4-84ba299fe09f",
+        "headline": "",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 2,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 4,
+      "totalCellsPresent": 4,
+      "totalCellsCompleted": 1,
+      "percentCellsComplete": 25
+    },
+    "createdAt": "2026-02-05T22:05:31.617Z",
+    "updatedAt": "2026-02-05T22:09:35.613Z",
+    "version": 6
+  },
+  "df38f894-5567-4edf-a6f1-abe0e990edba": {
+    "journeyMapId": "df38f894-5567-4edf-a6f1-abe0e990edba",
+    "sessionId": "2b32ec2d-6abd-4749-88d5-cc4b8320625c",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "userName": "Scott",
+    "name": "Draft Journey",
+    "role": "farmer",
+    "description": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-05T22:21:17.974Z",
+    "updatedAt": "2026-02-05T22:21:17.974Z",
+    "version": 1
+  },
+  "338767f8-d060-415b-a66b-6d63d8a7c0ff": {
+    "journeyMapId": "338767f8-d060-415b-a66b-6d63d8a7c0ff",
+    "sessionId": "2b279e7e-bb4c-4d7d-8ed4-34625410bd29",
+    "status": "READY_FOR_REVIEW",
+    "stage": "COMPLETE",
+    "userName": "Scott",
+    "name": "Milking Cows",
+    "role": "farmer",
+    "description": "Delicately touching udders to extract milk for sale, an activity crucial due to current market conditions. The method of \"peeling cows\" is non-traditional but makes for superior milk, despite concerns people might have.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": true
+    },
+    "phases": [
+      {
+        "phaseId": "9ba39a2a-5d4a-4821-9d26-184417080f4b",
+        "sequence": 1,
+        "name": "Touch the cow",
+        "description": "Delicately touching udders to prepare for milking and stimulate milk flow.",
+        "context": ""
+      },
+      {
+        "phaseId": "3280facf-ba3e-49a4-b537-906da8f4dda7",
+        "sequence": 2,
+        "name": "Peel the cow",
+        "description": "Extracting milk from the cow, ensuring efficient and complete milking.",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "d76f30a3-1dd9-418b-b32d-173a9062717c",
+        "sequence": 1,
+        "name": "Time of day",
+        "description": "The specific time when each phase occurs.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "983823bd-5b4e-4cd3-bd40-9945429ff5ae",
+        "sequence": 2,
+        "name": "Pain points",
+        "description": "Challenges or difficulties encountered during each phase.",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "a5a5d04f-1204-4fa9-a733-92f16f71bfd9",
+        "phaseId": "9ba39a2a-5d4a-4821-9d26-184417080f4b",
+        "swimlaneId": "d76f30a3-1dd9-418b-b32d-173a9062717c",
+        "headline": "Morning Milking for Freshness",
+        "description": "The initial delicate touch of the cow's udder typically occurs in the morning. This timing is crucial to ensure the milk collected is fresh, which is important for quality and marketability.",
+        "context": ""
+      },
+      {
+        "cellId": "e7d41dd8-e042-4015-a4f7-a6f1cacc1cab",
+        "phaseId": "9ba39a2a-5d4a-4821-9d26-184417080f4b",
+        "swimlaneId": "983823bd-5b4e-4cd3-bd40-9945429ff5ae",
+        "headline": "Early Morning Discomfort",
+        "description": "Waking up early for milking is a significant challenge. This often leads to feeling slow-witted and less efficient during the initial delicate handling of the cows.",
+        "context": ""
+      },
+      {
+        "cellId": "f41e7214-39a5-4c84-9384-e51fca8fc2d0",
+        "phaseId": "3280facf-ba3e-49a4-b537-906da8f4dda7",
+        "swimlaneId": "d76f30a3-1dd9-418b-b32d-173a9062717c",
+        "headline": "Night Milking for Calmness",
+        "description": "Performing the \"peel the cow\" action at night is a strategic choice to minimize disturbances. This timing ensures the cows are calmer, reducing the likelihood of them screaming and creating a more peaceful environment for the milking process.",
+        "context": ""
+      },
+      {
+        "cellId": "d89c25d6-7d71-478d-bb3b-fc367bce641e",
+        "phaseId": "3280facf-ba3e-49a4-b537-906da8f4dda7",
+        "swimlaneId": "983823bd-5b4e-4cd3-bd40-9945429ff5ae",
+        "headline": "Non-Traditional & Time-Consuming Method",
+        "description": "Employing a non-traditional method for milk extraction presents unique challenges. This approach is notably time-consuming, impacting overall efficiency and requiring significant dedication.",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 2,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 4,
+      "totalCellsPresent": 4,
+      "totalCellsCompleted": 4,
+      "percentCellsComplete": 100
+    },
+    "createdAt": "2026-02-05T22:21:34.661Z",
+    "updatedAt": "2026-02-05T22:25:51.162Z",
+    "version": 11,
+    "mermaid": {
+      "code": "journey\n    title Milking Cows\n    section Touch the cow\n      Time of day: 3: Morning Milking for Freshness\n      Pain points: 3: Early Morning Discomfort\n    section Peel the cow\n      Time of day: 3: Night Milking for Calmness\n      Pain points: 3: Non-Traditional & Time-Consuming Method\n"
+    },
+    "outputJson": {
+      "code": "{\n  \"journeyMapId\": \"338767f8-d060-415b-a66b-6d63d8a7c0ff\",\n  \"sessionId\": \"2b279e7e-bb4c-4d7d-8ed4-34625410bd29\",\n  \"status\": \"DRAFT\",\n  \"stage\": \"CELL_POPULATION\",\n  \"userName\": \"Scott\",\n  \"name\": \"Milking Cows\",\n  \"role\": \"farmer\",\n  \"description\": \"Delicately touching udders to extract milk for sale, an activity crucial due to current market conditions. The method of \\\"peeling cows\\\" is non-traditional but makes for superior milk, despite concerns people might have.\",\n  \"arePhasesComplete\": false,\n  \"areSwimlanesComplete\": false,\n  \"completionStatus\": {\n    \"name\": true,\n    \"role\": true,\n    \"description\": true,\n    \"phases\": false,\n    \"swimlanes\": false,\n    \"cells\": true\n  },\n  \"phases\": [\n    {\n      \"phaseId\": \"9ba39a2a-5d4a-4821-9d26-184417080f4b\",\n      \"sequence\": 1,\n      \"name\": \"Touch the cow\",\n      \"description\": \"Delicately touching udders to prepare for milking and stimulate milk flow.\",\n      \"context\": \"\"\n    },\n    {\n      \"phaseId\": \"3280facf-ba3e-49a4-b537-906da8f4dda7\",\n      \"sequence\": 2,\n      \"name\": \"Peel the cow\",\n      \"description\": \"Extracting milk from the cow, ensuring efficient and complete milking.\",\n      \"context\": \"\"\n    }\n  ],\n  \"swimlanes\": [\n    {\n      \"swimlaneId\": \"d76f30a3-1dd9-418b-b32d-173a9062717c\",\n      \"sequence\": 1,\n      \"name\": \"Time of day\",\n      \"description\": \"The specific time when each phase occurs.\",\n      \"context\": \"\"\n    },\n    {\n      \"swimlaneId\": \"983823bd-5b4e-4cd3-bd40-9945429ff5ae\",\n      \"sequence\": 2,\n      \"name\": \"Pain points\",\n      \"description\": \"Challenges or difficulties encountered during each phase.\",\n      \"context\": \"\"\n    }\n  ],\n  \"cells\": [\n    {\n      \"cellId\": \"a5a5d04f-1204-4fa9-a733-92f16f71bfd9\",\n      \"phaseId\": \"9ba39a2a-5d4a-4821-9d26-184417080f4b\",\n      \"swimlaneId\": \"d76f30a3-1dd9-418b-b32d-173a9062717c\",\n      \"headline\": \"Morning Milking for Freshness\",\n      \"description\": \"The initial delicate touch of the cow's udder typically occurs in the morning. This timing is crucial to ensure the milk collected is fresh, which is important for quality and marketability.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"e7d41dd8-e042-4015-a4f7-a6f1cacc1cab\",\n      \"phaseId\": \"9ba39a2a-5d4a-4821-9d26-184417080f4b\",\n      \"swimlaneId\": \"983823bd-5b4e-4cd3-bd40-9945429ff5ae\",\n      \"headline\": \"Early Morning Discomfort\",\n      \"description\": \"Waking up early for milking is a significant challenge. This often leads to feeling slow-witted and less efficient during the initial delicate handling of the cows.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"f41e7214-39a5-4c84-9384-e51fca8fc2d0\",\n      \"phaseId\": \"3280facf-ba3e-49a4-b537-906da8f4dda7\",\n      \"swimlaneId\": \"d76f30a3-1dd9-418b-b32d-173a9062717c\",\n      \"headline\": \"Night Milking for Calmness\",\n      \"description\": \"Performing the \\\"peel the cow\\\" action at night is a strategic choice to minimize disturbances. This timing ensures the cows are calmer, reducing the likelihood of them screaming and creating a more peaceful environment for the milking process.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"d89c25d6-7d71-478d-bb3b-fc367bce641e\",\n      \"phaseId\": \"3280facf-ba3e-49a4-b537-906da8f4dda7\",\n      \"swimlaneId\": \"983823bd-5b4e-4cd3-bd40-9945429ff5ae\",\n      \"headline\": \"Non-Traditional & Time-Consuming Method\",\n      \"description\": \"Employing a non-traditional method for milk extraction presents unique challenges. This approach is notably time-consuming, impacting overall efficiency and requiring significant dedication.\",\n      \"context\": \"\"\n    }\n  ],\n  \"metrics\": {\n    \"totalPhases\": 2,\n    \"totalSwimlanes\": 2,\n    \"totalCellsExpected\": 4,\n    \"totalCellsPresent\": 4,\n    \"totalCellsCompleted\": 4,\n    \"percentCellsComplete\": 100\n  },\n  \"createdAt\": \"2026-02-05T22:21:34.661Z\",\n  \"updatedAt\": \"2026-02-05T22:25:45.030Z\",\n  \"version\": 10,\n  \"mermaid\": {\n    \"code\": \"journey\\n    title Milking Cows\\n    section Touch the cow\\n      Time of day: 3: Morning Milking for Freshness\\n      Pain points: 3: Early Morning Discomfort\\n    section Peel the cow\\n      Time of day: 3: Night Milking for Calmness\\n      Pain points: 3: Non-Traditional & Time-Consuming Method\\n\"\n  }\n}"
+    },
+    "summaryOfFindings": "The journey of 'Milking Cows' is a critical process for Scott, a farmer, driven by the need to produce high-quality milk for sale, especially in challenging market conditions. The journey is divided into two distinct phases: 'Touch the cow' and 'Peel the cow'.\n\nDuring the 'Touch the cow' phase, which occurs in the morning, the primary goal is to ensure the milk's freshness. However, a significant pain point for Scott is the early morning wake-up, which affects his alertness and efficiency.\n\nThe 'Peel the cow' phase is conducted at night, a strategic choice to leverage the cows' calmer state and reduce noise. This method, while non-traditional and time-consuming, is believed by Scott to produce superior milk, despite potential concerns from others. The non-traditional nature and the time investment are identified as key pain points within this phase.\n\nOverall, Scott's milking process is characterized by a dedication to milk quality and an adaptive approach to farming, even if it involves unconventional and personally challenging methods.",
+    "mentalModels": "1. **Quality-Centric Production:** Scott prioritizes the quality and freshness of the milk above other factors, such as personal comfort or traditional methods. This is evident in his early morning milking for freshness and his belief in the 'superior milk' produced by his non-traditional 'peeling' method.\n2. **Strategic Animal Management:** Scott considers the cows' behavior and well-being when planning his process, as shown by his decision to 'peel the cow' at night when they are calmer and less likely to scream.\n3. **Resilience and Adaptability to Market Conditions:** The emphasis on the 'crucial' nature of milking due to 'bad market conditions' indicates a mental model of adapting practices and intensifying efforts in response to economic pressures.\n4. **Acceptance of Unconventional Methods for Perceived Benefit:** Scott is willing to employ a 'non-traditional way to obtain milk' and defends its efficacy, suggesting a mental model where he values perceived superior outcomes over adherence to conventional practices, even if it invites external scrutiny or concern."
+  },
+  "6a62a0be-3f27-4e14-89cb-45c053c29f27": {
+    "journeyMapId": "6a62a0be-3f27-4e14-89cb-45c053c29f27",
+    "sessionId": "f49a18f7-616a-49c5-a5a8-d47c4335c329",
+    "status": "READY_FOR_REVIEW",
+    "stage": "COMPLETE",
+    "userName": "Scott",
+    "name": "A Day of Taking Care of Banner",
+    "role": "Dog Owner",
+    "description": "Mapping out the daily activities and responsibilities involved in caring for a 10-week-old Bernedoodle named Banner.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": true
+    },
+    "phases": [
+      {
+        "phaseId": "c0bdfdf2-c1f1-4992-ac49-eb52b5305701",
+        "sequence": 1,
+        "name": "Feeding Banner",
+        "description": "Providing roast beef and family leftovers twice a day.",
+        "context": ""
+      },
+      {
+        "phaseId": "8acf68a2-19d2-4b81-9401-a82dde5a11bd",
+        "sequence": 2,
+        "name": "Grooming Banner",
+        "description": "Brushing Banner often to preserve the furniture.",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "36a6d1d0-2f8a-44ef-9844-06e430888012",
+        "sequence": 1,
+        "name": "Activity",
+        "description": "The activity they perform",
+        "context": ""
+      },
+      {
+        "swimlaneId": "fcfbdb48-db7a-449a-93ad-3f078747e957",
+        "sequence": 2,
+        "name": "Location",
+        "description": "The pain they experience",
+        "context": ""
+      },
+      {
+        "swimlaneId": "866aace3-a02d-4ea8-931d-e893ca3f21c4",
+        "sequence": 3,
+        "name": "Pain Point",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "694f4550-1e3d-4537-a240-1d02ebbc0a4a",
+        "phaseId": "c0bdfdf2-c1f1-4992-ac49-eb52b5305701",
+        "swimlaneId": "36a6d1d0-2f8a-44ef-9844-06e430888012",
+        "headline": "Finding Food and Calling Banner",
+        "description": "Finding the food, cleaning Banner's bowl, and calling the puppy in for his meal. Going to the kitchen to retrieve the food, with Banner often following closely behind.",
+        "context": ""
+      },
+      {
+        "cellId": "39b93a4a-589b-4e46-9d22-db2b678c7ca0",
+        "phaseId": "c0bdfdf2-c1f1-4992-ac49-eb52b5305701",
+        "swimlaneId": "fcfbdb48-db7a-449a-93ad-3f078747e957",
+        "headline": "Porch Dog Area",
+        "description": "Feeding Banner occurs on the designated porch dog area. This specific location provides a consistent space for his meals, ensuring he knows where to go when it is mealtime.",
+        "context": ""
+      },
+      {
+        "cellId": "f30d3a22-0217-4d96-9707-8e4d24864ed5",
+        "phaseId": "c0bdfdf2-c1f1-4992-ac49-eb52b5305701",
+        "swimlaneId": "866aace3-a02d-4ea8-931d-e893ca3f21c4",
+        "headline": "Food Scarcity and Butter Theft",
+        "description": "Experiencing a constant shortage of appropriate food for Banner, leading to concerns about his nutrition. Additionally, Banner frequently engaging in opportunistic behavior by stealing butter, creating a messy situation and potential dietary issues.",
+        "context": ""
+      },
+      {
+        "cellId": "52a3cef4-5b44-4c38-a899-e0c42da07896",
+        "phaseId": "8acf68a2-19d2-4b81-9401-a82dde5a11bd",
+        "swimlaneId": "36a6d1d0-2f8a-44ef-9844-06e430888012",
+        "headline": "Underbelly Fur Removal",
+        "description": "Using a specialized brush, the activity involves targeting Banner's underbelly and other areas to remove loose fur. This proactive brushing helps manage shedding and maintain the cleanliness of the home environment, preventing fur accumulation on furniture.",
+        "context": ""
+      },
+      {
+        "cellId": "690b6a7a-447c-4598-9d5e-2a90c50245bb",
+        "phaseId": "8acf68a2-19d2-4b81-9401-a82dde5a11bd",
+        "swimlaneId": "fcfbdb48-db7a-449a-93ad-3f078747e957",
+        "headline": "Outdoor Grooming",
+        "description": "Consistently performing Banner's grooming activities, particularly fur removal, in an outdoor setting. This helps to manage the shedding and keep the fur from accumulating inside the home.",
+        "context": ""
+      },
+      {
+        "cellId": "12bf9243-4916-4096-b6e6-bff4c4cd54b6",
+        "phaseId": "8acf68a2-19d2-4b81-9401-a82dde5a11bd",
+        "swimlaneId": "866aace3-a02d-4ea8-931d-e893ca3f21c4",
+        "headline": "Banner's Distress During Grooming",
+        "description": "Experiencing Banner's vocal protests during the grooming process, particularly when brushing the underbelly. This crying indicates discomfort or anxiety, making the task challenging and requiring careful handling to minimize stress for the puppy.",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 2,
+      "totalSwimlanes": 3,
+      "totalCellsExpected": 6,
+      "totalCellsPresent": 6,
+      "totalCellsCompleted": 6,
+      "percentCellsComplete": 100
+    },
+    "createdAt": "2026-02-05T23:10:58.016Z",
+    "updatedAt": "2026-02-05T23:27:34.586Z",
+    "version": 12,
+    "mermaid": {
+      "code": "journey\n    title A Day of Taking Care of Banner\n    section Feeding Banner\n      Activity: 3: Finding Food and Calling Banner\n      Location: 3: Porch Dog Area\n      Pain Point: 3: Food Scarcity and Butter Theft\n    section Grooming Banner\n      Activity: 3: Underbelly Fur Removal\n      Location: 3: Outdoor Grooming\n      Pain Point: 3: Banner's Distress During Grooming\n"
+    },
+    "outputJson": {
+      "code": "{\n  \"journeyMapId\": \"6a62a0be-3f27-4e14-89cb-45c053c29f27\",\n  \"sessionId\": \"f49a18f7-616a-49c5-a5a8-d47c4335c329\",\n  \"status\": \"DRAFT\",\n  \"stage\": \"CELL_POPULATION\",\n  \"userName\": \"Scott\",\n  \"name\": \"A Day of Taking Care of Banner\",\n  \"role\": \"Dog Owner\",\n  \"description\": \"Mapping out the daily activities and responsibilities involved in caring for a 10-week-old Bernedoodle named Banner.\",\n  \"arePhasesComplete\": false,\n  \"areSwimlanesComplete\": false,\n  \"completionStatus\": {\n    \"name\": true,\n    \"role\": true,\n    \"description\": true,\n    \"phases\": false,\n    \"swimlanes\": false,\n    \"cells\": true\n  },\n  \"phases\": [\n    {\n      \"phaseId\": \"c0bdfdf2-c1f1-4992-ac49-eb52b5305701\",\n      \"sequence\": 1,\n      \"name\": \"Feeding Banner\",\n      \"description\": \"Providing roast beef and family leftovers twice a day.\",\n      \"context\": \"\"\n    },\n    {\n      \"phaseId\": \"8acf68a2-19d2-4b81-9401-a82dde5a11bd\",\n      \"sequence\": 2,\n      \"name\": \"Grooming Banner\",\n      \"description\": \"Brushing Banner often to preserve the furniture.\",\n      \"context\": \"\"\n    }\n  ],\n  \"swimlanes\": [\n    {\n      \"swimlaneId\": \"36a6d1d0-2f8a-44ef-9844-06e430888012\",\n      \"sequence\": 1,\n      \"name\": \"Activity\",\n      \"description\": \"The activity they perform\",\n      \"context\": \"\"\n    },\n    {\n      \"swimlaneId\": \"fcfbdb48-db7a-449a-93ad-3f078747e957\",\n      \"sequence\": 2,\n      \"name\": \"Location\",\n      \"description\": \"The pain they experience\",\n      \"context\": \"\"\n    },\n    {\n      \"swimlaneId\": \"866aace3-a02d-4ea8-931d-e893ca3f21c4\",\n      \"sequence\": 3,\n      \"name\": \"Pain Point\",\n      \"description\": \"\",\n      \"context\": \"\"\n    }\n  ],\n  \"cells\": [\n    {\n      \"cellId\": \"694f4550-1e3d-4537-a240-1d02ebbc0a4a\",\n      \"phaseId\": \"c0bdfdf2-c1f1-4992-ac49-eb52b5305701\",\n      \"swimlaneId\": \"36a6d1d0-2f8a-44ef-9844-06e430888012\",\n      \"headline\": \"Finding Food and Calling Banner\",\n      \"description\": \"Finding the food, cleaning Banner's bowl, and calling the puppy in for his meal. Going to the kitchen to retrieve the food, with Banner often following closely behind.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"39b93a4a-589b-4e46-9d22-db2b678c7ca0\",\n      \"phaseId\": \"c0bdfdf2-c1f1-4992-ac49-eb52b5305701\",\n      \"swimlaneId\": \"fcfbdb48-db7a-449a-93ad-3f078747e957\",\n      \"headline\": \"Porch Dog Area\",\n      \"description\": \"Feeding Banner occurs on the designated porch dog area. This specific location provides a consistent space for his meals, ensuring he knows where to go when it is mealtime.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"f30d3a22-0217-4d96-9707-8e4d24864ed5\",\n      \"phaseId\": \"c0bdfdf2-c1f1-4992-ac49-eb52b5305701\",\n      \"swimlaneId\": \"866aace3-a02d-4ea8-931d-e893ca3f21c4\",\n      \"headline\": \"Food Scarcity and Butter Theft\",\n      \"description\": \"Experiencing a constant shortage of appropriate food for Banner, leading to concerns about his nutrition. Additionally, Banner frequently engaging in opportunistic behavior by stealing butter, creating a messy situation and potential dietary issues.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"52a3cef4-5b44-4c38-a899-e0c42da07896\",\n      \"phaseId\": \"8acf68a2-19d2-4b81-9401-a82dde5a11bd\",\n      \"swimlaneId\": \"36a6d1d0-2f8a-44ef-9844-06e430888012\",\n      \"headline\": \"Underbelly Fur Removal\",\n      \"description\": \"Using a specialized brush, the activity involves targeting Banner's underbelly and other areas to remove loose fur. This proactive brushing helps manage shedding and maintain the cleanliness of the home environment, preventing fur accumulation on furniture.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"690b6a7a-447c-4598-9d5e-2a90c50245bb\",\n      \"phaseId\": \"8acf68a2-19d2-4b81-9401-a82dde5a11bd\",\n      \"swimlaneId\": \"fcfbdb48-db7a-449a-93ad-3f078747e957\",\n      \"headline\": \"Outdoor Grooming\",\n      \"description\": \"Consistently performing Banner's grooming activities, particularly fur removal, in an outdoor setting. This helps to manage the shedding and keep the fur from accumulating inside the home.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"12bf9243-4916-4096-b6e6-bff4c4cd54b6\",\n      \"phaseId\": \"8acf68a2-19d2-4b81-9401-a82dde5a11bd\",\n      \"swimlaneId\": \"866aace3-a02d-4ea8-931d-e893ca3f21c4\",\n      \"headline\": \"Banner's Distress During Grooming\",\n      \"description\": \"Experiencing Banner's vocal protests during the grooming process, particularly when brushing the underbelly. This crying indicates discomfort or anxiety, making the task challenging and requiring careful handling to minimize stress for the puppy.\",\n      \"context\": \"\"\n    }\n  ],\n  \"metrics\": {\n    \"totalPhases\": 2,\n    \"totalSwimlanes\": 3,\n    \"totalCellsExpected\": 6,\n    \"totalCellsPresent\": 6,\n    \"totalCellsCompleted\": 6,\n    \"percentCellsComplete\": 100\n  },\n  \"createdAt\": \"2026-02-05T23:10:58.016Z\",\n  \"updatedAt\": \"2026-02-05T23:24:05.699Z\",\n  \"version\": 11,\n  \"mermaid\": {\n    \"code\": \"journey\\n    title A Day of Taking Care of Banner\\n    section Feeding Banner\\n      Activity: 3: Finding Food and Calling Banner\\n      Location: 3: Porch Dog Area\\n      Pain Point: 3: Food Scarcity and Butter Theft\\n    section Grooming Banner\\n      Activity: 3: Underbelly Fur Removal\\n      Location: 3: Outdoor Grooming\\n      Pain Point: 3: Banner's Distress During Grooming\\n\"\n  }\n}"
+    },
+    "summaryOfFindings": "Scott's daily routine for Banner, a 10-week-old Bernedoodle, revolves around two primary phases: feeding and grooming. Feeding involves a specific ritual where Scott goes to the kitchen, with Banner in tow, to prepare a diet of roast beef and family leftovers, which is then served in a dedicated dog area on the porch. A significant challenge during feeding is the perceived insufficiency of food and Banner's tendency to steal butter. Grooming is focused on fur removal using a specialized brush, often described as a 'sword,' particularly targeting the underbelly. This activity is consistently performed outdoors to manage shedding. The main pain point in grooming is Banner's vocal distress, especially when his underbelly is brushed, indicating discomfort or anxiety.",
+    "mentalModels": "1. **\"Puppy as a Companion/Eager Participant\"**: Scott perceives Banner as an active and eager participant in daily routines, particularly evident in Banner following him to the kitchen for meals. This suggests an an expectation of Banner's involvement and excitement.\n2. **\"Grooming as a Necessary Battle\"**: The description of brushing \"like a sword\" and the focus on \"fur removal\" combined with Banner's \"crying\" suggests a mental model where grooming is a somewhat combative but necessary task to maintain cleanliness and furniture, rather than a bonding or relaxing activity.\n3. **\"Food Scarcity & Resource Guarding (from owner's perspective)\"**: Scott's frustration about \"never enough food\" and Banner \"stealing butter\" indicates a mental model where food is a constant point of contention or concern, possibly stemming from a belief that Banner is perpetually hungry or that his diet needs strict management.\n4. **\"Outdoor as a Solution for Mess Management\"**: The consistent choice to groom Banner outdoors highlights a mental model where outdoor spaces are utilized to mitigate the mess associated with pet care, particularly shedding."
   }
 }

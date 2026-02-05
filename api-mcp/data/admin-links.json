@@ -1,0 +1,30 @@
+{
+  "f700c3fd-25fe-40a2-beea-161469ca08fd": {
+    "id": "f700c3fd-25fe-40a2-beea-161469ca08fd",
+    "createdAt": "2026-02-05T19:53:04.219Z",
+    "configName": "Banner Care",
+    "name": "Scott",
+    "role": "Dog Owner",
+    "journey": "A Day of Taking Care of Banner",
+    "welcomePrompt": "Welcome Scott and congratulate him on being a new pet parent of Banner, a 10 week old bernadoodle.",
+    "journeyPrompt": "",
+    "swimlanes": [
+      {
+        "name": "Activity",
+        "description": "The activity they perform"
+      },
+      {
+        "name": "Location",
+        "description": "Where they are during this phase"
+      },
+      {
+        "name": "Pain Point",
+        "description": "What causes discomfort or stress at this point"
+      }
+    ],
+    "knowledgeIds": [
+      "7ec6ccab-860b-4411-b09d-86afaa8f105d"
+    ],
+    "updatedAt": "2026-02-05T23:50:40.322Z"
+  }
+}

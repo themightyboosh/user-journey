@@ -71,11 +71,30 @@ The AI Agent acts as a "Rigid Interviewer" and is **gated** by the backend state
 
 ### 🚪 Gate 7: Completion
 *   **Current Stage:** `COMPLETE`
-*   **Action:** The AI calls `generate_artifacts` to create the final JSON/Mermaid summaries.
+*   **Action:** The AI calls `generate_artifacts` to create the final JSON summaries.
 *   **Prompt Logic:** "Thank you, [Name]! Your journey map is complete."
 *   **Final State:** Journey status updates to `READY_FOR_REVIEW`.
 
 ---
+
+
+
+NOTES:
+
+Components Sequencing
+Component Data Reconciliation
+
+Tam shout-out 
+
+Semantic Naming
+
+
+
+
+
+
+
+
 
 ## 3. System Instruction & Enforcement
 

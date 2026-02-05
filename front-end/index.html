@@ -8,9 +8,81 @@
   <title>M.AX</title>
   
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Messina Sans';
+      src: url('/fonts/Messina%20Sans/MessinaSans-Light.otf') format('opentype');
+      font-weight: 300;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Messina Sans';
+      src: url('/fonts/Messina%20Sans/MessinaSans-LightItalic.otf') format('opentype');
+      font-weight: 300;
+      font-style: italic;
+    }
+    @font-face {
+      font-family: 'Messina Sans';
+      src: url('/fonts/Messina%20Sans/MessinaSans-Regular.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Messina Sans';
+      src: url('/fonts/Messina%20Sans/MessinaSans-Italic.otf') format('opentype');
+      font-weight: 400;
+      font-style: italic;
+    }
+    @font-face {
+      font-family: 'Messina Sans';
+      src: url('/fonts/Messina%20Sans/MessinaSans-Bold.otf') format('opentype');
+      font-weight: 700;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Messina Sans';
+      src: url('/fonts/Messina%20Sans/MessinaSans-BoldItalic.otf') format('opentype');
+      font-weight: 700;
+      font-style: italic;
+    }
+
+    @font-face {
+      font-family: 'Messina Sans Mono';
+      src: url('/fonts/Messina%20Sans%20Mono/MessinaSansMono-Light.otf') format('opentype');
+      font-weight: 300;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Messina Sans Mono';
+      src: url('/fonts/Messina%20Sans%20Mono/MessinaSansMono-Book.otf') format('opentype');
+      font-weight: 350; /* Fallback for Book */
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Messina Sans Mono';
+      src: url('/fonts/Messina%20Sans%20Mono/MessinaSansMono-Regular.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Messina Sans Mono';
+      src: url('/fonts/Messina%20Sans%20Mono/MessinaSansMono-SemiBold.otf') format('opentype');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Messina Sans Mono';
+      src: url('/fonts/Messina%20Sans%20Mono/MessinaSansMono-Bold.otf') format('opentype');
+      font-weight: 700;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Messina Sans Mono';
+      src: url('/fonts/Messina%20Sans%20Mono/MessinaSansMono-Black.otf') format('opentype');
+      font-weight: 900;
+      font-style: normal;
+    }
+  </style>
   
   <style>
     /* ========================================
@@ -31,17 +103,18 @@
       --max-color-border: #2a2f3a;
       --max-color-border-subtle: #1e2229;
       
-      --max-color-accent: #3b82f6;
-      --max-color-accent-hover: #60a5fa;
-      --max-color-accent-subtle: rgba(59, 130, 246, 0.15);
+      --max-color-accent: #ed2224;
+      --max-color-accent-hover: #ff4d4f;
+      --max-color-accent-subtle: rgba(237, 34, 36, 0.15);
       
       --max-color-error: #ef4444;
       --max-color-error-subtle: rgba(239, 68, 68, 0.15);
       
-      --max-color-ai-gradient-start: #3b82f6;
-      --max-color-ai-gradient-end: #06b6d4;
+      --max-color-ai-gradient-start: #ed2224;
+      --max-color-ai-gradient-end: #c41e20;
       
-      --max-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --max-font-family: 'Messina Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --max-font-family-mono: 'Messina Sans Mono', 'SF Mono', Monaco, monospace;
       --max-radius-small: 8px;
       --max-radius-medium: 12px;
       --max-radius-large: 16px;
@@ -49,7 +122,7 @@
       --max-radius-full: 9999px;
       
       --max-shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
-      --max-shadow-glow: 0 0 20px rgba(59, 130, 246, 0.3);
+      --max-shadow-glow: 0 0 20px rgba(237, 34, 36, 0.3);
     }
 
     /* ========================================
@@ -92,14 +165,14 @@
     }
 
     /* ========================================
-       CHAT CANVAS (LEFT)
+       CHAT CANVAS (LEFT) - NOW RIGHT
        ======================================== */
     .max-chat-canvas {
-      flex: 0 0 70% !important;
-      width: 70% !important;
-      max-width: 70% !important;
-      min-width: 70% !important;
-      border-right: 1px solid var(--max-color-border-subtle);
+      flex: 1 !important;
+      width: auto !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      border-left: 1px solid var(--max-color-border-subtle);
       background: var(--max-color-surface-primary);
       display: flex;
       flex-direction: column;
@@ -124,13 +197,14 @@
     .journey-title {
       font-size: 24px;
       font-weight: 600;
-      color: var(--max-color-text-primary);
+      color: var(--max-color-accent);
       margin-bottom: 8px;
     }
 
     .journey-role {
+      font-family: var(--max-font-family-mono);
       font-size: 14px;
-      color: var(--max-color-accent);
+      color: var(--max-color-text-primary);
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -145,6 +219,7 @@
     }
 
     .context-card h3 {
+      font-family: var(--max-font-family-mono);
       font-size: 14px;
       font-weight: 600;
       color: var(--max-color-text-secondary);
@@ -156,6 +231,29 @@
       font-size: 14px;
       line-height: 1.6;
       color: var(--max-color-text-primary);
+      white-space: normal;
+    }
+
+    .context-content ul, .context-content ol {
+      margin-left: 20px;
+      margin-bottom: 12px;
+    }
+    .context-content li {
+      margin-bottom: 4px;
+    }
+    .context-content p {
+      margin-bottom: 12px;
+    }
+    .context-content h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--max-color-text-primary);
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+    .context-content strong {
+      color: var(--max-color-text-primary);
+      font-weight: 600;
     }
 
     /* Living Table */
@@ -179,10 +277,28 @@
       font-weight: 600;
       color: var(--max-color-text-secondary);
       display: flex;
-      align-items: center;
-      justify-content: flex-end;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
       padding-right: 12px;
       border-right: 2px solid var(--max-color-border);
+      text-align: right;
+    }
+
+    .swimlane-name {
+      color: var(--max-color-text-primary);
+    }
+
+    .swimlane-desc {
+      font-family: var(--max-font-family-mono);
+      font-size: 11px;
+      color: var(--max-color-text-tertiary);
+      margin-top: 4px;
+      font-weight: 400;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .journey-cell {
@@ -221,12 +337,80 @@
     }
 
     .cell-context {
-      font-size: 12px;
+      font-family: var(--max-font-family-mono);
+      font-size: 11px;
       color: var(--max-color-text-secondary);
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
+    }
+
+    /* ========================================
+       MOBILE VIEW
+       ======================================== */
+    .journey-mobile-list {
+      display: none;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .mobile-phase-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mobile-phase-header {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--max-color-accent);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--max-color-border);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .mobile-card {
+      background: var(--max-color-surface-secondary);
+      border: 1px solid var(--max-color-border);
+      border-radius: var(--max-radius-medium);
+      padding: 16px;
+      cursor: pointer;
+    }
+    
+    .mobile-card-label {
+        font-family: var(--max-font-family-mono);
+        font-size: 11px;
+        color: var(--max-color-text-tertiary);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    /* Mobile Responsive Logic */
+    @media (max-width: 768px) {
+        .journey-table { display: none !important; }
+        .journey-mobile-list { display: flex !important; }
+        
+        /* Hide logo in journey title on mobile */
+        .journey-title svg { display: none !important; }
+        
+        /* Adjust layout */
+        .max-chat-canvas {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+        
+        /* Stack buttons on mobile */
+        .action-area {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .action-area button {
+            width: 100% !important;
+        }
     }
 
     /* Modal / Detail View */
@@ -288,6 +472,7 @@
     }
 
     .max-logo-text {
+      font-family: var(--max-font-family);
       font-size: 20px;
       font-weight: 600;
       letter-spacing: -0.02em;
@@ -298,6 +483,7 @@
     }
 
     .max-status {
+      font-family: var(--max-font-family-mono);
       display: flex;
       align-items: center;
       gap: 6px;
@@ -324,10 +510,10 @@
        CHAT CONTAINER (RIGHT)
        ======================================== */
     .max-chat-container {
-      flex: 0 0 30% !important;
-      width: 30% !important;
-      max-width: 30% !important;
-      min-width: 30% !important;
+      flex: 0 0 480px !important;
+      width: 480px !important;
+      max-width: 480px !important;
+      min-width: 480px !important;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -431,7 +617,8 @@
        ======================================== */
     .max-message {
       display: flex;
-      gap: 12px;
+      flex-direction: column;
+      gap: 6px;
       max-width: 100%;
       animation: messageIn 0.3s ease;
     }
@@ -448,63 +635,72 @@
     }
 
     .max-message--user {
-      flex-direction: row-reverse;
+      align-items: flex-end;
     }
 
-    .max-message-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: var(--max-radius-small);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .max-message--ai .max-message-avatar {
-      background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end));
+    .max-message-header {
+      font-family: var(--max-font-family-mono);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
       color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      line-height: 1;
+      width: fit-content;
+      letter-spacing: 0.05em;
     }
 
-    .max-message--user .max-message-avatar {
+    .max-message--ai .max-message-header {
+      background: var(--max-color-accent);
+    }
+
+    .max-message--user .max-message-header {
       background: var(--max-color-surface-tertiary);
       color: var(--max-color-text-secondary);
     }
 
-    .max-message-avatar svg {
-      width: 18px;
-      height: 18px;
+    /* AI Bubble - Gray */
+    .max-message--ai .max-message-bubble {
+      background: var(--max-color-surface-secondary);
+      border: 1px solid var(--max-color-border-subtle);
+      border-radius: var(--max-radius-medium);
+      border-top-left-radius: 4px; /* Align with header */
+    }
+
+    /* User Bubble - Red */
+    .max-message--user .max-message-bubble {
+      background: var(--max-color-accent);
+      color: white;
+      border: 1px solid var(--max-color-accent); /* Match border to bg */
+      border-radius: var(--max-radius-medium);
+      border-top-right-radius: 4px;
+      margin-left: auto;
     }
 
     .max-message-content {
       flex: 1;
       min-width: 0;
+      max-width: 100%;
     }
 
     .max-message-bubble {
       padding: 14px 18px;
-      border-radius: var(--max-radius-large);
       line-height: 1.6;
-    }
-
-    .max-message--ai .max-message-bubble {
-      background: var(--max-color-surface-secondary);
-      border: 1px solid var(--max-color-border-subtle);
-      border-top-left-radius: var(--max-radius-small);
-    }
-
-    .max-message--user .max-message-bubble {
-      background: var(--max-color-accent);
-      color: white;
-      border-top-right-radius: var(--max-radius-small);
-      margin-left: auto;
-      max-width: 80%;
     }
 
     .max-message--error .max-message-bubble {
       background: var(--max-color-error-subtle);
       border-color: var(--max-color-error);
       color: var(--max-color-error);
+    }
+
+    .max-message-bubble h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 12px;
+      margin-bottom: 8px;
+      color: inherit;
     }
 
     .max-message-bubble p {
@@ -529,7 +725,7 @@
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 13px;
-      font-family: 'SF Mono', Monaco, monospace;
+      font-family: var(--max-font-family-mono);
     }
 
     .max-message-bubble pre {
@@ -583,8 +779,8 @@
       border: none;
       border-radius: var(--max-radius-small);
       color: var(--max-color-text-tertiary);
-      font-size: 12px;
-      font-family: inherit;
+      font-size: 11px;
+      font-family: var(--max-font-family-mono);
       cursor: pointer;
       transition: all 0.15s ease;
     }
@@ -604,8 +800,10 @@
        ======================================== */
     .max-typing {
       display: flex;
-      gap: 12px;
+      flex-direction: column;
+      gap: 6px;
       align-items: flex-start;
+      margin-bottom: 24px;
     }
 
     .max-typing-dots {
@@ -614,7 +812,8 @@
       padding: 16px 20px;
       background: var(--max-color-surface-secondary);
       border-radius: var(--max-radius-large);
-      border-top-left-radius: var(--max-radius-small);
+      border-top-left-radius: 4px;
+      border: 1px solid var(--max-color-border-subtle);
     }
 
     .max-typing-dot {
@@ -718,8 +917,9 @@
     }
 
     .max-input-hint {
+      font-family: var(--max-font-family-mono);
       text-align: center;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--max-color-text-tertiary);
       margin-top: 10px;
     }
@@ -732,23 +932,117 @@
     }
 
     /* ========================================
+       COMPLETION STATE
+       ======================================== */
+    body.journey-complete .max-chat-container {
+      display: none !important;
+    }
+    
+    body.journey-complete .max-chat-canvas {
+      flex: 0 0 100% !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      border-right: none;
+    }
+
+    /* ========================================
        RESPONSIVE
        ======================================== */
+    .mobile-toggle-btn {
+      display: none;
+      padding: 8px 16px;
+      background: var(--max-color-surface-tertiary);
+      border: 1px solid var(--max-color-border);
+      border-radius: var(--max-radius-medium);
+      color: var(--max-color-text-primary);
+      font-size: 13px;
+      font-family: var(--max-font-family-mono);
+      font-weight: 500;
+      cursor: pointer;
+      margin-right: 12px;
+    }
+
     @media (max-width: 768px) {
       .max-main-content {
-        flex-direction: column-reverse;
+        flex-direction: column; /* Normal column, we toggle visibility */
       }
       .max-chat-canvas, .max-chat-container {
         width: 100% !important;
         max-width: 100% !important;
         min-width: 100% !important;
-        flex: auto !important;
-        height: 50%;
+        flex: 1 !important;
+        height: 100%;
+        border: none;
       }
-      .max-chat-canvas {
-        border-right: none;
-        border-top: 1px solid var(--max-color-border-subtle);
-      }
+      
+      /* Toggle Logic */
+      body:not(.show-map) .max-chat-canvas { display: none !important; }
+      body.show-map .max-chat-container { display: none !important; }
+      
+      .mobile-toggle-btn { display: block; }
+      
+      /* Header adjustments */
+      .max-header { padding: 12px 16px; }
+      .max-logo-text { display: none; } /* Save space */
+    }
+
+    /* ========================================
+       PDF EXPORT STYLES
+       ======================================== */
+    .pdf-export-mode {
+      --max-color-background: #ffffff !important;
+      --max-color-surface-primary: #ffffff !important;
+      --max-color-surface-secondary: #ffffff !important;
+      --max-color-surface-tertiary: #f3f4f6 !important;
+      
+      --max-color-text-primary: #111827 !important;
+      --max-color-text-secondary: #4b5563 !important;
+      --max-color-text-tertiary: #6b7280 !important;
+      
+      --max-color-border: #e5e7eb !important;
+      --max-color-border-subtle: #f3f4f6 !important;
+      
+      color: #000000 !important;
+      background: #ffffff !important;
+    }
+
+    /* Force background colors for PDF generation */
+    .pdf-export-mode .journey-cell {
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        color: #000 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    
+    .pdf-export-mode .phase-header,
+    .pdf-export-mode .swimlane-header {
+        background: #f3f4f6 !important;
+        color: #000 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .pdf-export-mode .context-card {
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .pdf-export-mode .journey-header {
+        border-bottom: 1px solid #e5e7eb !important;
+    }
+
+    /* Hide buttons during export */
+    .pdf-export-mode .action-area,
+    .pdf-export-mode button {
+        display: none !important;
+    }
+
+    /* Hide logo in journey title on PDF export */
+    .pdf-export-mode .journey-title svg {
+        display: none !important;
     }
   </style>
 </head>
@@ -758,62 +1052,32 @@
     <!-- Header -->
     <header class="max-header">
       <div class="max-logo">
-        <div class="max-logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
+          <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128.5 42.6" style="height: 32px; width: auto;">
+            <path d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3V9.1C0,6.2.7,3.9,2.2,2.5,3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.7.4-1.8.6-3.2.6s-2.5-.2-3.2-.6c-.8-.4-1.4-1-1.8-1.8-.4-.8-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0l.2.1Z" style="fill: #ed2224;"/>
+            <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c.1-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4.1.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c.1,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c.1,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z" style="fill: #fff;"/>
+            <path d="M97.8,42.6c-1.1,0-2.2-.3-3.2-.8s-1.9-1.3-2.5-2.3c-.7-1-1-2.2-1-3.7,0-1.9.5-3.5,1.6-4.7,1-1.2,2.4-2.5,4.1-3.9,1.2-.9,2.4-1.7,3.5-2.6,1.2-.9,2.3-1.8,3.5-2.7-.8-.7-1.9-1.6-3.2-2.7s-2.6-2.2-3.9-3.3c-1.7-1.4-3.1-2.8-4.1-4.1s-1.5-2.9-1.5-5c0-1.4.4-2.6,1-3.7.7-1,1.5-1.8,2.5-2.3,1-.5,2.1-.8,3.2-.8s2.5.3,3.4.8c.9.6,1.7,1.3,2.4,2.2s1.4,2,2,3.2c1,1.9,1.8,3.7,2.5,5.3s1.3,2.8,1.6,3.7c.3-.9.9-2.1,1.6-3.7.7-1.6,1.6-3.4,2.5-5.3.6-1.2,1.3-2.3,2-3.2.7-.9,1.5-1.7,2.4-2.2,1.1-.5,2.2-.8,3.5-.8s2.2.3,3.3.8c1,.5,1.9,1.3,2.5,2.4.7,1,1,2.2,1,3.7,0,2.1-.5,3.7-1.5,5-1,1.3-2.4,2.7-4.1,4.1-1.2,1-2.3,2-3.5,3s-2.3,2-3.5,2.9c.8.6,1.9,1.4,3.1,2.3,1.2,1,2.5,2,3.7,3,1.7,1.4,3.1,2.7,4.1,3.9,1,1.2,1.6,2.8,1.6,4.7s-.3,2.6-1,3.7c-.7,1-1.5,1.8-2.5,2.3s-2.1.8-3.3.8c-1.3,0-2.5-.3-3.4-.9-.9-.5-1.7-1.3-2.4-2.2-.7-1-1.4-2-2-3.2-.9-1.7-1.7-3.3-2.4-4.7-.8-1.4-1.3-2.7-1.7-3.7-.3,1-.9,2.3-1.7,3.7-.8,1.5-1.6,3-2.4,4.6-1,1.8-2,3.3-3.1,4.5s-2.7,1.8-4.7,1.8h0v.1Z" style="fill: #fff;"/>
           </svg>
-        </div>
-        <div class="max-logo-text">M<span>.</span>AX</div>
       </div>
       <div class="max-status" id="connectionStatus">
+        <button id="mobileToggleBtn" class="mobile-toggle-btn" onclick="toggleMobileView()">View Map</button>
         <span class="max-status-dot" id="statusDot"></span>
         <span id="statusText">Connecting...</span>
+        <button onclick="hardReset()" title="Reset Session" style="background: none; border: none; color: var(--max-color-text-tertiary); cursor: pointer; padding: 4px; margin-left: 8px; display: flex; align-items: center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+            </svg>
+        </button>
       </div>
     </header>
 
     <div class="max-main-content">
-      <!-- Chat Canvas (Left) -->
-      <div class="max-chat-canvas" id="chatCanvas">
-        <div class="journey-dashboard" id="journeyDashboard">
-           <div style="text-align: center; margin-top: 100px; opacity: 0.5;">
-              <p>Start a conversation to build the journey map.</p>
-           </div>
-        </div>
-      </div>
-      
-      <!-- Cell Detail Modal (Hidden) -->
-      <div class="cell-detail-overlay" id="cellModal" onclick="closeCellModal(event)">
-        <div class="cell-detail-modal">
-          <h3 id="modalTitle" style="font-size: 18px; margin-bottom: 12px; color: var(--max-color-text-primary);">Action</h3>
-          <div id="modalContext" style="color: var(--max-color-text-secondary); line-height: 1.6;">Context</div>
-          <button onclick="closeCellModal(null)" style="margin-top: 20px; padding: 8px 16px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary); border-radius: 6px; cursor: pointer;">Close</button>
-        </div>
-      </div>
-
-      <!-- Chat Container (Right) -->
+      <!-- Chat Container (Left) -->
       <div class="max-chat-container">
         
         <!-- Messages Area -->
         <div class="max-messages" id="messagesArea">
-        
-        <!-- Welcome State -->
-        <div class="max-welcome" id="welcomeState">
-          <div class="max-welcome-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </div>
-          <h1>Welcome to Journey Mapper</h1>
-          <p>I'm here to help you map out a user journey. To get started, please state your <strong>Name</strong> and <strong>Role</strong>.</p>
-          <div class="max-suggestions">
-            <button class="max-suggestion" onclick="useSuggestion('I am Daniel, a Product Manager')">I am Daniel, a Product Manager</button>
-            <button class="max-suggestion" onclick="useSuggestion('I am Sarah, a UX Researcher')">I am Sarah, a UX Researcher</button>
-          </div>
         </div>
-
-      </div>
 
       <!-- Input Area -->
       <div class="max-input-area">
@@ -838,8 +1102,36 @@
         </div>
       </div>
     </div>
+
+        <!-- Chat Canvas (Right) -->
+      <div class="max-chat-canvas" id="chatCanvas">
+        <div class="journey-dashboard" id="journeyDashboard">
+           <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0.5; gap: 24px;">
+              <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end)); border-radius: 24px; display: flex; align-items: center; justify-content: center; box-shadow: var(--max-shadow-glow);">
+                  <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128.5 42.6" style="width: 60px; height: auto;">
+                      <path d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3V9.1C0,6.2.7,3.9,2.2,2.5,3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.7.4-1.8.6-3.2.6s-2.5-.2-3.2-.6c-.8-.4-1.4-1-1.8-1.8-.4-.8-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0l.2.1Z" style="fill: #ffffff;"/>
+                      <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c.1-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4.1.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c.1,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c.1,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z" style="fill: #ffffff;"/>
+                      <path d="M97.8,42.6c-1.1,0-2.2-.3-3.2-.8s-1.9-1.3-2.5-2.3c-.7-1-1-2.2-1-3.7,0-1.9.5-3.5,1.6-4.7,1-1.2,2.4-2.5,4.1-3.9,1.2-.9,2.4-1.7,3.5-2.6,1.2-.9,2.3-1.8,3.5-2.7-.8-.7-1.9-1.6-3.2-2.7s-2.6-2.2-3.9-3.3c-1.7-1.4-3.1-2.8-4.1-4.1s-1.5-2.9-1.5-5c0-1.4.4-2.6,1-3.7.7-1,1.5-1.8,2.5-2.3,1-.5,2.1-.8,3.2-.8s2.5.3,3.4.8c.9.6,1.7,1.3,2.4,2.2s1.4,2,2,3.2c1,1.9,1.8,3.7,2.5,5.3s1.3,2.8,1.6,3.7c.3-.9.9-2.1,1.6-3.7.7-1.6,1.6-3.4,2.5-5.3.6-1.2,1.3-2.3,2-3.2.7-.9,1.5-1.7,2.4-2.2,1.1-.5,2.2-.8,3.5-.8s2.2.3,3.3.8c1,.5,1.9,1.3,2.5,2.4.7,1,1,2.2,1,3.7,0,2.1-.5,3.7-1.5,5-1,1.3-2.4,2.7-4.1,4.1-1.2,1-2.3,2-3.5,3s-2.3,2-3.5,2.9c.8.6,1.9,1.4,3.1,2.3,1.2,1,2.5,2,3.7,3,1.7,1.4,3.1,2.7,4.1,3.9,1,1.2,1.6,2.8,1.6,4.7s-.3,2.6-1,3.7c-.7,1-1.5,1.8-2.5,2.3s-2.1.8-3.3.8c-1.3,0-2.5-.3-3.4-.9-.9-.5-1.7-1.3-2.4-2.2-.7-1-1.4-2-2-3.2-.9-1.7-1.7-3.3-2.4-4.7-.8-1.4-1.3-2.7-1.7-3.7-.3,1-.9,2.3-1.7,3.7-.8,1.5-1.6,3-2.4,4.6-1,1.8-2,3.3-3.1,4.5s-2.7,1.8-4.7,1.8h0v.1Z" style="fill: #ffffff;"/>
+                  </svg>
+              </div>
+              <p>Start a conversation to build the journey map.</p>
+           </div>
+        </div>
+      </div>
+      
+      <!-- Cell Detail Modal (Hidden) -->
+      <div class="cell-detail-overlay" id="cellModal" onclick="closeCellModal(event)">
+        <div class="cell-detail-modal">
+          <h3 id="modalTitle" style="font-size: 18px; margin-bottom: 12px; color: var(--max-color-text-primary);">Action</h3>
+          <div id="modalContext" style="color: var(--max-color-text-secondary); line-height: 1.6;">Context</div>
+          <button onclick="closeCellModal(null)" style="margin-top: 20px; padding: 8px 16px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary); border-radius: 6px; cursor: pointer;">Close</button>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="js/renderer.js"></script>
   <script>
     // ===========================================
     // State
@@ -851,11 +1143,43 @@
       sessionConfig: {}
     };
 
+    // Load History from LocalStorage
+    function loadHistory() {
+        const stored = localStorage.getItem('max_chat_history');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                // Filter out system start messages just in case
+                state.conversationHistory = parsed.filter(m => m.content !== "START_SESSION");
+                
+                // Re-render messages
+                messagesArea.innerHTML = ''; // Clear existing (like loading msg)
+                state.conversationHistory.forEach(msg => {
+                    addMessage(msg.content, msg.role === 'assistant' || msg.role === 'model' ? 'ai' : 'user');
+                });
+                
+                // Scroll to bottom
+                setTimeout(() => messagesArea.scrollTop = messagesArea.scrollHeight, 100);
+            } catch (e) {
+                console.error("Failed to load history", e);
+            }
+        }
+    }
+
+    function saveHistory() {
+        localStorage.setItem('max_chat_history', JSON.stringify(state.conversationHistory));
+    }
+
+    function clearHistory() {
+        localStorage.removeItem('max_chat_history');
+        state.conversationHistory = [];
+        messagesArea.innerHTML = '';
+    }
+
     // ===========================================
     // DOM Elements
     // ===========================================
     const messagesArea = document.getElementById('messagesArea');
-    const welcomeState = document.getElementById('welcomeState');
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
     const inputWrapper = document.getElementById('inputWrapper');
@@ -895,125 +1219,8 @@
     pollJourneyState();
 
     // Modal Logic
-    function openCellModal(cellId) {
-        if (!currentJourney) return;
-        const cell = currentJourney.cells.find(c => c.cellId === cellId);
-        if (!cell) return;
+    // (Handled by renderer.js)
 
-        document.getElementById('modalTitle').textContent = cell.action;
-        document.getElementById('modalContext').textContent = cell.context;
-        
-        const modal = document.getElementById('cellModal');
-        modal.style.display = 'flex';
-    }
-
-    function closeCellModal(event) {
-        // If event is provided (click outside), check target
-        if (event && event.target.id !== 'cellModal') return;
-        
-        document.getElementById('cellModal').style.display = 'none';
-    }
-
-    function renderJourney(journey) {
-        if (!journey) return;
-
-        let html = `
-            <div class="journey-header">
-                <div class="journey-title">${escapeHtml(journey.name) || 'Untitled Journey'}</div>
-                <div class="journey-role">${escapeHtml(journey.role) || 'Unknown Role'}</div>
-            </div>
-        `;
-
-        if (journey.context) {
-            html += `
-                <div class="context-card">
-                    <h3>Context</h3>
-                    <div class="context-content">${escapeHtml(journey.context)}</div>
-                </div>
-            `;
-        }
-
-        // Always render table if we have phases (even if no swimlanes yet, show header)
-        // OR if we have swimlanes (even if no phases yet, show rows)
-        if (journey.phases.length > 0 || journey.swimlanes.length > 0) {
-            // Grid Template: 1st col auto (swimlanes), rest 1fr (phases)
-            // If no phases, we just have one column for swimlane headers effectively
-            const gridTemplate = `150px ${journey.phases.length > 0 ? `repeat(${journey.phases.length}, 1fr)` : '1fr'}`;
-            
-            html += `<div class="journey-table" style="grid-template-columns: ${gridTemplate};">`;
-
-            // 1. Header Row
-            html += `<div></div>`; // Top-left corner empty
-            
-            if (journey.phases.length > 0) {
-                journey.phases.forEach(phase => {
-                    const desc = phase.description ? ` title="${escapeHtml(phase.description)}"` : '';
-                    html += `<div class="phase-header"${desc}>${escapeHtml(phase.name)}</div>`;
-                });
-            } else {
-                // Placeholder for phase area if empty
-                html += `<div class="phase-header" style="opacity: 0.5; font-style: italic;">Phases pending...</div>`;
-            }
-
-            // 2. Rows
-            if (journey.swimlanes.length > 0) {
-                journey.swimlanes.forEach(swimlane => {
-                    // Row Header
-                    const desc = swimlane.description ? ` title="${escapeHtml(swimlane.description)}"` : '';
-                    html += `<div class="swimlane-header"${desc}>${escapeHtml(swimlane.name)}</div>`;
-
-                    // Cells
-                    if (journey.phases.length > 0) {
-                        journey.phases.forEach(phase => {
-                            const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
-                            
-                            if (cell && cell.action) {
-                                html += `
-                                    <div class="journey-cell complete" onclick="openCellModal('${cell.cellId}')">
-                                        <div class="cell-action">${escapeHtml(cell.action)}</div>
-                                        <div class="cell-context">${escapeHtml(cell.context)}</div>
-                                    </div>
-                                `;
-                            } else if (cell) {
-                                // Empty cell but exists
-                                html += `<div class="journey-cell empty"></div>`;
-                            } else {
-                                // Cell doesn't exist yet (matrix not generated)
-                                html += `<div class="journey-cell empty" style="border-style: none; background: rgba(255,255,255,0.02)"></div>`;
-                            }
-                        });
-                    } else {
-                         // No phases yet, just empty placeholder space for the row
-                         html += `<div class="journey-cell empty" style="border-style: none;"></div>`;
-                    }
-                });
-            } else {
-                // No swimlanes yet. If we have phases, show empty cells below them to imply structure
-                 if (journey.phases.length > 0) {
-                     html += `<div class="swimlane-header" style="opacity: 0.5; font-style: italic;">Swimlanes pending...</div>`;
-                     journey.phases.forEach(() => {
-                         html += `<div class="journey-cell empty" style="border-style: none;"></div>`;
-                     });
-                 }
-            }
-
-            html += `</div>`; // End table
-        } else {
-            // Placeholder when we have a journey but no grid yet
-            html += `
-                <div style="text-align: center; margin-top: 60px; opacity: 0.5; display: flex; flex-direction: column; align-items: center; gap: 16px;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; color: var(--max-color-text-tertiary);">
-                        <path d="M9 18l6-6-6-6"/>
-                        <path d="M21 12h-8"/>
-                        <path d="M3 12h8"/>
-                    </svg>
-                    <p>Describe your process to generate the map structure...</p>
-                </div>
-            `;
-        }
-
-        journeyDashboard.innerHTML = html;
-    }
 
     // Capture Journey ID from AI responses (simple heuristic for prototype)
     // In a real app, the backend would send this in the metadata
@@ -1068,24 +1275,62 @@
     // ===========================================
     // URL Parameter Handling
     // ===========================================
-    function checkUrlParams() {
+    async function checkUrlParams() {
       const params = new URLSearchParams(window.location.search);
       
-      const journeyId = params.get('journeyId');
+      // 1. Check for Config ID (Short Link)
+      const configId = params.get('id') || params.get('config');
+      let remoteConfig = {};
+
+      if (configId) {
+          try {
+              const res = await fetch(`/api/admin/links/${configId}`);
+              if (res.ok) {
+                  const linkData = await res.json();
+                  remoteConfig = {
+                      name: linkData.name,
+                      role: linkData.role,
+                      journeyName: linkData.journey,
+                      welcomePrompt: linkData.welcomePrompt,
+                      journeyPrompt: linkData.journeyPrompt,
+                      knowledgeIds: linkData.knowledgeIds || (linkData.knowledgeId ? [linkData.knowledgeId] : null),
+                      swimlanes: linkData.swimlanes
+                  };
+              }
+          } catch (e) {
+              console.error("Error fetching config:", e);
+          }
+      }
+
+      // 2. Check URL first, then LocalStorage
+      const journeyId = params.get('journeyId') || localStorage.getItem('max_journey_id');
+      
       if (journeyId) {
           currentJourneyId = journeyId;
-          // Immediate poll to render
+          localStorage.setItem('max_journey_id', journeyId);
           pollJourneyState();
       }
 
-      // Capture all potential context
+      // 3. Capture Context (Merge Remote + URL Params)
+      // URL params take precedence over remote config
+      
+      // Parse URL swimlanes if present
+      const urlSwimlanes = (() => {
+        try {
+            const s = params.get('swimlanes');
+            return s ? JSON.parse(decodeURIComponent(s)) : null;
+        } catch (e) { console.error('Failed to parse swimlanes', e); return null; }
+      })();
+
       state.sessionConfig = {
-          name: params.get('name'),
-          role: params.get('role'),
-          journeyName: params.get('journey'), // 'journey' param = Journey Name
-          welcomePrompt: params.get('welcome-prompt'),
-          journeyPrompt: params.get('journey-prompt'), // 'journey-prompt' param = Custom Inquiry
-          journeyId: journeyId // Pass ID to config so chat knows about it
+          name: params.get('name') || remoteConfig.name,
+          role: params.get('role') || remoteConfig.role,
+          journeyName: params.get('journey') || remoteConfig.journeyName,
+          welcomePrompt: params.get('welcome-prompt') || remoteConfig.welcomePrompt,
+          journeyPrompt: params.get('journey-prompt') || remoteConfig.journeyPrompt,
+          knowledgeIds: params.get('knowledge-ids') ? params.get('knowledge-ids').split(',') : remoteConfig.knowledgeIds,
+          swimlanes: urlSwimlanes || remoteConfig.swimlanes,
+          journeyId: journeyId
       };
 
       // Clean up undefined/null values
@@ -1097,18 +1342,17 @@
       // If we loaded a journeyId, the user likely wants to see the map first, 
       // OR continue the chat. 
       
-      // Decision: If name/role/prompts are present, start conversation. 
-      // If ONLY journeyId is present, just show the map.
-      const hasIdentity = state.sessionConfig.name || state.sessionConfig.role || state.sessionConfig.welcomePrompt;
-      
-      if (hasIdentity) {
+      // Load History First
+      loadHistory();
+
+      // Decision: Only start conversation if history is empty AND no journey ID is present
+      // If history exists, we resume. If journey ID exists, we resume context.
+      if (!journeyId && state.conversationHistory.length === 0) {
           startConversation();
       }
     }
     
     function startConversation() {
-        if (welcomeState) welcomeState.style.display = 'none';
-        
         // Send a hidden "system start" signal
         // We don't add this to the UI history as a user message
         sendMessage(true); 
@@ -1116,6 +1360,38 @@
     
     // Check for params after a brief delay to ensure DOM is ready
     setTimeout(checkUrlParams, 100);
+
+    // ===========================================
+    // Settings Handling
+    // ===========================================
+    async function fetchSettings() {
+        try {
+            const response = await fetch('/api/admin/settings');
+            if (response.ok) {
+                const settings = await response.json();
+                if (settings.agentName) {
+                    updateAgentName(settings.agentName);
+                }
+            }
+        } catch (e) {
+            console.error("Failed to fetch settings", e);
+        }
+    }
+
+    function updateAgentName(name) {
+        // Update Title
+        document.title = name;
+        
+        // Update Meta Description
+        document.querySelector('meta[name="description"]').setAttribute('content', `${name} - AI Assistant`);
+        
+        // Update Placeholder
+        const chatInput = document.getElementById('chatInput');
+        chatInput.placeholder = `Message ${name}...`;
+    }
+
+    // Fetch settings on load
+    fetchSettings();
 
     // ===========================================
     // Input Handling
@@ -1157,6 +1433,22 @@
     // ===========================================
     // Typing Indicator
     // ===========================================
+    function getDisplayName(type) {
+        if (type === 'ai') {
+            return (state.sessionConfig.agentName || 'MAX').toUpperCase();
+        } else {
+            // User
+            let name = state.sessionConfig.name;
+            if (!name && currentJourney && currentJourney.userName) {
+                name = currentJourney.userName;
+            }
+            if (name) {
+                return name.split(' ')[0].toUpperCase();
+            }
+            return 'YOU';
+        }
+    }
+
     function showTypingIndicator() {
       if (document.getElementById('typingIndicator')) return;
 
@@ -1164,14 +1456,10 @@
       typingDiv.className = 'max-typing';
       typingDiv.id = 'typingIndicator';
       
+      const name = getDisplayName('ai');
+
       typingDiv.innerHTML = `
-        <div class="max-message-avatar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
-        </div>
+        <div class="max-message-header">${name}</div>
         <div class="max-typing-dots">
           <div class="max-typing-dot"></div>
           <div class="max-typing-dot"></div>
@@ -1204,15 +1492,11 @@
           if (!text || state.isStreaming) return;
       }
 
-      // Hide welcome state
-      if (welcomeState) {
-        welcomeState.style.display = 'none';
-      }
-
       // Add user message ONLY if it's not a system start
       if (!isSystemStart) {
           addMessage(text, 'user');
           state.conversationHistory.push({ role: 'user', content: text });
+          saveHistory(); // Save
           
           // Clear input
           chatInput.value = '';
@@ -1291,10 +1575,12 @@
                       bubbleEl.innerHTML = formatMessage(fullResponse);
                       addMessageActions(aiMessageEl);
                       state.conversationHistory.push({ role: 'assistant', content: fullResponse });
+                      saveHistory(); // Save
                   }
                   
                   if (data.journeyId) {
                       currentJourneyId = data.journeyId;
+                      localStorage.setItem('max_journey_id', currentJourneyId);
                       // Trigger immediate poll
                       pollJourneyState();
                   }
@@ -1335,14 +1621,10 @@
       const messageDiv = document.createElement('div');
       messageDiv.className = 'max-message max-message--ai';
       
+      const name = getDisplayName('ai');
+
       messageDiv.innerHTML = `
-        <div class="max-message-avatar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
-        </div>
+        <div class="max-message-header">${name}</div>
         <div class="max-message-content">
           <div class="max-message-bubble">
             <span class="streaming-cursor"></span>
@@ -1378,19 +1660,10 @@
       const messageDiv = document.createElement('div');
       messageDiv.className = `max-message max-message--${type}`;
       
-      const avatarIcon = type === 'ai' 
-        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-             <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-             <path d="M2 17l10 5 10-5"/>
-             <path d="M2 12l10 5 10-5"/>
-           </svg>`
-        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-             <circle cx="12" cy="7" r="4"/>
-           </svg>`;
+      const name = getDisplayName(type);
 
       messageDiv.innerHTML = `
-        <div class="max-message-avatar">${avatarIcon}</div>
+        <div class="max-message-header">${name}</div>
         <div class="max-message-content">
           <div class="max-message-bubble">${type === 'ai' ? formatMessage(content) : escapeHtml(content)}</div>
         </div>
@@ -1403,13 +1676,13 @@
     // ===========================================
     // Formatting Helpers
     // ===========================================
-    function escapeHtml(text) {
+    function _legacy_escapeHtml(text) {
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
     }
 
-    function formatMessage(text) {
+    function _legacy_formatMessage(text) {
       // Basic markdown-like formatting
       let formatted = escapeHtml(text);
       
@@ -1418,6 +1691,9 @@
       
       // Inline code
       formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+      
+      // Headers (###)
+      formatted = formatted.replace(/^###\s+(.*$)/gm, '<h3>$1</h3>');
       
       // Bold
       formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
@@ -1471,6 +1747,83 @@
           Copy
         `;
       }, 2000);
+    }
+
+    // Copy Full Conversation
+    function copyConversation() {
+        if (!state.conversationHistory || state.conversationHistory.length === 0) {
+            alert("No conversation history to copy. (History is cleared on page reload)");
+            return;
+        }
+
+        const text = state.conversationHistory
+            .map(msg => `[${msg.role.toUpperCase()}]\n${msg.content}`)
+            .join('\n\n-------------------\n\n');
+        
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById('copyConvBtn');
+            const originalHtml = btn.innerHTML;
+            
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #22c55e;">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Copied!
+            `;
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            alert('Failed to copy conversation to clipboard.');
+        });
+    }
+
+    // Export to PDF
+    function _legacy_exportToPdf(targetElementId = 'journeyDashboard') {
+        const element = document.getElementById('journeyDashboard');
+        const opt = {
+          margin:       0.2, // Small margin
+          filename:     `journey-map-${new Date().toISOString().split('T')[0]}.pdf`,
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+    }
+
+    // Export to FigJam (Placeholder)
+    function _legacy_exportToFigJam() {
+        alert("Export to FigJam is coming soon!");
+    }
+
+    // Reset / New Journey
+    function startNewJourney() {
+        clearHistory(); // Clear history on explicit new journey
+        localStorage.removeItem('max_journey_id'); // Clear persistent ID
+        const url = new URL(window.location.href);
+        // Clear journeyId to force new creation
+        url.searchParams.delete('journeyId');
+        // Reload to start fresh with same config params (name, role, etc.)
+        window.location.href = url.toString();
+    }
+
+    function hardReset() {
+        if(confirm("Start over completely? This clears the current chat.")) {
+            startNewJourney();
+        }
+    }
+
+    function toggleMobileView() {
+        document.body.classList.toggle('show-map');
+        const btn = document.getElementById('mobileToggleBtn');
+        if (document.body.classList.contains('show-map')) {
+            btn.textContent = 'View Chat';
+        } else {
+            btn.textContent = 'View Map';
+        }
     }
   </script>
 </body>

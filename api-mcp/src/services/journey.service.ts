@@ -1,0 +1,313 @@
+import { v4 as uuidv4 } from 'uuid';
+import { Store } from '../store';
+import { JourneyMap, PhaseObject, SwimlaneObject, CellObject } from '../types';
+import { recalculateJourney, isCellComplete } from '../metrics';
+
+export class JourneyService {
+    private static instance: JourneyService;
+
+    private constructor() {}
+
+    public static getInstance(): JourneyService {
+        if (!JourneyService.instance) {
+            JourneyService.instance = new JourneyService();
+        }
+        return JourneyService.instance;
+    }
+
+    async createJourney(params: { name?: string; role?: string; description?: string; sessionId?: string; userName?: string }): Promise<JourneyMap> {
+        const id = uuidv4();
+        const now = new Date().toISOString();
+
+        const newJourney: JourneyMap = {
+            journeyMapId: id,
+            sessionId: params.sessionId || uuidv4(),
+            status: 'DRAFT',
+            stage: 'IDENTITY',
+            userName: params.userName || '',
+            name: params.name || '',
+            role: params.role || '',
+            description: params.description || '',
+            arePhasesComplete: false,
+            areSwimlanesComplete: false,
+            completionStatus: {
+                name: !!params.name,
+                role: !!params.role,
+                description: !!params.description,
+                phases: false,
+                swimlanes: false,
+                cells: false
+            },
+            phases: [],
+            swimlanes: [],
+            cells: [],
+            metrics: {
+                totalPhases: 0,
+                totalSwimlanes: 0,
+                totalCellsExpected: 0,
+                totalCellsPresent: 0,
+                totalCellsCompleted: 0,
+                percentCellsComplete: 0
+            },
+            createdAt: now,
+            updatedAt: now,
+            version: 1
+        };
+
+        await Store.save(newJourney);
+        console.log(`[JourneyService] Created: ${id} | Name: ${newJourney.name}`);
+        return newJourney;
+    }
+
+    async getJourney(id: string): Promise<JourneyMap | null> {
+        return await Store.get(id);
+    }
+
+    async getAllJourneys(): Promise<JourneyMap[]> {
+        return await Store.list();
+    }
+
+    async updateMetadata(id: string, params: Partial<JourneyMap>): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        if (params.name !== undefined) journey.name = params.name;
+        if (params.userName !== undefined) journey.userName = params.userName;
+        if (params.role !== undefined) journey.role = params.role;
+        if (params.description !== undefined) journey.description = params.description;
+        if (params.status !== undefined) journey.status = params.status;
+        if (params.arePhasesComplete !== undefined) journey.arePhasesComplete = params.arePhasesComplete;
+        if (params.areSwimlanesComplete !== undefined) journey.areSwimlanesComplete = params.areSwimlanesComplete;
+
+        // Auto-advance stage if we just named it
+        if (journey.stage === 'IDENTITY' && journey.name && journey.description) {
+            journey.stage = 'PHASES';
+        }
+
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        console.log(`[JourneyService] Updated Metadata: ${id} | Stage: ${journey.stage}`);
+        return journey;
+    }
+
+    async addPhase(id: string, params: { name: string; description: string; context?: string }): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        const newPhase: PhaseObject = {
+            phaseId: uuidv4(),
+            sequence: journey.phases.length + 1,
+            name: params.name,
+            description: params.description,
+            context: params.context || ''
+        };
+        journey.phases.push(newPhase);
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        return journey;
+    }
+
+    async updatePhase(id: string, phaseId: string, params: { name?: string; description?: string; context?: string }): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        const phase = journey.phases.find(p => p.phaseId === phaseId);
+        if (!phase) return null; // Or throw error
+
+        if (params.name) phase.name = params.name;
+        if (params.description) phase.description = params.description;
+        if (params.context) phase.context = params.context;
+
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        return journey;
+    }
+
+    async removePhase(id: string, phaseId: string): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        journey.phases = journey.phases.filter(p => p.phaseId !== phaseId);
+        // Re-sequence
+        journey.phases.forEach((p, index) => p.sequence = index + 1);
+        // Also remove associated cells!
+        journey.cells = journey.cells.filter(c => c.phaseId !== phaseId);
+
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        return journey;
+    }
+
+    async setPhasesBulk(id: string, phases: { name: string; description: string; context?: string }[]): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        journey.phases = phases.map((p, index) => ({
+            phaseId: uuidv4(),
+            sequence: index + 1,
+            name: p.name,
+            description: p.description,
+            context: p.context || ''
+        }));
+
+        // Clear cells as structure changed significantly
+        journey.cells = [];
+        // Auto-advance stage
+        journey.stage = 'SWIMLANES';
+
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        console.log(`[JourneyService] Set Phases Bulk: ${id} | Count: ${journey.phases.length}`);
+        return journey;
+    }
+
+    async addSwimlane(id: string, params: { name: string; description: string; context?: string }): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        const newSwimlane: SwimlaneObject = {
+            swimlaneId: uuidv4(),
+            sequence: journey.swimlanes.length + 1,
+            name: params.name,
+            description: params.description,
+            context: params.context || ''
+        };
+        journey.swimlanes.push(newSwimlane);
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        return journey;
+    }
+
+    async updateSwimlane(id: string, swimlaneId: string, params: { name?: string; description?: string; context?: string }): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        const swimlane = journey.swimlanes.find(s => s.swimlaneId === swimlaneId);
+        if (!swimlane) return null;
+
+        if (params.name) swimlane.name = params.name;
+        if (params.description) swimlane.description = params.description;
+        if (params.context) swimlane.context = params.context;
+
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        return journey;
+    }
+
+    async removeSwimlane(id: string, swimlaneId: string): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        journey.swimlanes = journey.swimlanes.filter(s => s.swimlaneId !== swimlaneId);
+        // Re-sequence
+        journey.swimlanes.forEach((s, index) => s.sequence = index + 1);
+        // Remove associated cells
+        journey.cells = journey.cells.filter(c => c.swimlaneId !== swimlaneId);
+
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        return journey;
+    }
+
+    async setSwimlanesBulk(id: string, swimlanes: { name: string; description: string; context?: string }[]): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        journey.swimlanes = swimlanes.map((s, index) => ({
+            swimlaneId: uuidv4(),
+            sequence: index + 1,
+            name: s.name,
+            description: s.description,
+            context: s.context || ''
+        }));
+
+        // Clear cells as structure changed
+        journey.cells = [];
+        // Auto-advance stage
+        journey.stage = 'MATRIX_GENERATION';
+
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        console.log(`[JourneyService] Set Swimlanes Bulk: ${id} | Count: ${journey.swimlanes.length}`);
+        return journey;
+    }
+
+    async generateMatrix(id: string): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        // Ensure all phase x swimlane combos exist
+        for (const phase of journey.phases) {
+            for (const swimlane of journey.swimlanes) {
+                const exists = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+                if (!exists) {
+                    journey.cells.push({
+                        cellId: uuidv4(),
+                        phaseId: phase.phaseId,
+                        swimlaneId: swimlane.swimlaneId,
+                        headline: '',
+                        description: '',
+                        context: ''
+                    });
+                }
+            }
+        }
+
+        // Auto-advance stage
+        journey.stage = 'CELL_POPULATION';
+
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        console.log(`[JourneyService] Matrix Generated: ${id} | Cells: ${journey.cells.length}`);
+        return journey;
+    }
+
+    async updateCell(id: string, cellId: string, params: { headline?: string; description?: string; context?: string }): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        const cell = journey.cells.find(c => c.cellId === cellId);
+        if (!cell) return null;
+
+        if (params.headline !== undefined) cell.headline = params.headline;
+        if (params.description !== undefined) cell.description = params.description;
+        if (params.context !== undefined) cell.context = params.context;
+
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        console.log(`[JourneyService] Cell Updated: ${id} | CellId: ${cellId} | Progress: ${Math.round(journey.metrics.percentCellsComplete * 100)}%`);
+        return journey;
+    }
+
+    async generateArtifacts(id: string, params: { summaryOfFindings?: string; mentalModels?: string; anythingElse?: string }): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+
+        let mermaidCode = `journey\n    title ${journey.name}\n`;
+        for (const phase of journey.phases) {
+            mermaidCode += `    section ${phase.name}\n`;
+            for (const swimlane of journey.swimlanes) {
+                const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+                if (cell && isCellComplete(cell)) {
+                    // Simple representation
+                    mermaidCode += `      ${swimlane.name}: 3: ${cell.headline}\n`;
+                }
+            }
+        }
+
+        journey.mermaid = { code: mermaidCode };
+        journey.outputJson = { code: JSON.stringify(journey, null, 2) };
+
+        if (params.summaryOfFindings) journey.summaryOfFindings = params.summaryOfFindings;
+        if (params.mentalModels) journey.mentalModels = params.mentalModels;
+        if (params.anythingElse) journey.anythingElse = params.anythingElse;
+
+        // Finalize stage
+        journey.stage = 'COMPLETE';
+        journey.status = 'READY_FOR_REVIEW';
+
+        journey = recalculateJourney(journey);
+        await Store.save(journey);
+        return journey;
+    }
+}
