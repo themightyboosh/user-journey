@@ -270,6 +270,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
              html += `<div style="padding: 16px; opacity: 0.5;">Phases pending...</div>`;
         }
         html += `</div>`;
+    }
 
     // Render Final Artifacts if Complete
     if (journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE') {
@@ -325,12 +326,6 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                             <polyline points="10 9 9 9 8 9"/>
                         </svg>
                         Export PDF
-                    </button>
-                    <button onclick="exportToFigJam()" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                        </svg>
-                        Export to FigJam
                     </button>
                     <button onclick="copyMermaid(this)" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -575,58 +570,6 @@ function exportToPdf() {
     });
 }
 
-// FigJam Modal Logic
-function ensureFigJamModal() {
-    if (document.getElementById('figJamModal')) return;
-
-    const modalHtml = `
-        <div class="cell-detail-overlay" id="figJamModal" style="z-index: 100; display: none;">
-            <div class="cell-detail-modal" style="text-align: center; max-width: 420px;">
-                <div style="width: 64px; height: 64px; background: rgba(34, 197, 94, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" style="width: 32px; height: 32px;">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                </div>
-                <h3 style="font-size: 20px; font-weight: 600; color: var(--max-color-text-primary); margin-bottom: 12px;">Data Copied to Clipboard!</h3>
-                <p style="color: var(--max-color-text-secondary); margin-bottom: 24px; line-height: 1.5; font-size: 14px;">
-                    Your journey map data is ready for FigJam.
-                </p>
-                <div style="background: var(--max-color-surface-secondary); border: 1px solid var(--max-color-border); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: left;">
-                    <div style="color: var(--max-color-text-tertiary); font-size: 11px; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.05em;">NEXT STEPS</div>
-                    <div style="display: flex; gap: 12px; flex-direction: column;">
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <div style="width: 24px; height: 24px; background: var(--max-color-surface-tertiary); border-radius: 50%; color: var(--max-color-text-primary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">1</div>
-                            <div style="color: var(--max-color-text-primary); font-size: 14px;">Go to the <strong>FigJam</strong> tab (opened for you)</div>
-                        </div>
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <div style="width: 24px; height: 24px; background: var(--max-color-surface-tertiary); border-radius: 50%; color: var(--max-color-text-primary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">2</div>
-                            <div style="color: var(--max-color-text-primary); font-size: 14px;">Press <kbd style="background: var(--max-color-surface-tertiary); padding: 2px 6px; border-radius: 4px; font-family: inherit; font-size: 12px; border: 1px solid var(--max-color-border);">Cmd</kbd> + <kbd style="background: var(--max-color-surface-tertiary); padding: 2px 6px; border-radius: 4px; font-family: inherit; font-size: 12px; border: 1px solid var(--max-color-border);">V</kbd> to paste</div>
-                        </div>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 12px;">
-                    <button onclick="closeFigJamModal()" style="flex: 1; padding: 12px; background: transparent; border: 1px solid var(--max-color-border); color: var(--max-color-text-secondary); border-radius: 8px; cursor: pointer; font-weight: 500;">Close</button>
-                    <button onclick="window.open('https://figjam.new', '_blank'); closeFigJamModal()" class="max-send-button" style="flex: 1; justify-content: center; width: auto; background: #9747FF; border: none; color: white;">
-                        Open FigJam Again
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-left: 8px;">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-}
-
-function closeFigJamModal() {
-    const modal = document.getElementById('figJamModal');
-    if (modal) modal.style.display = 'none';
-}
-
 // Copy Mermaid Code
 function copyMermaid(btn) {
     if (!currentRenderedJourney || !currentRenderedJourney.mermaid || !currentRenderedJourney.mermaid.code) {
@@ -648,54 +591,5 @@ function copyMermaid(btn) {
     }).catch(err => {
         console.error('Failed to copy mermaid code', err);
         alert('Failed to copy code.');
-    });
-}
-
-// Export to FigJam (CSV Copy)
-function exportToFigJam() {
-    if (!currentRenderedJourney) return;
-    
-    // Create CSV content
-    // Format: Phase, Swimlane, Headline, Description
-    let csvContent = "Phase,Swimlane,Headline,Description\n";
-    
-    currentRenderedJourney.phases.forEach(phase => {
-        currentRenderedJourney.swimlanes.forEach(swimlane => {
-            const cell = currentRenderedJourney.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
-            if (cell && cell.headline) {
-                // Escape quotes
-                const p = `"${phase.name.replace(/"/g, '""')}"`;
-                const s = `"${swimlane.name.replace(/"/g, '""')}"`;
-                const h = `"${cell.headline.replace(/"/g, '""')}"`;
-                const d = `"${cell.description.replace(/"/g, '""')}"`;
-                csvContent += `${p},${s},${h},${d}\n`;
-            }
-        });
-    });
-
-    ensureFigJamModal();
-
-    // Copy to clipboard
-    navigator.clipboard.writeText(csvContent).then(() => {
-        // Automatically open FigJam.new
-        window.open('https://figjam.new', '_blank');
-        
-        // Show guidance modal
-        const modal = document.getElementById('figJamModal');
-        if (modal) modal.style.display = 'flex';
-        
-    }).catch(err => {
-        console.error("Failed to copy CSV", err);
-        // Fallback to download
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "journey-map.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        alert("CSV downloaded instead of copied. Please drag this file into FigJam.");
     });
 }
