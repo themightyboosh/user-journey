@@ -261,32 +261,32 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
             </div>`;
     }
 
-    // 2. Phases (Phase Summaries) - Single Container
+    // 2. Phases (Phase Summaries) - Individual Cards
     if (journey.phases.some(p => p.summary)) {
         html += `
-            <div class="context-card">
-                <h3 style="color: var(--max-color-accent); margin-bottom: 16px;">Phases</h3>
-                <div class="context-content">
+            <div style="margin-top: 24px;">
+                <h3 style="color: var(--max-color-accent); margin-bottom: 16px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Phases</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
                     ${journey.phases.map(p => p.summary ? `
-                        <div style="margin-bottom: 16px;">
-                            <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--max-color-text-primary);">${escapeHtml(p.name)}</h4>
-                            <div>${formatMessage(p.summary)}</div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 20px; border-radius: 8px;">
+                            <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--max-color-text-primary);">${escapeHtml(p.name)}</h4>
+                            <div style="font-size: 14px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(p.summary)}</div>
                         </div>
                     ` : '').join('')}
                 </div>
             </div>`;
     }
 
-    // 3. Lanes (Swimlane Summaries) - Single Container
+    // 3. Lanes (Swimlane Summaries) - Individual Cards
     if (journey.swimlanes.some(s => s.summary)) {
         html += `
-            <div class="context-card">
-                <h3 style="color: var(--max-color-accent); margin-bottom: 16px;">Lanes</h3>
-                <div class="context-content">
+            <div style="margin-top: 24px;">
+                <h3 style="color: var(--max-color-accent); margin-bottom: 16px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Lanes</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
                     ${journey.swimlanes.map(s => s.summary ? `
-                        <div style="margin-bottom: 16px;">
-                            <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--max-color-text-primary);">${escapeHtml(s.name)}</h4>
-                            <div>${formatMessage(s.summary)}</div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 20px; border-radius: 8px;">
+                            <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--max-color-text-primary);">${escapeHtml(s.name)}</h4>
+                            <div style="font-size: 14px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(s.summary)}</div>
                         </div>
                     ` : '').join('')}
                 </div>
@@ -296,9 +296,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         // 4. Mental Models (Split into Cards)
         if (journey.mentalModels) {
             html += `
-                <div class="context-card">
-                    <h3 style="color: var(--max-color-accent); margin-bottom: 16px;">Mental Models</h3>
-                    <div class="context-content">
+                <div style="margin-top: 24px;">
+                    <h3 style="color: var(--max-color-accent); margin-bottom: 16px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Mental Models</h3>
             `;
             
             // Split by double newline or numbered list pattern
@@ -324,8 +323,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
             }
             
             if (models.length > 0) {
-                // Grid for mental models
-                html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">`;
+                // Stacked Full Width Cards for mental models
+                html += `<div style="display: flex; flex-direction: column; gap: 12px;">`;
                 models.forEach((model, index) => {
                     // Try to extract a title if possible (first sentence or up to colon)
                     let title = `Model ${index + 1}`;
@@ -346,9 +345,9 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                     }
                     
                     html += `
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 16px; border-radius: 8px;">
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 20px; border-radius: 8px;">
                             <h4 style="font-size: 14px; font-weight: 700; color: var(--max-color-text-primary); margin-bottom: 8px;">${escapeHtml(title)}</h4>
-                            <div style="font-size: 13px; color: var(--max-color-text-secondary); line-height: 1.5;">${formatMessage(content)}</div>
+                            <div style="font-size: 14px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(content)}</div>
                         </div>
                     `;
                 });
@@ -358,7 +357,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                 html += `<div>${formatMessage(journey.mentalModels)}</div>`;
             }
 
-            html += `</div></div>`;
+            html += `</div>`;
         }
     
     // 5. Additional Context (if any)
