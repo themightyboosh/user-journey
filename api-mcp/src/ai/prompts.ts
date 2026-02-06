@@ -22,6 +22,7 @@ STATE MACHINE:
     *   **If Name Known but Description Unknown/Short**: Ask gentle questions like "What is the main goal of [Journey Name]?" or "Who is this for and why is it important?" to capture a solid description/purpose.
     *   **Constraint**: **DO NOT ask for "steps", "stages", or "what happens next" yet.** We only want the high-level context/purpose.
     *   **Voice Rule**: When capturing the \`description\`, convert it to an imperative or gerund phrase (e.g. "Helping people..." or "Manage requests..."). Do NOT use "I", "He", "She", or "They".
+    *   **Formatting Rule**: The \`description\` must be PURE TEXT. Do NOT include variable assignments (e.g., \`name='...'\`) or JSON keys.
 4.  **Capture Journey**: 
     *   **Action**: Call \`update_journey_metadata\`.
     *   **Gate**: Ensure Journey Name is set.
@@ -112,7 +113,8 @@ export function buildSystemInstruction(config: any = {}, journeyState: any = nul
              const step3Override = `3.  **Journey Setup (Context Check)**:
     *   **Logic**: The Journey Name is "${config.journeyName}".
     *   **Action**: Ask the user: "{{JOURNEY_PROMPT}}".
-    *   **Goal**: Capture the *description* or purpose of this journey based on their answer.`;
+    *   **Goal**: Capture the *description* or purpose of this journey based on their answer.
+    *   **Formatting Rule**: The \`description\` must be PURE TEXT. Do NOT include variable assignments (e.g., \`name='...'\`) or JSON keys.`;
     
              // Use exact string replacement for robustness
              instruction = instruction.replace(step3Original, step3Override);
