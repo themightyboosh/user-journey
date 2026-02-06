@@ -262,9 +262,13 @@ export class AIService {
     
                     const result = await this.journeyService.updateCell(args.journeyMapId, targetCellId, args);
 
-                    // Trigger Background Summarization (Fire and Forget)
+                    // Trigger Background Summarization (Serialized to prevent race conditions)
                     if (pId && sId) {
-                        this.triggerBackgroundSummaries(args.journeyMapId, pId, sId).catch(err => logger.error("Background Summary Error", err));
+                        try {
+                            await this.triggerBackgroundSummaries(args.journeyMapId, pId, sId);
+                        } catch (err) {
+                            logger.error("Background Summary Error", err);
+                        }
                     }
 
                     return result;

@@ -291,6 +291,13 @@ export class JourneyService {
     }
 
     async generateArtifacts(id: string, params: { summaryOfFindings?: string; mentalModels?: string; anythingElse?: string; quotes?: string[] }): Promise<JourneyMap | null> {
+        logger.info(`[JourneyService] Generating Artifacts for ${id}`, { 
+            hasSummary: !!params.summaryOfFindings,
+            summaryLen: params.summaryOfFindings?.length,
+            hasModels: !!params.mentalModels,
+            modelsLen: params.mentalModels?.length
+        });
+        
         let journey = await Store.get(id);
         if (!journey) return null;
 
