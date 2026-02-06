@@ -239,17 +239,9 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     // Render sections if they exist, or if the journey is complete
     
     // Auto-switch to map on mobile if complete
-    if ((journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE')) {
-        // Add complete class to body for full takeover
-        document.body.classList.add('journey-complete');
-        
-        if (window.innerWidth <= 768 && !document.body.classList.contains('show-map')) {
-            setTimeout(() => { if (!document.body.classList.contains('show-map')) toggleMobileView(); }, 500);
-        }
-    } else {
-        document.body.classList.remove('journey-complete');
-    }
-
+    // Moved logic down to button visibility check for consistency
+    // Removed duplicate block here to avoid conflict
+    
     html += `<div class="final-artifacts" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 24px;">`;
 
     // 1. Overview (Summary of Findings)
@@ -369,8 +361,11 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
             </div>`;
     }
     
-    // Buttons (Action Area) - Only when complete/ready
-    if (journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE') {
+    // Buttons (Action Area) - Show when complete OR if we have artifacts
+    // Expanded logic: If status is Ready/Complete OR if we have mental models/summary (implies completeness)
+    const isComplete = journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE' || (journey.mentalModels && journey.mentalModels.length > 10) || (journey.summaryOfFindings && journey.summaryOfFindings.length > 10);
+
+    if (isComplete) {
         // Show the extended Panzoom controls
         const btnCopy = document.getElementById('btnCopyConv');
         const btnPdf = document.getElementById('btnExportPdf');
@@ -380,9 +375,16 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         if (btnPdf) btnPdf.style.display = 'flex';
         if (btnImg) btnImg.style.display = 'flex';
 
-        // Legacy action area removed as per request
+        // Add complete class to body for full takeover if not already
+        if (!document.body.classList.contains('journey-complete')) {
+             document.body.classList.add('journey-complete');
+             // Auto-toggle mobile view if needed
+             if (window.innerWidth <= 768 && !document.body.classList.contains('show-map')) {
+                setTimeout(() => { if (!document.body.classList.contains('show-map')) toggleMobileView(); }, 500);
+            }
+        }
     } else {
-        // Hide if not complete (e.g. reset)
+        // Hide if not complete
         const btnCopy = document.getElementById('btnCopyConv');
         const btnPdf = document.getElementById('btnExportPdf');
         const btnImg = document.getElementById('btnExportImg');
@@ -390,6 +392,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         if (btnCopy) btnCopy.style.display = 'none';
         if (btnPdf) btnPdf.style.display = 'none';
         if (btnImg) btnImg.style.display = 'none';
+        
+        document.body.classList.remove('journey-complete');
     }
     
     html += `</div>`; // End artifacts container 
