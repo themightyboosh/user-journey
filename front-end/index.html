@@ -1068,7 +1068,7 @@
           <img src="max_header.svg" alt="M.AX" style="height: 32px; width: auto;">
       </div>
       <div class="max-status" id="connectionStatus">
-        <button id="mobileToggleBtn" class="mobile-toggle-btn" onclick="toggleMobileView()">View Map</button>
+        <button id="mobileToggleBtn" class="mobile-toggle-btn" onclick="toggleMobileView()">Map</button>
         <span class="max-status-dot" id="statusDot"></span>
         <span id="statusText" class="desktop-only">Connecting...</span>
         <button onclick="hardReset()" title="Reset Session" class="reset-btn">
@@ -1925,9 +1925,9 @@
         document.body.classList.toggle('show-map');
         const btn = document.getElementById('mobileToggleBtn');
         if (document.body.classList.contains('show-map')) {
-            btn.textContent = 'View Chat';
+            btn.textContent = 'Chat';
         } else {
-            btn.textContent = 'View Map';
+            btn.textContent = 'Map';
         }
     }
 
