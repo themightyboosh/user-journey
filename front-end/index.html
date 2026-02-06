@@ -225,7 +225,7 @@
         transform: none !important; /* Force reset transforms if any */
     }
     
-    /* Panzoom Controls */
+    /* Panzoom Controls Styling */
     .panzoom-controls {
         position: absolute;
         bottom: 24px;
@@ -238,11 +238,14 @@
         border-radius: var(--max-radius-medium);
         border: 1px solid var(--max-color-border);
         box-shadow: var(--max-shadow-soft);
+        flex-wrap: wrap; /* Allow wrapping on small screens if needed */
+        max-width: 90vw; /* Prevent overflow on mobile */
+        justify-content: flex-end;
     }
 
     .panzoom-btn {
-        width: 36px;
         height: 36px;
+        padding: 0 12px; /* Text padding */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -252,6 +255,12 @@
         color: var(--max-color-text-primary);
         cursor: pointer;
         transition: all 0.15s ease;
+        font-family: var(--max-font-family-mono);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
     }
 
     .panzoom-btn:hover {
@@ -260,8 +269,7 @@
     }
 
     .panzoom-btn svg {
-        width: 20px;
-        height: 20px;
+        display: none; /* Hide icons in favor of text if present, or just use text */
     }
 
     .journey-header {
@@ -336,7 +344,7 @@
     .journey-table {
       display: grid;
       gap: 16px;
-      /* Grid template columns set dynamically via JS */
+      /* Grid template columns set dynamically via JS, but we use minmax to prevent stretch */
     }
 
     .phase-header {
@@ -1010,10 +1018,12 @@
     /* ========================================
        COMPLETION STATE
        ======================================== */
+    /* Hide Chat Container */
     body.journey-complete .max-chat-container {
       display: none !important;
     }
     
+    /* Full Width Canvas */
     body.journey-complete .max-chat-canvas {
       flex: 0 0 100% !important;
       width: 100% !important;
@@ -1021,9 +1031,60 @@
       border-right: none;
     }
 
-    /* ========================================
-       RESPONSIVE
-       ======================================== */
+    /* Hide Mobile Toggle in Complete State */
+    body.journey-complete .mobile-toggle-btn {
+        display: none !important;
+    }
+
+    /* Also hide the toggle button container/status if desired, but user just said "gone on both mobile and desktop" */
+    /* The header stays, but toggle button specifically: */
+    
+    /* Ensure proper reset of Panzoom on transition to complete */
+    body.journey-complete .journey-dashboard {
+        width: max-content; /* Ensure it can still pan/zoom properly */
+        min-width: 100%;
+    }
+
+    /* Panzoom Controls Styling */
+    .panzoom-controls {
+        position: absolute;
+        bottom: 24px;
+        right: 24px;
+        display: flex;
+        gap: 8px;
+        z-index: 100;
+        background: var(--max-color-surface-secondary);
+        padding: 6px;
+        border-radius: var(--max-radius-medium);
+        border: 1px solid var(--max-color-border);
+        box-shadow: var(--max-shadow-soft);
+        flex-wrap: wrap; /* Allow wrapping on small screens if needed */
+    }
+
+    .panzoom-btn {
+        height: 36px;
+        padding: 0 12px; /* Text padding */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: var(--max-radius-small);
+        color: var(--max-color-text-primary);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-family: var(--max-font-family-mono);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+    }
+
+    .panzoom-btn:hover {
+        background: var(--max-color-surface-tertiary);
+        border-color: var(--max-color-border-subtle);
+    }
     .mobile-toggle-btn {
       display: none;
       padding: 8px 16px;
@@ -1193,26 +1254,27 @@
         <!-- Controls -->
         <div class="panzoom-controls" id="panzoomControls">
             <button class="panzoom-btn" onclick="panzoomAction('zoomIn')" title="Zoom In">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
+                (+)
             </button>
             <button class="panzoom-btn" onclick="panzoomAction('zoomOut')" title="Zoom Out">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
+                (-)
             </button>
             <button class="panzoom-btn" onclick="panzoomAction('fit')" title="Fit to Screen">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                </svg>
+                FIT
             </button>
             <button class="panzoom-btn" onclick="panzoomAction('reset')" title="Reset View">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                    <path d="M3 3v5h5"/>
-                </svg>
+                RST
+            </button>
+            
+            <!-- Actions (Added via JS when complete) -->
+            <button id="btnCopyConv" class="panzoom-btn" onclick="copyConversation()" style="display: none;" title="Copy Conversation">
+                COPY CONV
+            </button>
+            <button id="btnExportPdf" class="panzoom-btn" onclick="exportToPdf()" style="display: none;" title="Export PDF">
+                PDF
+            </button>
+            <button id="btnExportImg" class="panzoom-btn" onclick="exportToImage()" style="display: none;" title="Export Image">
+                IMG
             </button>
         </div>
       </div>
@@ -2080,9 +2142,31 @@
         html2pdf().set(opt).from(element).save();
     }
 
-    // Export to FigJam (Placeholder)
-    function _legacy_exportToFigJam() {
-        alert("Export to FigJam is coming soon!");
+    // Export to Image (PNG)
+    function exportToImage() {
+        const element = document.getElementById('journeyDashboard');
+        if (!element) return;
+
+        // Temporarily reset transform for capture
+        const originalTransform = element.style.transform;
+        element.style.transform = 'none'; // Reset zoom
+        
+        // Use html2canvas
+        // We can reuse html2pdf library's internal html2canvas or just rely on it being loaded
+        // html2pdf bundles html2canvas
+        
+        html2pdf().from(element).outputImg('img').then((img) => {
+            // Create a link to download
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = `journey-map-${new Date().toISOString().split('T')[0]}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Restore transform
+            element.style.transform = originalTransform;
+        });
     }
 
     // Reset / New Journey

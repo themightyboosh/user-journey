@@ -127,8 +127,9 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
 
     // Always render table if we have phases or swimlanes
     if (journey.phases.length > 0 || journey.swimlanes.length > 0) {
-        // Grid Template
-        const gridTemplate = `150px ${journey.phases.length > 0 ? `repeat(${journey.phases.length}, 1fr)` : '1fr'}`;
+        // Grid Template: Fix stretching by using minmax
+        // 150px for header, then minmax(280px, 1fr) for columns
+        const gridTemplate = `150px ${journey.phases.length > 0 ? `repeat(${journey.phases.length}, minmax(280px, 1fr))` : '1fr'}`;
         
         html += `<div class="journey-table" style="grid-template-columns: ${gridTemplate};">`;
 
@@ -235,8 +236,15 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     // Render sections if they exist, or if the journey is complete
     
     // Auto-switch to map on mobile if complete
-    if ((journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE') && window.innerWidth <= 768 && !document.body.classList.contains('show-map')) {
-        setTimeout(() => { if (!document.body.classList.contains('show-map')) toggleMobileView(); }, 500);
+    if ((journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE')) {
+        // Add complete class to body for full takeover
+        document.body.classList.add('journey-complete');
+        
+        if (window.innerWidth <= 768 && !document.body.classList.contains('show-map')) {
+            setTimeout(() => { if (!document.body.classList.contains('show-map')) toggleMobileView(); }, 500);
+        }
+    } else {
+        document.body.classList.remove('journey-complete');
     }
 
     html += `<div class="final-artifacts" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 24px;">`;
@@ -282,14 +290,73 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
             </div>`;
     }
 
-    // 4. Mental Models
-    if (journey.mentalModels) {
-        html += `
-            <div class="context-card">
-                <h3 style="color: var(--max-color-accent); margin-bottom: 8px;">Mental Models</h3>
-                <div class="context-content">${formatMessage(journey.mentalModels)}</div>
-            </div>`;
-    }
+        // 4. Mental Models (Split into Cards)
+        if (journey.mentalModels) {
+            html += `
+                <div class="context-card">
+                    <h3 style="color: var(--max-color-accent); margin-bottom: 16px;">Mental Models</h3>
+                    <div class="context-content">
+            `;
+            
+            // Split by double newline or numbered list pattern
+            // Heuristic: If it looks like a list "1. ", split it. If just paragraphs, split by \n\n.
+            // The previous formatting logic might have already turned it into HTML. 
+            // Let's assume raw text first, but 'journey.mentalModels' might be raw.
+            // Actually, let's just parse the raw string.
+            
+            const rawModels = journey.mentalModels;
+            // Split logic: Look for "1.", "2." OR bullet points OR double newlines
+            // We want to create individual "cards" or blocks for each model.
+            
+            let models = [];
+            if (rawModels.match(/^\d+\./m)) {
+                // Split by numbered list
+                models = rawModels.split(/^\d+\.\s*/m).filter(m => m.trim().length > 0);
+            } else if (rawModels.match(/^[-*•]\s/m)) {
+                // Split by bullets
+                models = rawModels.split(/^[-*•]\s*/m).filter(m => m.trim().length > 0);
+            } else {
+                // Split by paragraphs
+                models = rawModels.split(/\n\n+/).filter(m => m.trim().length > 0);
+            }
+            
+            if (models.length > 0) {
+                // Grid for mental models
+                html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">`;
+                models.forEach((model, index) => {
+                    // Try to extract a title if possible (first sentence or up to colon)
+                    let title = `Model ${index + 1}`;
+                    let content = model;
+                    
+                    // Simple heuristic: "Name: Description"
+                    const colonMatch = model.match(/^([^:]+):\s*(.*)/s);
+                    if (colonMatch) {
+                        title = colonMatch[1];
+                        content = colonMatch[2];
+                    } else {
+                        // Or first sentence
+                        const dotIdx = model.indexOf('.');
+                        if (dotIdx > 0 && dotIdx < 50) {
+                             title = model.substring(0, dotIdx);
+                             content = model.substring(dotIdx + 1);
+                        }
+                    }
+                    
+                    html += `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 16px; border-radius: 8px;">
+                            <h4 style="font-size: 14px; font-weight: 700; color: var(--max-color-text-primary); margin-bottom: 8px;">${escapeHtml(title)}</h4>
+                            <div style="font-size: 13px; color: var(--max-color-text-secondary); line-height: 1.5;">${formatMessage(content)}</div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            } else {
+                // Fallback
+                html += `<div>${formatMessage(journey.mentalModels)}</div>`;
+            }
+
+            html += `</div></div>`;
+        }
     
     // 5. Additional Context (if any)
     if (journey.anythingElse) {
@@ -302,40 +369,25 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     
     // Buttons (Action Area) - Only when complete/ready
     if (journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE') {
-        html += `
-            <div class="action-area" data-html2canvas-ignore="true" style="display: flex; justify-content: center; gap: 16px; margin-top: 40px; padding-bottom: 40px; flex-wrap: wrap;">
-                <button onclick="exportToPdf('${targetElementId}')" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                        <polyline points="10 9 9 9 8 9"/>
-                    </svg>
-                    Export PDF
-                </button>
-                <button onclick="copyMermaid(this)" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg>
-                    Copy as Mermaid
-                </button>
-                <button onclick="copyConversation()" id="copyConvBtn" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                    </svg>
-                    Copy Conversation
-                </button>
-                <button onclick="startNewJourney()" class="max-send-button" style="width: auto; padding: 12px 24px; gap: 8px;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                    Do Another Journey
-                </button>
-            </div>
-        `;
+        // Show the extended Panzoom controls
+        const btnCopy = document.getElementById('btnCopyConv');
+        const btnPdf = document.getElementById('btnExportPdf');
+        const btnImg = document.getElementById('btnExportImg');
+        
+        if (btnCopy) btnCopy.style.display = 'flex';
+        if (btnPdf) btnPdf.style.display = 'flex';
+        if (btnImg) btnImg.style.display = 'flex';
+
+        // Legacy action area removed as per request
+    } else {
+        // Hide if not complete (e.g. reset)
+        const btnCopy = document.getElementById('btnCopyConv');
+        const btnPdf = document.getElementById('btnExportPdf');
+        const btnImg = document.getElementById('btnExportImg');
+        
+        if (btnCopy) btnCopy.style.display = 'none';
+        if (btnPdf) btnPdf.style.display = 'none';
+        if (btnImg) btnImg.style.display = 'none';
     }
     
     html += `</div>`; // End artifacts container else {
