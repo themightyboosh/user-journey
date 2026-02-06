@@ -7,7 +7,7 @@ import logger from '../logger';
 
 export class AIService {
     static instance: AIService;
-    private vertexAI: VertexAI;
+    private vertexAI!: VertexAI;
     private config: any;
     private activeGenerativeModel: GenerativeModel | null = null;
     private activeModelName: string | null = null;
@@ -121,6 +121,8 @@ export class AIService {
                     return await this.journeyService.generateMatrix(args.journeyMapId);
                 case 'update_cell':
                     let targetCellId = args.cellId;
+                    let pId = null;
+                    let sId = null;
     
                     if (!targetCellId && args.phaseName && args.swimlaneName) {
                         const journey = await this.getJourneyState(args.journeyMapId);
@@ -139,8 +141,25 @@ export class AIService {
                     if (!targetCellId) {
                         return { error: "Missing cellId and could not resolve phaseName/swimlaneName to a valid cell." };
                     }
+
+                    // Get IDs for summarization trigger
+                    if (targetCellId) {
+                         const journey = await this.getJourneyState(args.journeyMapId);
+                         const cell = journey?.cells.find(c => c.cellId === targetCellId);
+                         if (cell) {
+                             pId = cell.phaseId;
+                             sId = cell.swimlaneId;
+                         }
+                    }
     
-                    return await this.journeyService.updateCell(args.journeyMapId, targetCellId, args);
+                    const result = await this.journeyService.updateCell(args.journeyMapId, targetCellId, args);
+
+                    // Trigger Background Summarization (Fire and Forget)
+                    if (pId && sId) {
+                        this.triggerBackgroundSummaries(args.journeyMapId, pId, sId).catch(err => logger.error("Background Summary Error", err));
+                    }
+
+                    return result;
 
                 case 'generate_artifacts':
                     return await this.journeyService.generateArtifacts(args.journeyMapId, args);
@@ -222,5 +241,74 @@ export class AIService {
 
     get ActiveModelName() {
         return this.activeModelName;
+    }
+
+    // --- Background Processing (Simulating BullMQ Worker) ---
+    // NOTE: In a full scale implementation, this would be offloaded to a Redis queue via BullMQ.
+    private async triggerBackgroundSummaries(journeyId: string, phaseId: string, swimlaneId: string) {
+        logger.info(`[Background] Checking summaries for Journey: ${journeyId}`);
+
+        // 1. Check Phase Completion
+        const isPhaseComplete = await this.journeyService.checkPhaseCompletion(journeyId, phaseId);
+        if (isPhaseComplete) {
+            const journey = await this.journeyService.getJourney(journeyId);
+            const phase = journey?.phases.find(p => p.phaseId === phaseId);
+            
+            // Check if summary already exists to avoid re-gen (unless we want to update it?)
+            // For now, only generate if empty or simple update. 
+            // Actually, prompts say "When cells... are complete". We should generate it.
+            if (journey && phase) {
+                 const cells = journey.cells.filter(c => c.phaseId === phaseId);
+                 const summary = await this.generateSummary(
+                     `Summarize the user's experience specifically during the "${phase.name}" phase.`,
+                     cells
+                 );
+                 if (summary) {
+                     await this.journeyService.savePhaseSummary(journeyId, phaseId, summary);
+                 }
+            }
+        }
+
+        // 2. Check Swimlane Completion
+        const isSwimlaneComplete = await this.journeyService.checkSwimlaneCompletion(journeyId, swimlaneId);
+        if (isSwimlaneComplete) {
+            const journey = await this.journeyService.getJourney(journeyId);
+            const swimlane = journey?.swimlanes.find(s => s.swimlaneId === swimlaneId);
+            
+            if (journey && swimlane) {
+                 const cells = journey.cells.filter(c => c.swimlaneId === swimlaneId);
+                 const summary = await this.generateSummary(
+                     `Summarize the user's experience related to "${swimlane.name}" across the entire journey.`,
+                     cells
+                 );
+                 if (summary) {
+                     await this.journeyService.saveSwimlaneSummary(journeyId, swimlaneId, summary);
+                 }
+            }
+        }
+    }
+
+    private async generateSummary(instruction: string, cells: any[]): Promise<string | null> {
+        try {
+            if (!this.activeGenerativeModel) return null;
+
+            const cellContext = cells.map(c => `- ${c.headline}: ${c.description}`).join('\n');
+            const prompt = `
+            ${instruction}
+            Keep it concise (1-2 sentences). Focus on the key insight or pain point.
+            
+            DATA:
+            ${cellContext}
+            `;
+
+            const result = await this.activeGenerativeModel.generateContent({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }]
+            });
+            const response = await result.response;
+            return response.candidates?.[0]?.content?.parts?.[0]?.text || null;
+        } catch (e) {
+            logger.error("Summary Generation Failed", e);
+            return null;
+        }
     }
 }

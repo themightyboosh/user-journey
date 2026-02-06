@@ -28,6 +28,7 @@ interface StorageAdapter {
     getJourney(id: string): Promise<JourneyMap | null>;
     saveJourney(journey: JourneyMap): Promise<void>;
     deleteJourney(id: string): Promise<void>;
+    deleteAllJourneys(): Promise<void>;
     listJourneys(): Promise<JourneyMap[]>;
 
     // Links
@@ -107,6 +108,7 @@ class FileStorageAdapter implements StorageAdapter {
     async getJourney(id: string) { const all = await this.read(this.FILES.JOURNEYS); return all[id] || null; }
     async saveJourney(j: JourneyMap) { const all = await this.read(this.FILES.JOURNEYS); all[j.journeyMapId] = j; await this.write(this.FILES.JOURNEYS, all); }
     async deleteJourney(id: string) { const all = await this.read(this.FILES.JOURNEYS); delete all[id]; await this.write(this.FILES.JOURNEYS, all); }
+    async deleteAllJourneys() { await this.write(this.FILES.JOURNEYS, {}); }
     async listJourneys() { return Object.values(await this.read(this.FILES.JOURNEYS)) as JourneyMap[]; }
 
     // Links
@@ -145,6 +147,40 @@ class FirestoreAdapter implements StorageAdapter {
     }
     async deleteJourney(id: string): Promise<void> {
         await this.db.collection(this.COLLS.JOURNEYS).doc(id).delete();
+    }
+    async deleteAllJourneys(): Promise<void> {
+        const batchSize = 500;
+        const collectionRef = this.db.collection(this.COLLS.JOURNEYS);
+        const query = collectionRef.orderBy('__name__').limit(batchSize);
+
+        return new Promise((resolve, reject) => {
+            const deleteQueryBatch = (query: FirebaseFirestore.Query) => {
+                query.get()
+                    .then((snapshot) => {
+                        if (snapshot.size === 0) {
+                            return 0;
+                        }
+
+                        const batch = this.db.batch();
+                        snapshot.docs.forEach((doc) => {
+                            batch.delete(doc.ref);
+                        });
+                        return batch.commit().then(() => snapshot.size);
+                    })
+                    .then((numDeleted) => {
+                        if (numDeleted === 0) {
+                            resolve();
+                            return;
+                        }
+                        process.nextTick(() => {
+                            deleteQueryBatch(query);
+                        });
+                    })
+                    .catch(reject);
+            };
+
+            deleteQueryBatch(query);
+        });
     }
     async listJourneys(): Promise<JourneyMap[]> {
         const snap = await this.db.collection(this.COLLS.JOURNEYS).get();
@@ -213,6 +249,7 @@ export const Store = {
   async get(id: string) { return adapter.getJourney(id); },
   async save(journey: JourneyMap) { return adapter.saveJourney(journey); },
   async delete(id: string) { return adapter.deleteJourney(id); },
+  async deleteAll() { return adapter.deleteAllJourneys(); },
   async list() { return adapter.listJourneys(); },
 
   // Link Methods

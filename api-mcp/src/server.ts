@@ -129,6 +129,13 @@ server.post('/api/chat', async (request, reply) => {
     const { message, history = [], config = {}, journeyId } = body || {};
   
     if (journeyId) config.journeyId = journeyId;
+    
+    logger.info('[API] Received Chat Config:', { 
+        hasWelcome: !!config.welcomePrompt, 
+        welcomeLen: config.welcomePrompt?.length,
+        journeyName: config.journeyName
+    });
+
     if (!message) return reply.status(400).send({ error: 'Message is required' });
   
     try {
@@ -225,6 +232,19 @@ server.post('/v1/journey-maps', async (request, reply) => {
 // List JourneyMaps
 server.get('/v1/journey-maps', async (request, reply) => {
   return await journeyService.getAllJourneys();
+});
+
+// Delete JourneyMap
+server.delete('/v1/journey-maps/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    await journeyService.deleteJourney(id);
+    return { success: true };
+});
+
+// Clear All JourneyMaps (Admin Only ideally, but open for now)
+server.delete('/v1/journey-maps', async (request, reply) => {
+    await journeyService.clearAllJourneys();
+    return { success: true };
 });
 
 // Get JourneyMap
@@ -408,6 +428,17 @@ server.delete('/api/admin/knowledge/:id', async (request, reply) => {
 
 server.get('/api/admin/journeys', async (request, reply) => {
     return await journeyService.getAllJourneys();
+});
+
+server.delete('/api/admin/journeys/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    await journeyService.deleteJourney(id);
+    return { success: true };
+});
+
+server.delete('/api/admin/journeys', async (request, reply) => {
+    await journeyService.clearAllJourneys();
+    return { success: true };
 });
 
 server.get('/admin/journeys', async (request, reply) => {

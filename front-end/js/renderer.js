@@ -104,13 +104,7 @@ function renderJourney(journey, targetElementId = 'journeyDashboard') {
         roleDisplay = `<span style="font-weight: 700; color: var(--max-color-text-primary);">${escapeHtml(journey.userName)}</span>, ${roleDisplay}`;
     }
 
-    const maxLogoSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128.5 42.6" style="height: 28px; width: auto; flex-shrink: 0;">
-            <path d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3V9.1C0,6.2.7,3.9,2.2,2.5,3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.7.4-1.8.6-3.2.6s-2.5-.2-3.2-.6c-.8-.4-1.4-1-1.8-1.8-.4-.8-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0l.2.1Z" style="fill: var(--max-color-accent);"/>
-            <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c.1-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4.1.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c.1,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c.1,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z" style="fill: var(--max-color-text-primary);"/>
-            <path d="M97.8,42.6c-1.1,0-2.2-.3-3.2-.8s-1.9-1.3-2.5-2.3c-.7-1-1-2.2-1-3.7,0-1.9.5-3.5,1.6-4.7,1-1.2,2.4-2.5,4.1-3.9,1.2-.9,2.4-1.7,3.5-2.6,1.2-.9,2.3-1.8,3.5-2.7-.8-.7-1.9-1.6-3.2-2.7s-2.6-2.2-3.9-3.3c-1.7-1.4-3.1-2.8-4.1-4.1s-1.5-2.9-1.5-5c0-1.4.4-2.6,1-3.7.7-1,1.5-1.8,2.5-2.3,1-.5,2.1-.8,3.2-.8s2.5.3,3.4.8c.9.6,1.7,1.3,2.4,2.2s1.4,2,2,3.2c1,1.9,1.8,3.7,2.5,5.3s1.3,2.8,1.6,3.7c.3-.9.9-2.1,1.6-3.7.7-1.6,1.6-3.4,2.5-5.3.6-1.2,1.3-2.3,2-3.2.7-.9,1.5-1.7,2.4-2.2,1.1-.5,2.2-.8,3.5-.8s2.2.3,3.3.8c1,.5,1.9,1.3,2.5,2.4.7,1,1,2.2,1,3.7,0,2.1-.5,3.7-1.5,5-1,1.3-2.4,2.7-4.1,4.1-1.2,1-2.3,2-3.5,3s-2.3,2-3.5,2.9c.8.6,1.9,1.4,3.1,2.3,1.2,1,2.5,2,3.7,3,1.7,1.4,3.1,2.7,4.1,3.9,1,1.2,1.6,2.8,1.6,4.7s-.3,2.6-1,3.7c-.7,1-1.5,1.8-2.5,2.3s-2.1.8-3.3.8c-1.3,0-2.5-.3-3.4-.9-.9-.5-1.7-1.3-2.4-2.2-.7-1-1.4-2-2-3.2-.9-1.7-1.7-3.3-2.4-4.7-.8-1.4-1.3-2.7-1.7-3.7-.3,1-.9,2.3-1.7,3.7-.8,1.5-1.6,3-2.4,4.6-1,1.8-2,3.3-3.1,4.5s-2.7,1.8-4.7,1.8h0v.1Z" style="fill: var(--max-color-text-primary);"/>
-        </svg>
-    `;
+    const maxLogoSvg = ``;
 
     let html = `
         <div class="journey-header">
@@ -144,7 +138,9 @@ function renderJourney(journey, targetElementId = 'journeyDashboard') {
         if (journey.phases.length > 0) {
             journey.phases.forEach(phase => {
                 const desc = phase.description ? ` title="${escapeHtml(phase.description)}"` : '';
-                html += `<div class="phase-header"${desc}>${escapeHtml(phase.name)}</div>`;
+                html += `<div class="phase-header"${desc}>
+                            ${escapeHtml(phase.name)}
+                         </div>`;
             });
         } else {
             html += `<div class="phase-header" style="opacity: 0.5; font-style: italic;">Phases pending...</div>`;
@@ -193,6 +189,47 @@ function renderJourney(journey, targetElementId = 'journeyDashboard') {
 
         html += `</div>`; // End table
 
+        // --- SUMMARIES SECTION (New Rows) ---
+        if (journey.phases.some(p => p.summary) || journey.swimlanes.some(s => s.summary)) {
+            html += `<div class="summary-section" style="margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--max-color-border);">`;
+            
+            // Phase Summaries
+            if (journey.phases.some(p => p.summary)) {
+                html += `
+                    <div class="summary-group" style="margin-bottom: 32px;">
+                        <h3 style="font-family: var(--max-font-family-mono); font-size: 12px; text-transform: uppercase; color: var(--max-color-text-secondary); margin-bottom: 16px; letter-spacing: 0.05em;">Phase Summaries</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                            ${journey.phases.map(p => p.summary ? `
+                                <div class="context-card" style="margin-bottom: 0;">
+                                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--max-color-accent);">${escapeHtml(p.name)}</h4>
+                                    <div class="context-content">${formatMessage(p.summary)}</div>
+                                </div>
+                            ` : '').join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Swimlane Summaries
+            if (journey.swimlanes.some(s => s.summary)) {
+                html += `
+                    <div class="summary-group">
+                        <h3 style="font-family: var(--max-font-family-mono); font-size: 12px; text-transform: uppercase; color: var(--max-color-text-secondary); margin-bottom: 16px; letter-spacing: 0.05em;">Swimlane Summaries</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                            ${journey.swimlanes.map(s => s.summary ? `
+                                <div class="context-card" style="margin-bottom: 0;">
+                                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--max-color-accent);">${escapeHtml(s.name)}</h4>
+                                    <div class="context-content">${formatMessage(s.summary)}</div>
+                                </div>
+                            ` : '').join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+        }
+
         // --- MOBILE VIEW (List by Phase) ---
         html += `<div class="journey-mobile-list">`;
         
@@ -236,6 +273,17 @@ function renderJourney(journey, targetElementId = 'journeyDashboard') {
 
     // Render Final Artifacts if Complete
     if (journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE') {
+        
+        // Auto-switch to map on mobile if complete
+        if (window.innerWidth <= 768 && !document.body.classList.contains('show-map')) {
+            // Use a small timeout to allow rendering to settle
+            setTimeout(() => {
+                if (!document.body.classList.contains('show-map')) {
+                    toggleMobileView();
+                }
+            }, 500);
+        }
+
         html += `
             <div class="final-artifacts" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--max-color-border);">
                 
@@ -255,6 +303,16 @@ function renderJourney(journey, targetElementId = 'journeyDashboard') {
                 <div class="context-card">
                     <h3>Mental Models</h3>
                     <div class="context-content">${formatMessage(journey.mentalModels)}</div>
+                </div>` : ''}
+
+                ${journey.quotes && journey.quotes.length > 0 ? `
+                <div class="context-card">
+                    <h3>Participant Quotes</h3>
+                    <div class="context-content">
+                        <ul style="list-style-type: none; padding-left: 0;">
+                            ${journey.quotes.map(q => `<li style="margin-bottom: 12px; padding-left: 16px; border-left: 3px solid var(--max-color-accent); font-style: italic;">"${escapeHtml(q)}"</li>`).join('')}
+                        </ul>
+                    </div>
                 </div>` : ''}
 
                 <div class="action-area" data-html2canvas-ignore="true" style="display: flex; justify-content: center; gap: 16px; margin-top: 40px; padding-bottom: 40px; flex-wrap: wrap;">
@@ -298,20 +356,7 @@ function renderJourney(journey, targetElementId = 'journeyDashboard') {
             </div>
         `;
     } else {
-        html += `
-            <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0.5; gap: 24px; padding-top: 40px;">
-                <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end)); border-radius: 24px; display: flex; align-items: center; justify-content: center; box-shadow: var(--max-shadow-glow);">
-                    <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128.5 42.6" style="width: 60px; height: auto;">
-                        <path d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3V9.1C0,6.2.7,3.9,2.2,2.5,3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.7.4-1.8.6-3.2.6s-2.5-.2-3.2-.6c-.8-.4-1.4-1-1.8-1.8-.4-.8-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0l.2.1Z" style="fill: #ffffff;"/>
-                        <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c.1-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4.1.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c.1,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c.1,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z" style="fill: #ffffff;"/>
-                        <path d="M97.8,42.6c-1.1,0-2.2-.3-3.2-.8s-1.9-1.3-2.5-2.3c-.7-1-1-2.2-1-3.7,0-1.9.5-3.5,1.6-4.7,1-1.2,2.4-2.5,4.1-3.9,1.2-.9,2.4-1.7,3.5-2.6,1.2-.9,2.3-1.8,3.5-2.7-.8-.7-1.9-1.6-3.2-2.7s-2.6-2.2-3.9-3.3c-1.7-1.4-3.1-2.8-4.1-4.1s-1.5-2.9-1.5-5c0-1.4.4-2.6,1-3.7.7-1,1.5-1.8,2.5-2.3,1-.5,2.1-.8,3.2-.8s2.5.3,3.4.8c.9.6,1.7,1.3,2.4,2.2s1.4,2,2,3.2c1,1.9,1.8,3.7,2.5,5.3s1.3,2.8,1.6,3.7c.3-.9.9-2.1,1.6-3.7.7-1.6,1.6-3.4,2.5-5.3.6-1.2,1.3-2.3,2-3.2.7-.9,1.5-1.7,2.4-2.2,1.1-.5,2.2-.8,3.5-.8s2.2.3,3.3.8c1,.5,1.9,1.3,2.5,2.4.7,1,1,2.2,1,3.7,0,2.1-.5,3.7-1.5,5-1,1.3-2.4,2.7-4.1,4.1-1.2,1-2.3,2-3.5,3s-2.3,2-3.5,2.9c.8.6,1.9,1.4,3.1,2.3,1.2,1,2.5,2,3.7,3,1.7,1.4,3.1,2.7,4.1,3.9,1,1.2,1.6,2.8,1.6,4.7s-.3,2.6-1,3.7c-.7,1-1.5,1.8-2.5,2.3s-2.1.8-3.3.8c-1.3,0-2.5-.3-3.4-.9-.9-.5-1.7-1.3-2.4-2.2-.7-1-1.4-2-2-3.2-.9-1.7-1.7-3.3-2.4-4.7-.8-1.4-1.3-2.7-1.7-3.7-.3,1-.9,2.3-1.7,3.7-.8,1.5-1.6,3-2.4,4.6-1,1.8-2,3.3-3.1,4.5s-2.7,1.8-4.7,1.8h0v.1Z" style="fill: #ffffff;"/>
-                    </svg>
-                </div>
-                <p>Start a conversation to build the journey map.</p>
-            </div>
-        `;
-    }
-
+        // html += `...` (REMOVED: Placeholder when journey exists but is empty)
     }
 
     container.innerHTML = html;
@@ -454,6 +499,38 @@ function exportToPdf() {
 
         let artifactsHtml = renderHeader('Summary & Findings');
         artifactsHtml += `<div style="display: flex; flex-direction: column; gap: 24px; margin-top: 20px;">`;
+
+        // PDF Phase Summaries
+        if (currentRenderedJourney.phases.some(p => p.summary)) {
+            artifactsHtml += `
+                <div style="margin-bottom: 8px;">
+                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #4b5563; margin-bottom: 12px; letter-spacing: 0.05em;">Phase Summaries</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        ${currentRenderedJourney.phases.map(p => p.summary ? `
+                            <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; break-inside: avoid;">
+                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #ed2224;">${escapeHtml(p.name)}</h4>
+                                <div class="context-content" style="color: #000; font-size: 12px;">${formatMessage(p.summary)}</div>
+                            </div>
+                        ` : '').join('')}
+                    </div>
+                </div>`;
+        }
+
+        // PDF Swimlane Summaries
+        if (currentRenderedJourney.swimlanes.some(s => s.summary)) {
+            artifactsHtml += `
+                <div style="margin-bottom: 8px;">
+                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #4b5563; margin-bottom: 12px; letter-spacing: 0.05em;">Swimlane Summaries</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        ${currentRenderedJourney.swimlanes.map(s => s.summary ? `
+                            <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; break-inside: avoid;">
+                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #ed2224;">${escapeHtml(s.name)}</h4>
+                                <div class="context-content" style="color: #000; font-size: 12px;">${formatMessage(s.summary)}</div>
+                            </div>
+                        ` : '').join('')}
+                    </div>
+                </div>`;
+        }
 
         if (currentRenderedJourney.anythingElse) {
             artifactsHtml += `

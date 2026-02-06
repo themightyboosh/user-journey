@@ -19,6 +19,7 @@ export const PhaseObjectSchema = z.object({
   name: z.string(),
   description: z.string(),
   context: z.string(),
+  summary: z.string().optional(),
 });
 
 export const SwimlaneObjectSchema = z.object({
@@ -27,6 +28,7 @@ export const SwimlaneObjectSchema = z.object({
   name: z.string(),
   description: z.string(),
   context: z.string(),
+  summary: z.string().optional(),
 });
 
 export const CellObjectSchema = z.object({
@@ -89,6 +91,7 @@ export const JourneyMapSchema = z.object({
   outputJson: OutputJsonObjectSchema.optional(),
   summaryOfFindings: z.string().optional(),
   mentalModels: z.string().optional(),
+  quotes: z.array(z.string()).optional(),
   anythingElse: z.string().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

@@ -109,9 +109,14 @@ export const JOURNEY_TOOLS = [
                         journeyMapId: { type: "STRING" },
                         summaryOfFindings: { type: "STRING", description: "Comprehensive summary of findings" },
                         mentalModels: { type: "STRING", description: "Identified mental models" },
+                        quotes: { 
+                            type: "ARRAY", 
+                            description: "2-5 most interesting direct quotes from the participant",
+                            items: { type: "STRING" }
+                        },
                         anythingElse: { type: "STRING", description: "Any final additions from the user" }
                     },
-                    required: ["journeyMapId", "summaryOfFindings", "mentalModels"]
+                    required: ["journeyMapId", "summaryOfFindings", "mentalModels", "quotes"]
                 }
             }
         ]

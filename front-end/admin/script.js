@@ -50,6 +50,7 @@ const journeyList = document.getElementById('journeyList');
 const adminCanvas = document.getElementById('adminCanvas');
 const journeyPreviewTitle = document.getElementById('journeyPreviewTitle');
 const retakeBtn = document.getElementById('retakeBtn');
+const clearJourneysBtn = document.getElementById('clearJourneysBtn');
 const filterRadios = document.querySelectorAll('input[name="jFilter"]');
 
 // Navigation
@@ -104,6 +105,7 @@ function init() {
 
     // Journeys Module Init
     filterRadios.forEach(radio => radio.addEventListener('change', renderJourneysList));
+    clearJourneysBtn.addEventListener('click', clearAllJourneys);
 
     updateUrl();
     fetchLinks();
@@ -130,6 +132,12 @@ function switchModule(e, moduleName) {
     // Update Content
     Object.values(modules).forEach(el => el.style.display = 'none');
     modules[moduleName].style.display = 'block';
+
+    // Show/Hide Sidebar (Only for Links Module)
+    const sidebar = document.querySelector('.admin-sidebar');
+    if (sidebar) {
+        sidebar.style.display = moduleName === 'links' ? 'block' : 'none';
+    }
 }
 
 // --- Journeys Logic ---
@@ -189,8 +197,11 @@ function renderJourneysList() {
 
     if (filtered.length === 0) {
         journeyList.innerHTML = `<div class="empty-state">No journeys found.</div>`;
+        clearJourneysBtn.style.display = 'none';
         return;
     }
+
+    clearJourneysBtn.style.display = 'inline-flex';
 
     filtered.forEach(journey => {
         if (!journey) return;
@@ -215,13 +226,86 @@ function renderJourneysList() {
 
         let name = journey.userName ? `${journey.userName} (${journey.role})` : (journey.role || 'Unknown User');
 
+        // Create inner HTML
         div.innerHTML = `
-            <div class="link-name">${statusIcon} ${escapeHtml(journey.name || 'Untitled')}</div>
-            <div class="link-meta">${escapeHtml(name)} • ${date}</div>
+            <div class="link-content" style="flex: 1;">
+                <div class="link-name">${statusIcon} ${escapeHtml(journey.name || 'Untitled')}</div>
+                <div class="link-meta">${escapeHtml(name)} • ${date}</div>
+            </div>
+            <button class="delete-journey-btn icon-btn small danger" title="Delete" style="opacity: 0.5; margin-left: 8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
         `;
-        div.onclick = () => loadJourney(journey);
+        
+        // Click on row to load
+        div.addEventListener('click', (e) => {
+            // Don't trigger if clicking delete button
+            if (e.target.closest('.delete-journey-btn')) return;
+            loadJourney(journey);
+        });
+
+        // Click on delete
+        const delBtn = div.querySelector('.delete-journey-btn');
+        delBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent loading
+            deleteJourney(journey.journeyMapId);
+        });
+
+        // Add hover effect logic for delete button
+        div.addEventListener('mouseenter', () => { delBtn.style.opacity = '1'; });
+        div.addEventListener('mouseleave', () => { delBtn.style.opacity = '0.5'; });
+
         journeyList.appendChild(div);
     });
+}
+
+async function deleteJourney(id) {
+    if (!confirm("Are you sure you want to delete this journey? This cannot be undone.")) return;
+
+    try {
+        const res = await fetch(`${JOURNEYS_API_URL}/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            // If deleting current, clear view
+            if (id === currentJourneyId) {
+                currentJourneyId = null;
+                adminCanvas.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; opacity: 0.5;">Select a journey to preview</div>';
+                journeyPreviewTitle.textContent = 'Select a Journey';
+                retakeBtn.style.display = 'none';
+            }
+            fetchJourneys();
+        } else {
+            alert("Failed to delete journey.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error deleting journey.");
+    }
+}
+
+async function clearAllJourneys() {
+    if (!confirm("WARNING: Are you sure you want to DELETE ALL journeys? This is irreversible.")) return;
+    
+    // Double check
+    if (!confirm("Really delete EVERYTHING?")) return;
+
+    try {
+        const res = await fetch(JOURNEYS_API_URL, { method: 'DELETE' });
+        if (res.ok) {
+            currentJourneyId = null;
+            adminCanvas.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; opacity: 0.5;">Select a journey to preview</div>';
+            journeyPreviewTitle.textContent = 'Select a Journey';
+            retakeBtn.style.display = 'none';
+            fetchJourneys();
+        } else {
+            alert("Failed to clear journeys.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error clearing journeys.");
+    }
 }
 
 function loadJourney(journey) {
@@ -269,7 +353,8 @@ function loadJourney(journey) {
 
 async function fetchKnowledge() {
     try {
-        const res = await fetch(KNOWLEDGE_API_URL);
+        const urlWithCache = `${KNOWLEDGE_API_URL}?_t=${Date.now()}`;
+        const res = await fetch(urlWithCache);
         savedKnowledge = await res.json();
         renderKnowledgeList();
         renderKnowledgeSelector(); // Ensure selector is up to date
@@ -445,7 +530,8 @@ function renderKnowledgeSelector() {
 
 async function fetchSettings() {
     try {
-        const res = await fetch(SETTINGS_API_URL);
+        const urlWithCache = `${SETTINGS_API_URL}?_t=${Date.now()}`;
+        const res = await fetch(urlWithCache);
         const settings = await res.json();
         if (settings.agentName) {
             agentNameInput.value = settings.agentName;
@@ -490,7 +576,8 @@ async function saveSettings() {
 // Logic: Fetch Links
 async function fetchLinks() {
     try {
-        const res = await fetch(LINKS_API_URL);
+        const urlWithCache = `${LINKS_API_URL}?_t=${Date.now()}`;
+        const res = await fetch(urlWithCache);
         savedLinks = await res.json();
         renderLinksList();
     } catch (e) {

@@ -280,7 +280,17 @@ export class JourneyService {
         return journey;
     }
 
-    async generateArtifacts(id: string, params: { summaryOfFindings?: string; mentalModels?: string; anythingElse?: string }): Promise<JourneyMap | null> {
+    async deleteJourney(id: string): Promise<void> {
+        await Store.delete(id);
+        logger.info(`[JourneyService] Deleted: ${id}`);
+    }
+
+    async clearAllJourneys(): Promise<void> {
+        await Store.deleteAll();
+        logger.info(`[JourneyService] Cleared All Journeys`);
+    }
+
+    async generateArtifacts(id: string, params: { summaryOfFindings?: string; mentalModels?: string; anythingElse?: string; quotes?: string[] }): Promise<JourneyMap | null> {
         let journey = await Store.get(id);
         if (!journey) return null;
 
@@ -302,6 +312,7 @@ export class JourneyService {
         if (params.summaryOfFindings) journey.summaryOfFindings = params.summaryOfFindings;
         if (params.mentalModels) journey.mentalModels = params.mentalModels;
         if (params.anythingElse) journey.anythingElse = params.anythingElse;
+        if (params.quotes) journey.quotes = params.quotes;
 
         // Finalize stage
         journey.stage = 'COMPLETE';
@@ -309,6 +320,57 @@ export class JourneyService {
 
         journey = recalculateJourney(journey);
         await Store.save(journey);
+        return journey;
+    }
+
+    // --- Summarization Helpers ---
+
+    async checkPhaseCompletion(id: string, phaseId: string): Promise<boolean> {
+        const journey = await Store.get(id);
+        if (!journey) return false;
+        
+        // Find all cells for this phase
+        const phaseCells = journey.cells.filter(c => c.phaseId === phaseId);
+        if (phaseCells.length === 0) return false;
+
+        // Check if all are complete (non-empty headline/desc)
+        return phaseCells.every(c => c.headline && c.description && c.headline.trim() !== '' && c.description.trim() !== '');
+    }
+
+    async checkSwimlaneCompletion(id: string, swimlaneId: string): Promise<boolean> {
+        const journey = await Store.get(id);
+        if (!journey) return false;
+        
+        // Find all cells for this swimlane
+        const swimlaneCells = journey.cells.filter(c => c.swimlaneId === swimlaneId);
+        if (swimlaneCells.length === 0) return false;
+
+        return swimlaneCells.every(c => c.headline && c.description && c.headline.trim() !== '' && c.description.trim() !== '');
+    }
+
+    async savePhaseSummary(id: string, phaseId: string, summary: string): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+        
+        const phase = journey.phases.find(p => p.phaseId === phaseId);
+        if (phase) {
+            phase.summary = summary;
+            await Store.save(journey);
+            logger.info(`[JourneyService] Saved Summary for Phase: ${phase.name}`);
+        }
+        return journey;
+    }
+
+    async saveSwimlaneSummary(id: string, swimlaneId: string, summary: string): Promise<JourneyMap | null> {
+        let journey = await Store.get(id);
+        if (!journey) return null;
+        
+        const swimlane = journey.swimlanes.find(s => s.swimlaneId === swimlaneId);
+        if (swimlane) {
+            swimlane.summary = summary;
+            await Store.save(journey);
+            logger.info(`[JourneyService] Saved Summary for Swimlane: ${swimlane.name}`);
+        }
         return journey;
     }
 }
