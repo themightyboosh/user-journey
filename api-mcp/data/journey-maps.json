@@ -4177,5 +4177,171 @@
     "createdAt": "2026-02-06T18:14:16.632Z",
     "updatedAt": "2026-02-06T18:14:48.205Z",
     "version": 8
+  },
+  "b3cc81e3-81ab-46c8-aa92-6bf757363523": {
+    "journeyMapId": "b3cc81e3-81ab-46c8-aa92-6bf757363523",
+    "sessionId": "4ff82b91-c66c-4376-a44e-c4bfb310ee21",
+    "status": "DRAFT",
+    "stage": "CELL_POPULATION",
+    "userName": "Daniel",
+    "name": "User Registration",
+    "role": "Product Manager",
+    "description": "Mapping out the user journey for our User Registration process",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "15d979c2-39cc-4e13-a335-36ebfbe40123",
+        "sequence": 1,
+        "name": "Sign Up",
+        "description": "User signs up for the service.",
+        "context": ""
+      },
+      {
+        "phaseId": "c2f935ec-9a3b-45a5-b46b-e0dc1d2f6d62",
+        "sequence": 2,
+        "name": "Verify",
+        "description": "User verifies their account.",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "3d0be636-3f77-403b-aabb-d92b69be6696",
+        "sequence": 1,
+        "name": "User Actions",
+        "description": "What the user does at each stage.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "7e1c750a-c161-493e-85b7-a46a15300fd1",
+        "sequence": 2,
+        "name": "Emotions",
+        "description": "How the user feels at each stage.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "d1136b62-b86d-4ffe-bd6c-7025119f11d5",
+        "sequence": 3,
+        "name": "System Actions",
+        "description": "What the system does in response to user actions.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "0290cfa4-475f-4e25-9dd9-6eec67f806eb",
+        "sequence": 4,
+        "name": "Pain Points",
+        "description": "Challenges or difficulties the user encounters.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "61e78567-5642-46d8-a2ed-2335c991efcf",
+        "sequence": 5,
+        "name": "Opportunities for Improvement",
+        "description": "Areas where the process can be enhanced.",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "0eb2a52f-7a08-491c-aa8f-8dc2de1548c9",
+        "phaseId": "15d979c2-39cc-4e13-a335-36ebfbe40123",
+        "swimlaneId": "3d0be636-3f77-403b-aabb-d92b69be6696",
+        "headline": "Navigate & Input Details",
+        "description": "Users navigate to the registration page, input their personal details such as email and password, and then click a \"Submit\" or \"Create Account\" button to proceed.",
+        "context": ""
+      },
+      {
+        "cellId": "698470be-7f60-4cc1-8be6-6ce528ccd7fc",
+        "phaseId": "15d979c2-39cc-4e13-a335-36ebfbe40123",
+        "swimlaneId": "7e1c750a-c161-493e-85b7-a46a15300fd1",
+        "headline": "Anticipation, Frustration, Expectation",
+        "description": "During the \"Sign Up\" stage, users might feel a mix of anticipation and hope when starting. While inputting details, they could experience slight frustration if the form is too long, or a sense of focus. Finally, after clicking submit, there's often an expectation or even a bit of anxiety about whether it was successful.",
+        "context": ""
+      },
+      {
+        "cellId": "a3796135-587e-4875-8133-a754efabbce2",
+        "phaseId": "15d979c2-39cc-4e13-a335-36ebfbe40123",
+        "swimlaneId": "d1136b62-b86d-4ffe-bd6c-7025119f11d5",
+        "headline": "Display Form, Validate & Process Data",
+        "description": "When the user navigates to the registration page, the system displays the registration form. As they input details, the system might perform real-time validation (e.g., password strength). Upon clicking \"Submit,\" the system processes the data, creates a user account record, and often sends a verification email.",
+        "context": ""
+      },
+      {
+        "cellId": "0ec80206-b1cb-4121-9040-04202d4ced80",
+        "phaseId": "15d979c2-39cc-4e13-a335-36ebfbe40123",
+        "swimlaneId": "0290cfa4-475f-4e25-9dd9-6eec67f806eb",
+        "headline": "Form Complexity & Feedback",
+        "description": "Common pain points include overly long or complex forms, confusing password requirements, and unclear error messages during data input. Users can also get frustrated if the \"Submit\" button doesn't provide immediate feedback or if the page loads slowly.",
+        "context": ""
+      },
+      {
+        "cellId": "c8e4f06a-b303-4632-8581-6d22d8b019e6",
+        "phaseId": "15d979c2-39cc-4e13-a335-36ebfbe40123",
+        "swimlaneId": "61e78567-5642-46d8-a2ed-2335c991efcf",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "ed74a847-7907-4454-a2e2-cf9177dbf26e",
+        "phaseId": "c2f935ec-9a3b-45a5-b46b-e0dc1d2f6d62",
+        "swimlaneId": "3d0be636-3f77-403b-aabb-d92b69be6696",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "117d2a4e-1e7e-4b95-beb2-6d4fa8d99eab",
+        "phaseId": "c2f935ec-9a3b-45a5-b46b-e0dc1d2f6d62",
+        "swimlaneId": "7e1c750a-c161-493e-85b7-a46a15300fd1",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "018320f8-0368-489f-a044-0b81e5572271",
+        "phaseId": "c2f935ec-9a3b-45a5-b46b-e0dc1d2f6d62",
+        "swimlaneId": "d1136b62-b86d-4ffe-bd6c-7025119f11d5",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "22472ca8-81ae-40fc-a4da-62d379921494",
+        "phaseId": "c2f935ec-9a3b-45a5-b46b-e0dc1d2f6d62",
+        "swimlaneId": "0290cfa4-475f-4e25-9dd9-6eec67f806eb",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "04ba5dbb-8ffb-4b8c-bc15-7aa19279b2b4",
+        "phaseId": "c2f935ec-9a3b-45a5-b46b-e0dc1d2f6d62",
+        "swimlaneId": "61e78567-5642-46d8-a2ed-2335c991efcf",
+        "headline": "",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 2,
+      "totalSwimlanes": 5,
+      "totalCellsExpected": 10,
+      "totalCellsPresent": 10,
+      "totalCellsCompleted": 4,
+      "percentCellsComplete": 40
+    },
+    "createdAt": "2026-02-06T18:25:35.136Z",
+    "updatedAt": "2026-02-06T18:26:24.359Z",
+    "version": 9
   }
 }
