@@ -10,8 +10,11 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-    // Helper: Format Markdown-like text
-    function formatMessage(text) {
+// Make globally available
+window.escapeHtml = escapeHtml;
+
+// Helper: Format Markdown-like text
+function formatMessage(text) {
         if (!text) return '';
         
         // Basic markdown-like formatting
@@ -390,9 +393,11 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         if (btnImg) btnImg.style.display = 'none';
     }
     
-    html += `</div>`; // End artifacts container else {
-        // html += `...` (REMOVED: Placeholder when journey exists but is empty)
-    }
+    html += `</div>`; // End artifacts container 
+    
+    // else {
+    //    // html += `...` (REMOVED: Placeholder when journey exists but is empty)
+    // }
 
     container.innerHTML = html;
 }
