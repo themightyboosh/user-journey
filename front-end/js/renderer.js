@@ -107,6 +107,12 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         roleDisplay = `<span style="font-weight: 700; color: var(--max-color-text-primary);">${escapeHtml(journey.userName)}</span>, ${roleDisplay}`;
     }
 
+    // Hero Quote Logic (Added)
+    if (journey.quotes && journey.quotes.length > 0) {
+        const quoteText = journey.quotes[0];
+        roleDisplay += `<span style="color: var(--max-color-accent); font-weight: 400; font-style: italic; margin-left: 8px;"> — "${escapeHtml(quoteText)}"</span>`;
+    }
+
     const maxLogoSvg = ``;
 
     let html = `
