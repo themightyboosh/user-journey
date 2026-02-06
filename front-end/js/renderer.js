@@ -362,23 +362,16 @@ function exportToPdf() {
     const printContainer = document.createElement('div');
     printContainer.id = 'pdf-export-container';
     printContainer.className = 'pdf-export-mode'; // Apply print styles
-    printContainer.style.position = 'fixed'; // Fixed instead of absolute
+    // Positioning strategy: Fixed at 0,0 but behind everything. 
+    // -9999px often causes empty renders with html2canvas as it clips to viewport.
+    printContainer.style.position = 'fixed';
     printContainer.style.left = '0';
     printContainer.style.top = '0';
-    printContainer.style.zIndex = '-1000'; // Behind everything
-    printContainer.style.width = '1100px'; // Fixed width for Landscape Letter approx
+    printContainer.style.zIndex = '-9999'; // Way behind everything
     printContainer.style.background = '#ffffff'; // Ensure white bg
-    printContainer.style.opacity = '0'; // Hide from view but keep renderable? No, opacity 0 sometimes fails.
-    // Better strategy for html2canvas: 
-    // It ignores 'display: none', but usually handles 'z-index: -1' if visible.
-    // Let's try putting it off-screen BUT with a technique that html2canvas respects.
-    // Actually, 'left: -9999px' is standard. If it failed, it might be due to document height.
-    // Let's stick to standard off-screen but ensure dimensions.
-    printContainer.style.position = 'absolute';
-    printContainer.style.left = '-9999px';
-    printContainer.style.top = '0';
-    // Ensure height allows content
-    printContainer.style.minHeight = '100px';
+    printContainer.style.width = '1100px'; // Fixed width for Landscape Letter approx
+    printContainer.style.minHeight = '100vh'; // Ensure height
+    printContainer.style.overflow = 'visible'; // Allow full content flow
     
     // Print Logo SVG
     const printLogoSvg = `
