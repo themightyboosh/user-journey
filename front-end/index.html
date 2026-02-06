@@ -393,14 +393,14 @@
       min-height: 100px;
       height: auto;
       transition: all 0.2s ease;
-      cursor: pointer;
+      cursor: default; /* Changed from pointer */
       position: relative;
     }
 
     .journey-cell:hover {
       border-color: var(--max-color-accent);
-      transform: translateY(-2px);
-      box-shadow: var(--max-shadow-soft);
+      /* transform: translateY(-2px); Removed translate */
+      /* box-shadow: var(--max-shadow-soft); Removed shadow */
     }
 
     .journey-cell.empty {
@@ -461,7 +461,7 @@
       border: 1px solid var(--max-color-border);
       border-radius: var(--max-radius-medium);
       padding: 16px;
-      cursor: pointer;
+      cursor: default; /* Changed from pointer */
     }
     
     .mobile-card-label {

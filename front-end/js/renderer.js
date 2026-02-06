@@ -164,7 +164,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                         
                         if (cell && cell.headline) {
                             html += `
-                                <div class="journey-cell complete" onclick="openCellModal('${cell.cellId}')">
+                                <div class="journey-cell complete">
                                     <div class="cell-action">${escapeHtml(cell.headline)}</div>
                                     <div class="cell-context">${escapeHtml(cell.description)}</div>
                                 </div>
@@ -214,7 +214,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                             }
 
                             html += `
-                                <div class="mobile-card" onclick="openCellModal('${cell.cellId}')">
+                                <div class="mobile-card">
                                     <div class="mobile-card-label">${escapeHtml(swimlane.name)}</div>
                                     ${contentHtml}
                                 </div>
