@@ -77,9 +77,10 @@ STATE MACHINE:
     13. **Completion & Analysis**: 
     *   **Logic**: Synthesize all gathered data. GENERATE distinct artifacts:
         1.  **Summary of Findings**: A comprehensive summary of the journey data.
-        2.  **Mental Models**: Identify key mental models the user exhibited.
-        3.  **Quotes**: Extract 2-5 most interesting/revealing quotes from the participant.
-            *   **Constraint**: These MUST be **verbatim**, word-for-word quotes from the user's messages in the chat history. Do not paraphrase. Do not fabricate. If the exact wording is not in the history, do not use it.
+        2.  **Mental Models**: Identify key mental models the user exhibited. Do NOT use numbered lists. Use bullet points or paragraphs.
+        3.  **Quotes**: Extract ONE (1) quote or response that best summarizes the entire journey from the user.
+            *   **Constraint**: This MUST be a **verbatim**, word-for-word quote from the user's messages in the chat history. Do not paraphrase. Do not fabricate.
+            *   **Formatting**: Ensure there is greater line spacing (double newlines) after each paragraph in the summaries so they look like distinct blocks of text.
     *   **Action**: Call \`generate_artifacts\` and pass these three items + any "Anything Else" content.
     *   **Prompt**: "Thank you. The journey map is now complete." (Do NOT output the Summary or Mental Models in the chat. They are for the canvas only).
 

@@ -10,54 +10,54 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Helper: Format Markdown-like text
-function formatMessage(text) {
-    if (!text) return '';
-    
-    // Basic markdown-like formatting
-    let formatted = escapeHtml(text);
-    
-    // Code blocks
-    formatted = formatted.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-    
-    // Inline code
-    formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
-    
-    // Headers (###)
-    formatted = formatted.replace(/^###\s+(.*$)/gm, '<h3>$1</h3>');
-    
-    // Bold
-    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    
-    // Italic
-    formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    
-    // Line breaks to paragraphs
-    formatted = formatted
-      .split(/\n\n+/)
-      .map(para => para.trim())
-      .filter(para => para)
-      .map(para => {
-        // Check if it's a list
-        if (para.match(/^[-*•]\s/m)) {
-          const items = para.split(/\n/).map(item => 
-            `<li>${item.replace(/^[-*•]\s*/, '')}</li>`
-          ).join('');
-          return `<ul>${items}</ul>`;
-        }
-        // Check if it's a numbered list
-        if (para.match(/^\d+\.\s/m)) {
-          const items = para.split(/\n/).map(item => 
-            `<li>${item.replace(/^\d+\.\s*/, '')}</li>`
-          ).join('');
-          return `<ol>${items}</ol>`;
-        }
-        return `<p>${para.replace(/\n/g, '<br>')}</p>`;
-      })
-      .join('');
-    
-    return formatted;
-}
+    // Helper: Format Markdown-like text
+    function formatMessage(text) {
+        if (!text) return '';
+        
+        // Basic markdown-like formatting
+        let formatted = escapeHtml(text);
+        
+        // Code blocks
+        formatted = formatted.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+        
+        // Inline code
+        formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+        
+        // Headers (###)
+        formatted = formatted.replace(/^###\s+(.*$)/gm, '<h3>$1</h3>');
+        
+        // Bold
+        formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        
+        // Italic
+        formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        
+        // Line breaks to paragraphs with extra spacing
+        formatted = formatted
+          .split(/\n\n+/)
+          .map(para => para.trim())
+          .filter(para => para)
+          .map(para => {
+            // Check if it's a list
+            if (para.match(/^[-*•]\s/m)) {
+              const items = para.split(/\n/).map(item => 
+                `<li>${item.replace(/^[-*•]\s*/, '')}</li>`
+              ).join('');
+              return `<ul>${items}</ul>`;
+            }
+            // Check if it's a numbered list
+            if (para.match(/^\d+\.\s/m)) {
+              const items = para.split(/\n/).map(item => 
+                `<li>${item.replace(/^\d+\.\s*/, '')}</li>`
+              ).join('');
+              return `<ol>${items}</ol>`;
+            }
+            return `<p style="margin-bottom: 1.5em; line-height: 1.6;">${para.replace(/\n/g, '<br>')}</p>`;
+          })
+          .join('');
+        
+        return formatted;
+    }
 
 // Global state for modal
 let currentRenderedJourney = null;
@@ -307,13 +307,10 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                 </div>` : ''}
 
                 ${journey.quotes && journey.quotes.length > 0 ? `
-                <div class="context-card">
-                    <h3>Participant Quotes</h3>
-                    <div class="context-content">
-                        <ul style="list-style-type: none; padding-left: 0;">
-                            ${journey.quotes.map(q => `<li style="margin-bottom: 12px; padding-left: 16px; border-left: 3px solid var(--max-color-accent); font-style: italic;">"${escapeHtml(q)}"</li>`).join('')}
-                        </ul>
-                    </div>
+                <div class="context-card" style="display: none;">
+                    <!-- Hidden in regular view if we moved it to header, but actually user might still want the card? 
+                         User said "Put it in quotes after their name and role". 
+                         Let's hide this card to avoid duplication if it's just one quote. -->
                 </div>` : ''}
 
                 <div class="action-area" data-html2canvas-ignore="true" style="display: flex; justify-content: center; gap: 16px; margin-top: 40px; padding-bottom: 40px; flex-wrap: wrap;">
@@ -365,10 +362,23 @@ function exportToPdf() {
     const printContainer = document.createElement('div');
     printContainer.id = 'pdf-export-container';
     printContainer.className = 'pdf-export-mode'; // Apply print styles
+    printContainer.style.position = 'fixed'; // Fixed instead of absolute
+    printContainer.style.left = '0';
+    printContainer.style.top = '0';
+    printContainer.style.zIndex = '-1000'; // Behind everything
+    printContainer.style.width = '1100px'; // Fixed width for Landscape Letter approx
+    printContainer.style.background = '#ffffff'; // Ensure white bg
+    printContainer.style.opacity = '0'; // Hide from view but keep renderable? No, opacity 0 sometimes fails.
+    // Better strategy for html2canvas: 
+    // It ignores 'display: none', but usually handles 'z-index: -1' if visible.
+    // Let's try putting it off-screen BUT with a technique that html2canvas respects.
+    // Actually, 'left: -9999px' is standard. If it failed, it might be due to document height.
+    // Let's stick to standard off-screen but ensure dimensions.
     printContainer.style.position = 'absolute';
     printContainer.style.left = '-9999px';
     printContainer.style.top = '0';
-    printContainer.style.width = '1100px'; // Fixed width for Landscape Letter approx
+    // Ensure height allows content
+    printContainer.style.minHeight = '100px';
     
     // Print Logo SVG
     const printLogoSvg = `
@@ -386,7 +396,15 @@ function exportToPdf() {
     const swimlanes = currentRenderedJourney.swimlanes;
 
     // 3. Helper: Render Header
-    const renderHeader = (subtitle = '') => `
+    const renderHeader = (subtitle = '') => {
+        let heroQuote = '';
+        // If we have a single hero quote (array of 1 or just a string if migrated)
+        if (currentRenderedJourney.quotes && currentRenderedJourney.quotes.length > 0) {
+            const quoteText = currentRenderedJourney.quotes[0];
+            heroQuote = ` <span style="color: #ed2224; font-weight: normal; font-style: italic;"> — "${escapeHtml(quoteText)}"</span>`;
+        }
+
+        return `
         <div class="journey-header" style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb;">
             <div style="display: flex; justify-content: space-between; align-items: flex-end;">
                 <div class="journey-title" style="display: flex; align-items: center; gap: 16px;">
@@ -396,11 +414,13 @@ function exportToPdf() {
                 <div class="journey-role" style="color: #000;">
                     ${currentRenderedJourney.userName ? `<span style="font-weight: 700;">${escapeHtml(currentRenderedJourney.userName)}</span>, ` : ''}
                     ${escapeHtml(currentRenderedJourney.role)}
+                    ${heroQuote}
                     ${subtitle ? ` <span style="color: #6b7280; font-weight: normal;">| ${subtitle}</span>` : ''}
                 </div>
             </div>
         </div>
     `;
+    };
 
     // 4. Chunk & Render Pages
     let pageCount = 0;
@@ -560,7 +580,13 @@ function exportToPdf() {
       margin:       0.2, // Small margin
       filename:     `journey-map-${new Date().toISOString().split('T')[0]}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+      html2canvas:  { 
+          scale: 2, 
+          useCORS: true, 
+          letterRendering: true,
+          // Explicitly set window width/height to ensure capture
+          windowWidth: 1200
+      },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' },
       pagebreak:    { mode: ['css', 'legacy'] }
     };
