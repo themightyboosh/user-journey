@@ -253,4 +253,78 @@ export class AIService {
             return null;
         }
     }
+
+    async getJourneyState(id: string) {
+        return await this.journeyService.getJourney(id);
+    }
+
+    async executeTool(name: string, args: any) {
+        logger.info(`🛠️ Executing Tool: ${name}`, args);
+        
+        try {
+            switch (name) {
+                case 'create_journey_map':
+                    return await this.journeyService.createJourney(args);
+                case 'update_journey_metadata':
+                    return await this.journeyService.updateMetadata(args.journeyMapId, args);
+                case 'set_phases_bulk':
+                    return await this.journeyService.setPhasesBulk(args.journeyMapId, args.phases);
+                case 'set_swimlanes_bulk':
+                    return await this.journeyService.setSwimlanesBulk(args.journeyMapId, args.swimlanes);
+                case 'generate_matrix':
+                    return await this.journeyService.generateMatrix(args.journeyMapId);
+                case 'update_cell':
+                    let targetCellId = args.cellId;
+                    let pId = null;
+                    let sId = null;
+    
+                    if (!targetCellId && args.phaseName && args.swimlaneName) {
+                        const journey = await this.journeyService.getJourney(args.journeyMapId);
+                        if (journey) {
+                            const findMatch = (list: any[], name: string) => list.find(item => item.name.toLowerCase().trim() === name.toLowerCase().trim());
+                            const phase = findMatch(journey.phases, args.phaseName);
+                            const swimlane = findMatch(journey.swimlanes, args.swimlaneName);
+                            
+                            if (phase && swimlane) {
+                                const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+                                if (cell) targetCellId = cell.cellId;
+                            }
+                        }
+                    }
+    
+                    if (!targetCellId) {
+                        return { error: "Missing cellId and could not resolve phaseName/swimlaneName to a valid cell." };
+                    }
+
+                    // Get IDs for summarization trigger
+                    if (targetCellId) {
+                         const journey = await this.journeyService.getJourney(args.journeyMapId);
+                         const cell = journey?.cells.find(c => c.cellId === targetCellId);
+                         if (cell) {
+                             pId = cell.phaseId;
+                             sId = cell.swimlaneId;
+                         }
+                    }
+    
+                    const result = await this.journeyService.updateCell(args.journeyMapId, targetCellId, args);
+
+                    // Trigger Background Summarization (Fire and Forget)
+                    if (pId && sId) {
+                        this.triggerBackgroundSummaries(args.journeyMapId, pId, sId).catch(err => logger.error("Background Summary Error", err));
+                    }
+
+                    return result;
+
+                case 'generate_artifacts':
+                    return await this.journeyService.generateArtifacts(args.journeyMapId, args);
+                    
+                default:
+                    return { error: `Unknown tool: ${name}` };
+            }
+    
+        } catch (e: any) {
+            logger.error("Tool execution error", e);
+            return { error: e.message };
+        }
+    }
 }

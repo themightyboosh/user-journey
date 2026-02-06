@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
-    "build": "tsc || true",
+    "build": "tsc",
     "mcp": "ts-node src/mcp-server.ts",
     "seed": "ts-node src/scripts/seed_journey.ts",
     "test": "jest"
