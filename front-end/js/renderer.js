@@ -119,7 +119,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     if (journey.description) {
         html += `
             <div class="context-card">
-                <h3>Description</h3>
+                <h3 style="color: var(--max-color-accent);">Journey</h3>
                 <div class="context-content">${escapeHtml(journey.description)}</div>
             </div>
         `;
@@ -189,47 +189,6 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
 
         html += `</div>`; // End table
 
-        // --- SUMMARIES SECTION (New Rows) ---
-        if (journey.phases.some(p => p.summary) || journey.swimlanes.some(s => s.summary)) {
-            html += `<div class="summary-section" style="margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--max-color-border);">`;
-            
-            // Phase Summaries
-            if (journey.phases.some(p => p.summary)) {
-                html += `
-                    <div class="summary-group" style="margin-bottom: 32px;">
-                        <h3 style="font-family: var(--max-font-family-mono); font-size: 12px; text-transform: uppercase; color: var(--max-color-text-secondary); margin-bottom: 16px; letter-spacing: 0.05em;">Phase Summaries</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
-                            ${journey.phases.map(p => p.summary ? `
-                                <div class="context-card" style="margin-bottom: 0;">
-                                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--max-color-accent);">${escapeHtml(p.name)}</h4>
-                                    <div class="context-content">${formatMessage(p.summary)}</div>
-                                </div>
-                            ` : '').join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Swimlane Summaries
-            if (journey.swimlanes.some(s => s.summary)) {
-                html += `
-                    <div class="summary-group">
-                        <h3 style="font-family: var(--max-font-family-mono); font-size: 12px; text-transform: uppercase; color: var(--max-color-text-secondary); margin-bottom: 16px; letter-spacing: 0.05em;">Swimlane Summaries</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
-                            ${journey.swimlanes.map(s => s.summary ? `
-                                <div class="context-card" style="margin-bottom: 0;">
-                                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--max-color-accent);">${escapeHtml(s.name)}</h4>
-                                    <div class="context-content">${formatMessage(s.summary)}</div>
-                                </div>
-                            ` : '').join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            html += `</div>`;
-        }
-
         // --- MOBILE VIEW (List by Phase) ---
         html += `<div class="journey-mobile-list">`;
         
@@ -272,82 +231,114 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         html += `</div>`;
     }
 
-    // Render Final Artifacts if Complete
-    if (journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE') {
-        
-        // Auto-switch to map on mobile if complete
-        if (window.innerWidth <= 768 && !document.body.classList.contains('show-map')) {
-            // Use a small timeout to allow rendering to settle
-            setTimeout(() => {
-                if (!document.body.classList.contains('show-map')) {
-                    toggleMobileView();
-                }
-            }, 500);
-        }
+    // --- ARTIFACTS SECTION (Consolidated) ---
+    // Render sections if they exist, or if the journey is complete
+    
+    // Auto-switch to map on mobile if complete
+    if ((journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE') && window.innerWidth <= 768 && !document.body.classList.contains('show-map')) {
+        setTimeout(() => { if (!document.body.classList.contains('show-map')) toggleMobileView(); }, 500);
+    }
 
+    html += `<div class="final-artifacts" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 24px;">`;
+
+    // 1. Overview (Summary of Findings)
+    if (journey.summaryOfFindings) {
         html += `
-            <div class="final-artifacts" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--max-color-border);">
-                
-                ${journey.anythingElse ? `
-                <div class="context-card" style="border-left: 3px solid var(--max-color-accent);">
-                    <h3>Additional Context</h3>
-                    <div class="context-content">${formatMessage(journey.anythingElse)}</div>
-                </div>` : ''}
+            <div class="context-card">
+                <h3 style="color: var(--max-color-accent); margin-bottom: 8px;">Overview</h3>
+                <div class="context-content">${formatMessage(journey.summaryOfFindings)}</div>
+            </div>`;
+    }
 
-                ${journey.summaryOfFindings ? `
-                <div class="context-card">
-                    <h3>Summary of Findings</h3>
-                    <div class="context-content">${formatMessage(journey.summaryOfFindings)}</div>
-                </div>` : ''}
-
-                ${journey.mentalModels ? `
-                <div class="context-card">
-                    <h3>Mental Models</h3>
-                    <div class="context-content">${formatMessage(journey.mentalModels)}</div>
-                </div>` : ''}
-
-                ${journey.quotes && journey.quotes.length > 0 ? `
-                <div class="context-card" style="display: none;">
-                    <!-- Hidden in regular view if we moved it to header, but actually user might still want the card? 
-                         User said "Put it in quotes after their name and role". 
-                         Let's hide this card to avoid duplication if it's just one quote. -->
-                </div>` : ''}
-
-                <div class="action-area" data-html2canvas-ignore="true" style="display: flex; justify-content: center; gap: 16px; margin-top: 40px; padding-bottom: 40px; flex-wrap: wrap;">
-                    <button onclick="exportToPdf('${targetElementId}')" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                            <polyline points="10 9 9 9 8 9"/>
-                        </svg>
-                        Export PDF
-                    </button>
-                    <button onclick="copyMermaid(this)" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                        </svg>
-                        Copy as Mermaid
-                    </button>
-                    <button onclick="copyConversation()" id="copyConvBtn" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                        </svg>
-                        Copy Conversation
-                    </button>
-                    <button onclick="startNewJourney()" class="max-send-button" style="width: auto; padding: 12px 24px; gap: 8px;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 5v14M5 12h14"/>
-                        </svg>
-                        Do Another Journey
-                    </button>
+    // 2. Phases (Phase Summaries) - Single Container
+    if (journey.phases.some(p => p.summary)) {
+        html += `
+            <div class="context-card">
+                <h3 style="color: var(--max-color-accent); margin-bottom: 16px;">Phases</h3>
+                <div class="context-content">
+                    ${journey.phases.map(p => p.summary ? `
+                        <div style="margin-bottom: 16px;">
+                            <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--max-color-text-primary);">${escapeHtml(p.name)}</h4>
+                            <div>${formatMessage(p.summary)}</div>
+                        </div>
+                    ` : '').join('')}
                 </div>
+            </div>`;
+    }
+
+    // 3. Lanes (Swimlane Summaries) - Single Container
+    if (journey.swimlanes.some(s => s.summary)) {
+        html += `
+            <div class="context-card">
+                <h3 style="color: var(--max-color-accent); margin-bottom: 16px;">Lanes</h3>
+                <div class="context-content">
+                    ${journey.swimlanes.map(s => s.summary ? `
+                        <div style="margin-bottom: 16px;">
+                            <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--max-color-text-primary);">${escapeHtml(s.name)}</h4>
+                            <div>${formatMessage(s.summary)}</div>
+                        </div>
+                    ` : '').join('')}
+                </div>
+            </div>`;
+    }
+
+    // 4. Mental Models
+    if (journey.mentalModels) {
+        html += `
+            <div class="context-card">
+                <h3 style="color: var(--max-color-accent); margin-bottom: 8px;">Mental Models</h3>
+                <div class="context-content">${formatMessage(journey.mentalModels)}</div>
+            </div>`;
+    }
+    
+    // 5. Additional Context (if any)
+    if (journey.anythingElse) {
+            html += `
+            <div class="context-card">
+                <h3 style="color: var(--max-color-accent); margin-bottom: 8px;">Additional Context</h3>
+                <div class="context-content">${formatMessage(journey.anythingElse)}</div>
+            </div>`;
+    }
+    
+    // Buttons (Action Area) - Only when complete/ready
+    if (journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE') {
+        html += `
+            <div class="action-area" data-html2canvas-ignore="true" style="display: flex; justify-content: center; gap: 16px; margin-top: 40px; padding-bottom: 40px; flex-wrap: wrap;">
+                <button onclick="exportToPdf('${targetElementId}')" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    Export PDF
+                </button>
+                <button onclick="copyMermaid(this)" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    Copy as Mermaid
+                </button>
+                <button onclick="copyConversation()" id="copyConvBtn" class="max-send-button secondary-action" style="width: auto; padding: 12px 24px; gap: 8px; background: var(--max-color-surface-tertiary); border: 1px solid var(--max-color-border); color: var(--max-color-text-primary);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    Copy Conversation
+                </button>
+                <button onclick="startNewJourney()" class="max-send-button" style="width: auto; padding: 12px 24px; gap: 8px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Do Another Journey
+                </button>
             </div>
         `;
-    } else {
+    }
+    
+    html += `</div>`; // End artifacts container else {
         // html += `...` (REMOVED: Placeholder when journey exists but is empty)
     }
 
@@ -424,7 +415,7 @@ function exportToPdf() {
         page.style.padding = '40px';
         page.innerHTML = renderHeader() + `
             <div class="context-card" style="margin-bottom: 20px;">
-                <h3>Description</h3>
+                <h3 style="color: #ed2224;">Journey</h3>
                 <div class="context-content">${escapeHtml(currentRenderedJourney.description)}</div>
             </div>`;
         printContainer.appendChild(page);
@@ -505,62 +496,68 @@ function exportToPdf() {
         breakEl.className = 'html2pdf__page-break';
         printContainer.appendChild(breakEl);
 
-        let artifactsHtml = renderHeader('Summary & Findings');
+        let artifactsHtml = renderHeader('Overview & Analysis');
         artifactsHtml += `<div style="display: flex; flex-direction: column; gap: 24px; margin-top: 20px;">`;
 
-        // PDF Phase Summaries
-        if (currentRenderedJourney.phases.some(p => p.summary)) {
-            artifactsHtml += `
-                <div style="margin-bottom: 8px;">
-                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #4b5563; margin-bottom: 12px; letter-spacing: 0.05em;">Phase Summaries</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        ${currentRenderedJourney.phases.map(p => p.summary ? `
-                            <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; break-inside: avoid;">
-                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #ed2224;">${escapeHtml(p.name)}</h4>
-                                <div class="context-content" style="color: #000; font-size: 12px;">${formatMessage(p.summary)}</div>
-                            </div>
-                        ` : '').join('')}
-                    </div>
-                </div>`;
-        }
-
-        // PDF Swimlane Summaries
-        if (currentRenderedJourney.swimlanes.some(s => s.summary)) {
-            artifactsHtml += `
-                <div style="margin-bottom: 8px;">
-                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #4b5563; margin-bottom: 12px; letter-spacing: 0.05em;">Swimlane Summaries</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        ${currentRenderedJourney.swimlanes.map(s => s.summary ? `
-                            <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; break-inside: avoid;">
-                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #ed2224;">${escapeHtml(s.name)}</h4>
-                                <div class="context-content" style="color: #000; font-size: 12px;">${formatMessage(s.summary)}</div>
-                            </div>
-                        ` : '').join('')}
-                    </div>
-                </div>`;
-        }
-
-        if (currentRenderedJourney.anythingElse) {
-            artifactsHtml += `
-                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px;">
-                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #4b5563; margin-bottom: 8px;">Additional Context</h3>
-                    <div class="context-content" style="color: #000;">${formatMessage(currentRenderedJourney.anythingElse)}</div>
-                </div>`;
-        }
+        // 1. Overview (Summary of Findings)
         if (currentRenderedJourney.summaryOfFindings) {
             artifactsHtml += `
                 <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px;">
-                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #4b5563; margin-bottom: 8px;">Summary of Findings</h3>
+                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 8px;">Overview</h3>
                     <div class="context-content" style="color: #000;">${formatMessage(currentRenderedJourney.summaryOfFindings)}</div>
                 </div>`;
         }
+
+        // 2. Phases (Phase Summaries) - Single Container
+        if (currentRenderedJourney.phases.some(p => p.summary)) {
+            artifactsHtml += `
+                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; break-inside: avoid;">
+                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 12px; letter-spacing: 0.05em;">Phases</h3>
+                    <div class="context-content" style="color: #000; font-size: 12px;">
+                        ${currentRenderedJourney.phases.map(p => p.summary ? `
+                            <div style="margin-bottom: 16px;">
+                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #000;">${escapeHtml(p.name)}</h4>
+                                <div>${formatMessage(p.summary)}</div>
+                            </div>
+                        ` : '').join('')}
+                    </div>
+                </div>`;
+        }
+
+        // 3. Lanes (Swimlane Summaries) - Single Container
+        if (currentRenderedJourney.swimlanes.some(s => s.summary)) {
+            artifactsHtml += `
+                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; break-inside: avoid;">
+                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 12px; letter-spacing: 0.05em;">Lanes</h3>
+                    <div class="context-content" style="color: #000; font-size: 12px;">
+                         ${currentRenderedJourney.swimlanes.map(s => s.summary ? `
+                            <div style="margin-bottom: 16px;">
+                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #000;">${escapeHtml(s.name)}</h4>
+                                <div>${formatMessage(s.summary)}</div>
+                            </div>
+                        ` : '').join('')}
+                    </div>
+                </div>`;
+        }
+        
+        // 4. Mental Models
         if (currentRenderedJourney.mentalModels) {
             artifactsHtml += `
                 <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px;">
-                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #4b5563; margin-bottom: 8px;">Mental Models</h3>
+                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 8px;">Mental Models</h3>
                     <div class="context-content" style="color: #000;">${formatMessage(currentRenderedJourney.mentalModels)}</div>
                 </div>`;
         }
+
+        // 5. Additional Context
+        if (currentRenderedJourney.anythingElse) {
+            artifactsHtml += `
+                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px;">
+                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 8px;">Additional Context</h3>
+                    <div class="context-content" style="color: #000;">${formatMessage(currentRenderedJourney.anythingElse)}</div>
+                </div>`;
+        }
+        
         artifactsHtml += `</div>`;
         artifactsPage.innerHTML = artifactsHtml;
         printContainer.appendChild(artifactsPage);
