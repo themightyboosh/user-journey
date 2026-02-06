@@ -23,7 +23,24 @@ export class AdminService {
     }
 
     async createLink(data: any) {
-        const id = data.id || uuidv4();
+        let id = data.id;
+
+        if (!id) {
+            // Generate sequential ID
+            const links = await Store.getLinks();
+            
+            // Extract numeric IDs
+            const numbers = links
+                .map((l: any) => parseInt(l.id))
+                .filter((n: number) => !isNaN(n));
+                
+            const maxId = numbers.length > 0 ? Math.max(...numbers) : 0;
+            const nextId = maxId + 1;
+            
+            // Pad to 3 digits (e.g. 001, 002)
+            id = nextId.toString().padStart(3, '0');
+        }
+
         const newLink = {
             ...data,
             id,

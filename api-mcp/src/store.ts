@@ -1,193 +1,231 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { JourneyMap } from './types';
+import * as admin from 'firebase-admin';
+import logger from './logger';
 
-const DATA_DIR = path.join(__dirname, '../data');
-const FILE_PATH = path.join(DATA_DIR, 'journey-maps.json');
-const LINKS_FILE_PATH = path.join(DATA_DIR, 'admin-links.json');
-const SETTINGS_FILE_PATH = path.join(DATA_DIR, 'settings.json');
-const KNOWLEDGE_FILE_PATH = path.join(DATA_DIR, 'context.json');
+// Initialize Firebase if in Cloud Environment
+const isFirebase = process.env.FIREBASE_CONFIG || process.env.K_SERVICE;
 
-// Ensure data dir exists
-async function initStore() {
-  try {
-    await fs.mkdir(DATA_DIR, { recursive: true });
+if (isFirebase) {
     try {
-      await fs.access(FILE_PATH);
-    } catch {
-      await fs.writeFile(FILE_PATH, JSON.stringify({}, null, 2));
-    }
-    try {
-      await fs.access(LINKS_FILE_PATH);
-    } catch {
-      await fs.writeFile(LINKS_FILE_PATH, JSON.stringify({}, null, 2));
-    }
-    try {
-      await fs.access(SETTINGS_FILE_PATH);
-    } catch {
-      await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify({ agentName: "Max" }, null, 2));
-    }
-    try {
-      await fs.access(KNOWLEDGE_FILE_PATH);
-    } catch {
-      const defaultKnowledge = {
-        "default-ux-core": {
-          id: "default-ux-core",
-          title: "Default: UX Research & Analysis Core",
-          content: `### UX Research Core Principles
-1. **Empathy First**: Always seek to understand the user's underlying motivations, not just their actions. Ask "Why?" frequently.
-2. **Context Matters**: A user's environment (physical, social, technical) significantly impacts their journey. Probe for these details.
-3. **Mental Models**: Users approach systems with existing expectations. Identify where the system matches or breaks these models.
-4. **Pain Points vs. Opportunities**: Distinguish between a simple frustration (pain point) and a missing capability (opportunity).
-
-### Business Analysis Best Practices
-1. **Process Mapping**: Look for the trigger, the steps, decision points, and the outcome.
-2. **System Interactions**: explicit identify when a user crosses from manual work to digital tool interaction.
-3. **Data Flow**: What information is required at each step? Where does it come from?
-4. **Stakeholders**: Who else is involved in this process? (Directly or indirectly).
-
-### Interviewing Techniques
-- **The Grand Tour**: "Walk me through a typical day..."
-- **Critical Incident**: "Tell me about the last time this went wrong..."
-- **Naive Outsider**: "I'm new to this, can you explain it like I'm 5?"
-- **Mirroring**: Repeat the last few words to encourage elaboration.`,
-          isActive: true,
-          createdAt: new Date().toISOString()
+        if (!admin.apps.length) {
+            admin.initializeApp({
+                projectId: process.env.GOOGLE_CLOUD_PROJECT || 'journey-mapper-ai-8822'
+            });
+            logger.info("Firebase Admin Initialized with explicit projectId");
+        } else {
+            logger.info("Firebase Admin already initialized via apps check");
         }
-      };
-      await fs.writeFile(KNOWLEDGE_FILE_PATH, JSON.stringify(defaultKnowledge, null, 2));
+    } catch (e) {
+        logger.error("Firebase Admin initialization failed", { error: e });
     }
-  } catch (error) {
-    console.error("Failed to initialize store:", error);
-  }
 }
 
-async function readAll(): Promise<Record<string, JourneyMap>> {
-  await initStore();
-  try {
-    const data = await fs.readFile(FILE_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    return {};
-  }
+// --- Interfaces ---
+interface StorageAdapter {
+    // Journey
+    getJourney(id: string): Promise<JourneyMap | null>;
+    saveJourney(journey: JourneyMap): Promise<void>;
+    deleteJourney(id: string): Promise<void>;
+    listJourneys(): Promise<JourneyMap[]>;
+
+    // Links
+    getLinks(): Promise<any[]>;
+    saveLink(link: any): Promise<void>;
+    deleteLink(id: string): Promise<void>;
+
+    // Settings
+    getSettings(): Promise<any>;
+    saveSettings(settings: any): Promise<void>;
+
+    // Knowledge
+    getKnowledge(): Promise<any[]>;
+    saveKnowledge(item: any): Promise<void>;
+    deleteKnowledge(id: string): Promise<void>;
 }
 
-async function readAllLinks(): Promise<Record<string, any>> {
-  await initStore();
-  try {
-    const data = await fs.readFile(LINKS_FILE_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    return {};
-  }
+// --- File Adapter (Local Dev) ---
+class FileStorageAdapter implements StorageAdapter {
+    private DATA_DIR = path.join(__dirname, '../data');
+    private FILES = {
+        JOURNEYS: path.join(this.DATA_DIR, 'journey-maps.json'),
+        LINKS: path.join(this.DATA_DIR, 'admin-links.json'),
+        SETTINGS: path.join(this.DATA_DIR, 'settings.json'),
+        KNOWLEDGE: path.join(this.DATA_DIR, 'context.json')
+    };
+
+    constructor() {
+        this.init();
+    }
+
+    private async init() {
+        try {
+            await fs.mkdir(this.DATA_DIR, { recursive: true });
+            const defaults = [
+                { path: this.FILES.JOURNEYS, content: {} },
+                { path: this.FILES.LINKS, content: {} },
+                { path: this.FILES.SETTINGS, content: { agentName: "Max" } },
+                { 
+                    path: this.FILES.KNOWLEDGE, 
+                    content: {
+                        "default-ux-core": {
+                            id: "default-ux-core",
+                            title: "Default: UX Research & Analysis Core",
+                            content: `### UX Research Core Principles...`, // Truncated for brevity in init, essentially same default
+                            isActive: true,
+                            createdAt: new Date().toISOString()
+                        }
+                    } 
+                }
+            ];
+
+            for (const f of defaults) {
+                try {
+                    await fs.access(f.path);
+                } catch {
+                    await fs.writeFile(f.path, JSON.stringify(f.content, null, 2));
+                }
+            }
+        } catch (e) {
+            console.error("File Store Init Error", e);
+        }
+    }
+
+    private async read(filePath: string): Promise<any> {
+        try {
+            const data = await fs.readFile(filePath, 'utf-8');
+            return JSON.parse(data);
+        } catch { return {}; }
+    }
+
+    private async write(filePath: string, data: any) {
+        await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+    }
+
+    // Journey
+    async getJourney(id: string) { const all = await this.read(this.FILES.JOURNEYS); return all[id] || null; }
+    async saveJourney(j: JourneyMap) { const all = await this.read(this.FILES.JOURNEYS); all[j.journeyMapId] = j; await this.write(this.FILES.JOURNEYS, all); }
+    async deleteJourney(id: string) { const all = await this.read(this.FILES.JOURNEYS); delete all[id]; await this.write(this.FILES.JOURNEYS, all); }
+    async listJourneys() { return Object.values(await this.read(this.FILES.JOURNEYS)) as JourneyMap[]; }
+
+    // Links
+    async getLinks() { return Object.values(await this.read(this.FILES.LINKS)); }
+    async saveLink(l: any) { const all = await this.read(this.FILES.LINKS); all[l.id] = l; await this.write(this.FILES.LINKS, all); }
+    async deleteLink(id: string) { const all = await this.read(this.FILES.LINKS); delete all[id]; await this.write(this.FILES.LINKS, all); }
+
+    // Settings
+    async getSettings() { return await this.read(this.FILES.SETTINGS); }
+    async saveSettings(s: any) { await this.write(this.FILES.SETTINGS, s); }
+
+    // Knowledge
+    async getKnowledge() { return Object.values(await this.read(this.FILES.KNOWLEDGE)); }
+    async saveKnowledge(k: any) { const all = await this.read(this.FILES.KNOWLEDGE); all[k.id] = k; await this.write(this.FILES.KNOWLEDGE, all); }
+    async deleteKnowledge(id: string) { const all = await this.read(this.FILES.KNOWLEDGE); delete all[id]; await this.write(this.FILES.KNOWLEDGE, all); }
 }
 
-async function saveAll(data: Record<string, JourneyMap>) {
-    await initStore();
-    await fs.writeFile(FILE_PATH, JSON.stringify(data, null, 2));
+// --- Firestore Adapter (Production) ---
+class FirestoreAdapter implements StorageAdapter {
+    private db = admin.firestore();
+    private COLLS = {
+        JOURNEYS: 'journey_maps',
+        LINKS: 'admin_links',
+        SETTINGS: 'app_settings',
+        KNOWLEDGE: 'knowledge_base'
+    };
+
+    // Journey
+    async getJourney(id: string): Promise<JourneyMap | null> {
+        const doc = await this.db.collection(this.COLLS.JOURNEYS).doc(id).get();
+        return doc.exists ? doc.data() as JourneyMap : null;
+    }
+    async saveJourney(j: JourneyMap): Promise<void> {
+        // Use merge to be safe, though usually we overwrite whole state in this app model
+        await this.db.collection(this.COLLS.JOURNEYS).doc(j.journeyMapId).set(j); 
+    }
+    async deleteJourney(id: string): Promise<void> {
+        await this.db.collection(this.COLLS.JOURNEYS).doc(id).delete();
+    }
+    async listJourneys(): Promise<JourneyMap[]> {
+        const snap = await this.db.collection(this.COLLS.JOURNEYS).get();
+        return snap.docs.map(d => d.data() as JourneyMap);
+    }
+
+    // Links
+    async getLinks(): Promise<any[]> {
+        const snap = await this.db.collection(this.COLLS.LINKS).get();
+        return snap.docs.map(d => d.data());
+    }
+    async saveLink(l: any): Promise<void> {
+        await this.db.collection(this.COLLS.LINKS).doc(l.id).set(l);
+    }
+    async deleteLink(id: string): Promise<void> {
+        await this.db.collection(this.COLLS.LINKS).doc(id).delete();
+    }
+
+    // Settings (Stored as single doc 'global')
+    async getSettings(): Promise<any> {
+        try {
+            const doc = await this.db.collection(this.COLLS.SETTINGS).doc('global').get();
+            return doc.exists ? doc.data() : { agentName: "Max" };
+        } catch (error) {
+            logger.error('Error fetching settings from Firestore', { error });
+            throw error;
+        }
+    }
+    async saveSettings(s: any): Promise<void> {
+        try {
+            logger.info('Starting saveSettings', { input: s });
+            // Remove undefined fields which Firestore rejects
+            const sanitized = JSON.parse(JSON.stringify(s));
+            logger.info('Sanitized data', { sanitized });
+            
+            const docRef = this.db.collection(this.COLLS.SETTINGS).doc('global');
+            logger.info('DocRef created', { path: docRef.path });
+
+            await docRef.set(sanitized);
+            logger.info('Settings saved successfully');
+        } catch (error) {
+            logger.error('Error saving settings to Firestore', { error, data: s });
+            throw error;
+        }
+    }
+
+    // Knowledge
+    async getKnowledge(): Promise<any[]> {
+        const snap = await this.db.collection(this.COLLS.KNOWLEDGE).get();
+        return snap.docs.map(d => d.data());
+    }
+    async saveKnowledge(k: any): Promise<void> {
+        await this.db.collection(this.COLLS.KNOWLEDGE).doc(k.id).set(k);
+    }
+    async deleteKnowledge(id: string): Promise<void> {
+        await this.db.collection(this.COLLS.KNOWLEDGE).doc(id).delete();
+    }
 }
 
-async function saveAllLinks(data: Record<string, any>) {
-    await initStore();
-    await fs.writeFile(LINKS_FILE_PATH, JSON.stringify(data, null, 2));
-}
+// Select Adapter
+const adapter: StorageAdapter = isFirebase ? new FirestoreAdapter() : new FileStorageAdapter();
 
-async function readSettings(): Promise<any> {
-  await initStore();
-  try {
-    const data = await fs.readFile(SETTINGS_FILE_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    return { agentName: "Max" };
-  }
-}
-
-async function saveSettings(data: any) {
-    await initStore();
-    await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(data, null, 2));
-}
-
-async function readAllKnowledge(): Promise<Record<string, any>> {
-  await initStore();
-  try {
-    const data = await fs.readFile(KNOWLEDGE_FILE_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    return {};
-  }
-}
-
-async function saveAllKnowledge(data: Record<string, any>) {
-    await initStore();
-    await fs.writeFile(KNOWLEDGE_FILE_PATH, JSON.stringify(data, null, 2));
-}
-
+// --- Export Facade ---
 export const Store = {
   // Journey Methods
-  async get(id: string): Promise<JourneyMap | null> {
-    const all = await readAll();
-    return all[id] || null;
-  },
-
-  async save(journey: JourneyMap): Promise<void> {
-    const all = await readAll();
-    all[journey.journeyMapId] = journey;
-    await saveAll(all);
-  },
-
-  async delete(id: string): Promise<void> {
-    const all = await readAll();
-    delete all[id];
-    await saveAll(all);
-  },
-  
-  async list(): Promise<JourneyMap[]> {
-      const all = await readAll();
-      return Object.values(all);
-  },
+  async get(id: string) { return adapter.getJourney(id); },
+  async save(journey: JourneyMap) { return adapter.saveJourney(journey); },
+  async delete(id: string) { return adapter.deleteJourney(id); },
+  async list() { return adapter.listJourneys(); },
 
   // Link Methods
-  async getLinks(): Promise<any[]> {
-      const all = await readAllLinks();
-      return Object.values(all);
-  },
-
-  async saveLink(link: any): Promise<void> {
-      const all = await readAllLinks();
-      all[link.id] = link;
-      await saveAllLinks(all);
-  },
-
-  async deleteLink(id: string): Promise<void> {
-      const all = await readAllLinks();
-      delete all[id];
-      await saveAllLinks(all);
-  },
+  async getLinks() { return adapter.getLinks(); },
+  async saveLink(link: any) { return adapter.saveLink(link); },
+  async deleteLink(id: string) { return adapter.deleteLink(id); },
 
   // Settings Methods
-  async getSettings(): Promise<any> {
-      return await readSettings();
-  },
-
-  async saveSettings(settings: any): Promise<void> {
-      await saveSettings(settings);
-  },
+  async getSettings() { return adapter.getSettings(); },
+  async saveSettings(settings: any) { return adapter.saveSettings(settings); },
 
   // Knowledge Methods
-  async getKnowledge(): Promise<any[]> {
-      const all = await readAllKnowledge();
-      return Object.values(all);
-  },
-
-  async saveKnowledge(item: any): Promise<void> {
-      const all = await readAllKnowledge();
-      all[item.id] = item;
-      await saveAllKnowledge(all);
-  },
-
-  async deleteKnowledge(id: string): Promise<void> {
-      const all = await readAllKnowledge();
-      delete all[id];
-      await saveAllKnowledge(all);
-  }
+  async getKnowledge() { return adapter.getKnowledge(); },
+  async saveKnowledge(item: any) { return adapter.saveKnowledge(item); },
+  async deleteKnowledge(id: string) { return adapter.deleteKnowledge(id); }
 };

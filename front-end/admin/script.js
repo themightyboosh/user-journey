@@ -1,4 +1,7 @@
 // Config
+const VERSION = '1.2';
+console.log('Journey Mapper Admin v' + VERSION);
+
 const BASE_URL = window.location.origin + '/';
 const LINKS_API_URL = window.location.origin + '/api/admin/links';
 const SETTINGS_API_URL = window.location.origin + '/api/admin/settings';
@@ -133,8 +136,16 @@ function switchModule(e, moduleName) {
 
 async function fetchJourneys() {
     try {
-        console.log('Fetching journeys from:', JOURNEYS_API_URL);
-        const res = await fetch(JOURNEYS_API_URL);
+        const urlWithCache = `${JOURNEYS_API_URL}?_t=${Date.now()}`;
+        console.log('Fetching journeys from:', urlWithCache);
+        let res = await fetch(urlWithCache);
+
+        // Fallback for rewrite issues
+        if (res.status === 404) {
+            console.warn('Primary endpoint 404, trying fallback /admin/journeys');
+            res = await fetch(`/admin/journeys?_t=${Date.now()}`);
+        }
+
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         
         const data = await res.json();

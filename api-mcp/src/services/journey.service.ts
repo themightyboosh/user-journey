@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Store } from '../store';
 import { JourneyMap, PhaseObject, SwimlaneObject, CellObject } from '../types';
 import { recalculateJourney, isCellComplete } from '../metrics';
+import logger from '../logger';
 
 export class JourneyService {
     private static instance: JourneyService;
@@ -55,7 +56,7 @@ export class JourneyService {
         };
 
         await Store.save(newJourney);
-        console.log(`[JourneyService] Created: ${id} | Name: ${newJourney.name}`);
+        logger.info(`[JourneyService] Created: ${id} | Name: ${newJourney.name}`);
         return newJourney;
     }
 
@@ -86,7 +87,7 @@ export class JourneyService {
 
         journey = recalculateJourney(journey);
         await Store.save(journey);
-        console.log(`[JourneyService] Updated Metadata: ${id} | Stage: ${journey.stage}`);
+        logger.info(`[JourneyService] Updated Metadata: ${id} | Stage: ${journey.stage}`);
         return journey;
     }
 
@@ -157,7 +158,7 @@ export class JourneyService {
 
         journey = recalculateJourney(journey);
         await Store.save(journey);
-        console.log(`[JourneyService] Set Phases Bulk: ${id} | Count: ${journey.phases.length}`);
+        logger.info(`[JourneyService] Set Phases Bulk: ${id} | Count: ${journey.phases.length}`);
         return journey;
     }
 
@@ -228,7 +229,7 @@ export class JourneyService {
 
         journey = recalculateJourney(journey);
         await Store.save(journey);
-        console.log(`[JourneyService] Set Swimlanes Bulk: ${id} | Count: ${journey.swimlanes.length}`);
+        logger.info(`[JourneyService] Set Swimlanes Bulk: ${id} | Count: ${journey.swimlanes.length}`);
         return journey;
     }
 
@@ -258,7 +259,7 @@ export class JourneyService {
 
         journey = recalculateJourney(journey);
         await Store.save(journey);
-        console.log(`[JourneyService] Matrix Generated: ${id} | Cells: ${journey.cells.length}`);
+        logger.info(`[JourneyService] Matrix Generated: ${id} | Cells: ${journey.cells.length}`);
         return journey;
     }
 
@@ -275,7 +276,7 @@ export class JourneyService {
 
         journey = recalculateJourney(journey);
         await Store.save(journey);
-        console.log(`[JourneyService] Cell Updated: ${id} | CellId: ${cellId} | Progress: ${Math.round(journey.metrics.percentCellsComplete * 100)}%`);
+        logger.info(`[JourneyService] Cell Updated: ${id} | CellId: ${cellId} | Progress: ${Math.round(journey.metrics.percentCellsComplete * 100)}%`);
         return journey;
     }
 

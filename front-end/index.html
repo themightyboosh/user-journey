@@ -1044,6 +1044,40 @@
     .pdf-export-mode .journey-title svg {
         display: none !important;
     }
+
+    /* PDF specific visibility overrides */
+    .pdf-export-mode .journey-mobile-list {
+        display: none !important;
+    }
+    
+    .pdf-export-mode .journey-table {
+        display: grid !important;
+    }
+
+    /* Unclamp text for PDF */
+    .pdf-export-mode .cell-context {
+        -webkit-line-clamp: unset !important;
+        display: block !important;
+        overflow: visible !important;
+        max-height: none !important;
+    }
+    
+    .pdf-export-mode .journey-cell {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+    }
+    
+    .pdf-export-mode .swimlane-desc {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+    }
+
+    /* Page Break Helper */
+    .html2pdf__page-break {
+        page-break-before: always;
+    }
   </style>
 </head>
 <body>
@@ -1131,6 +1165,66 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    // Global Error Reporting to Winston Backend
+    (function() {
+        const ORIGINAL_CONSOLE_ERROR = console.error;
+        
+        function sendLog(level, message, context = {}) {
+            // Avoid infinite loops if the fetch itself fails
+            try {
+                fetch('/api/logs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        level,
+                        message: typeof message === 'string' ? message : JSON.stringify(message),
+                        context: {
+                            url: window.location.href,
+                            ...context
+                        },
+                        userAgent: navigator.userAgent,
+                        timestamp: new Date().toISOString()
+                    })
+                }).catch(e => {
+                    // Fallback to original console to ensure we see it locally at least
+                    ORIGINAL_CONSOLE_ERROR.call(console, 'Failed to send log to backend:', e);
+                });
+            } catch (e) { /* ignore */ }
+        }
+
+        // 1. Capture Global Uncaught Errors
+        window.onerror = function(msg, url, line, col, error) {
+            sendLog('error', `Uncaught: ${msg}`, {
+                file: url,
+                line,
+                col,
+                stack: error ? error.stack : 'no-stack'
+            });
+            return false; // Let default handler run too
+        };
+
+        // 2. Capture Unhandled Promise Rejections
+        window.onunhandledrejection = function(event) {
+            sendLog('error', `Unhandled Rejection: ${event.reason}`, {
+                reason: event.reason ? (event.reason.stack || event.reason) : 'unknown'
+            });
+        };
+
+        // 3. Intercept console.error (Optional but useful for framework errors)
+        console.error = function(...args) {
+            // Call original first
+            ORIGINAL_CONSOLE_ERROR.apply(console, args);
+            
+            // Format args
+            const msg = args.map(a => 
+                typeof a === 'object' ? (a.stack || JSON.stringify(a)) : String(a)
+            ).join(' ');
+
+            sendLog('error', msg, { type: 'console.error' });
+        };
+    })();
+  </script>
   <script src="js/renderer.js"></script>
   <script>
     // ===========================================
