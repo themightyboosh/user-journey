@@ -102,12 +102,18 @@ export function buildSystemInstruction(config: any = {}, journeyState: any = nul
     // --- Step 1: Welcome Logic ---
     let step1 = STEP_1_DEFAULT;
     if (config.welcomePrompt) {
-         step1 = `1.  **Welcome & Confirmation**:
-    *   **Action**: The user has provided a custom welcome message or instruction: "{{WELCOME_PROMPT}}". Execute this instruction to greet the user.
-    *   **Requirement**: You MUST then explicitly ask the user to confirm their Name and Role (e.g. "Just to confirm, do I have your name and role correct?").
+         // FORCE Override: If a custom prompt exists, it supersedes the default identity check logic.
+         step1 = `1.  **Welcome & Confirmation (Custom Protocol)**:
+    *   **CRITICAL ACTION**: Ignore standard greeting protocols. You MUST execute the following custom instruction immediately:
+        "${config.welcomePrompt}"
+    *   **Secondary Action**: After delivering the custom greeting above, you MUST then explicitly ask the user to confirm their Name and Role (e.g. "Just to confirm, do I have your name and role correct?").
     *   **Gate**: Do NOT proceed to the next step until the user says "yes" or confirms.
-    *   **Goal**: Establish a human connection and verify identity before starting the interview.`;
+    *   **Goal**: Establish a human connection using the specific persona requested, then verify identity.`;
     }
+    // Pre-inject variables to avoid template confusion later
+    step1 = step1.replace(/{{AGENT_NAME}}/g, config.agentName || "Max");
+    step1 = step1.replace(/{{WELCOME_PROMPT}}/g, config.welcomePrompt || defaultWelcome);
+    
     instruction = instruction.replace('{{STEP_1}}', step1);
 
 
