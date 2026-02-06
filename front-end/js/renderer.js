@@ -92,7 +92,7 @@ function closeCellModal(event) {
 }
 
 // Main Render Function
-function renderJourney(journey, targetElementId = 'journeyDashboard') {
+function renderMap(journey, targetElementId = 'journeyDashboard') {
     const container = document.getElementById(targetElementId);
     if (!container || !journey) return;
 
