@@ -156,17 +156,44 @@ server.post('/api/chat', async (request, reply) => {
       }
   
       logger.info('Getting request model');
-      const requestModel = await aiService.getRequestModel(config, journeyState);
+      let requestModel = await aiService.getRequestModel(config, journeyState);
       logger.info('Got request model');
   
       let currentTurn = 0;
       const maxTurns = 5;
       let finalDone = false;
   
+      // Helper for generation with 429 handling
+      const generateSafe = async (model: any, params: any) => {
+          try {
+              const result = await model.generateContent(params);
+              const response = await result.response;
+              return { response, model }; 
+          } catch (e: any) {
+              if (e.message?.includes('429') || e.status === 429 || e.code === 429 || e.message?.includes('RESOURCE_EXHAUSTED')) {
+                   logger.warn("⚠️ 429 RESOURCE EXHAUSTED - Triggering Fallback Model");
+                   
+                   // 1. Get the next fallback model name (e.g. 'gemini-2.5-flash')
+                   const nextFallbackModel = await aiService.switchToFallback();
+                   
+                   // 2. Re-create the request model using the FALLBACK name specifically
+                   // This bypasses the logic that would revert it to the Admin Settings "Pro" model
+                   const newModel = await aiService.getRequestModel(config, journeyState, nextFallbackModel);
+                   
+                   // 3. Retry once with new model
+                   const result = await newModel.generateContent(params);
+                   const response = await result.response;
+                   return { response, model: newModel }; 
+              }
+              throw e;
+          }
+      };
+
       // Initial Generation
       logger.info('Starting generation');
-      let result = await requestModel.generateContent({ contents });
-      let response = await result.response;
+      let genResult = await generateSafe(requestModel, { contents });
+      let response = genResult.response;
+      requestModel = genResult.model; // Update model reference in case of fallback
       logger.info('Got initial response');
       
       while (currentTurn < maxTurns && !finalDone) {
@@ -198,8 +225,9 @@ server.post('/api/chat', async (request, reply) => {
                   }
               }
               
-              result = await requestModel.generateContent({ contents });
-              response = await result.response;
+              genResult = await generateSafe(requestModel, { contents });
+              response = genResult.response;
+              requestModel = genResult.model;
           } else {
               const finalText = response.candidates?.[0]?.content?.parts?.[0]?.text || "Processing...";
               reply.raw.write(`data: ${JSON.stringify({ text: finalText })}\n\n`);

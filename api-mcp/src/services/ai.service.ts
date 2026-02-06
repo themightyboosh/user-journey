@@ -42,16 +42,12 @@ export class AIService {
     }
 
     async initialize(preferredModel: string | null = null) {
-        // Enforce Gemini 2.5 Series (Correct IDs without -001)
+        // Enforce Gemini 2.5 Series Only (User Request: No Deprecated Models)
         const candidates = [
             preferredModel,
             'gemini-2.5-pro',
             'gemini-2.5-flash',
-            'gemini-2.5-flash-lite',
-            // Fallbacks
-            'gemini-2.0-flash-001',
-            'gemini-1.5-pro-002',
-            'gemini-1.5-flash-002'
+            'gemini-2.5-flash-lite'
         ].filter((v, i, a) => v && a.indexOf(v) === i);
 
         // Minimal system instruction for ping check
@@ -90,9 +86,9 @@ export class AIService {
             }
         }
         
-        // Fallback to gemini-1.5-flash-002 if all else fails (safest bet)
-        logger.warn("Falling back to gemini-1.5-flash-002 without ping");
-        this.activeModelName = 'gemini-1.5-flash-002';
+        // Fallback to gemini-2.5-flash-lite if all else fails (safest bet in 2.5 series)
+        logger.warn("Falling back to gemini-2.5-flash-lite without ping");
+        this.activeModelName = 'gemini-2.5-flash-lite';
         this.activeGenerativeModel = this.vertexAI.getGenerativeModel({
              model: this.activeModelName,
              tools: JOURNEY_TOOLS as any
@@ -100,111 +96,39 @@ export class AIService {
         return this.activeGenerativeModel;
     }
 
-    async getJourneyState(journeyId: string) {
-        return await this.journeyService.getJourney(journeyId);
-    }
-
-    async executeTool(name: string, args: any) {
-        logger.info(`🛠️ Executing Tool: ${name}`, args);
+    async switchToFallback() {
+        const current = this.activeModelName;
+        let next = 'gemini-2.5-flash'; // Default safe fallback
         
-        try {
-            switch (name) {
-                case 'create_journey_map':
-                    return await this.journeyService.createJourney(args);
-                case 'update_journey_metadata':
-                    return await this.journeyService.updateMetadata(args.journeyMapId, args);
-                case 'set_phases_bulk':
-                    return await this.journeyService.setPhasesBulk(args.journeyMapId, args.phases);
-                case 'set_swimlanes_bulk':
-                    return await this.journeyService.setSwimlanesBulk(args.journeyMapId, args.swimlanes);
-                case 'generate_matrix':
-                    return await this.journeyService.generateMatrix(args.journeyMapId);
-                case 'update_cell':
-                    let targetCellId = args.cellId;
-                    let pId = null;
-                    let sId = null;
-    
-                    if (!targetCellId && args.phaseName && args.swimlaneName) {
-                        const journey = await this.getJourneyState(args.journeyMapId);
-                        if (journey) {
-                            const findMatch = (list: any[], name: string) => list.find(item => item.name.toLowerCase().trim() === name.toLowerCase().trim());
-                            const phase = findMatch(journey.phases, args.phaseName);
-                            const swimlane = findMatch(journey.swimlanes, args.swimlaneName);
-                            
-                            if (phase && swimlane) {
-                                const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
-                                if (cell) targetCellId = cell.cellId;
-                            }
-                        }
-                    }
-    
-                    if (!targetCellId) {
-                        return { error: "Missing cellId and could not resolve phaseName/swimlaneName to a valid cell." };
-                    }
-
-                    // Get IDs for summarization trigger
-                    if (targetCellId) {
-                         const journey = await this.getJourneyState(args.journeyMapId);
-                         const cell = journey?.cells.find(c => c.cellId === targetCellId);
-                         if (cell) {
-                             pId = cell.phaseId;
-                             sId = cell.swimlaneId;
-                         }
-                    }
-    
-                    const result = await this.journeyService.updateCell(args.journeyMapId, targetCellId, args);
-
-                    // Trigger Background Summarization (Fire and Forget)
-                    if (pId && sId) {
-                        this.triggerBackgroundSummaries(args.journeyMapId, pId, sId).catch(err => logger.error("Background Summary Error", err));
-                    }
-
-                    return result;
-
-                case 'generate_artifacts':
-                    return await this.journeyService.generateArtifacts(args.journeyMapId, args);
-                    
-                default:
-                    return { error: `Unknown tool: ${name}` };
-            }
-    
-        } catch (e: any) {
-            logger.error("Tool execution error", e);
-            return { error: e.message };
+        if (current === 'gemini-2.5-pro') {
+            next = 'gemini-2.5-flash';
+        } else if (current === 'gemini-2.5-flash') {
+            next = 'gemini-2.5-flash-lite';
+        } else if (current === 'gemini-2.5-flash-lite') {
+            // If lite fails, loop back to flash (transient check) or stick with lite
+            next = 'gemini-2.5-flash'; 
         }
-    }
-
-    async getSettings() {
-        return await this.adminService.getSettings();
-    }
-
-    async getKnowledge(ids: string | string[] | null) {
-        const allKnowledge = await this.adminService.getKnowledge();
         
-        if (ids && Array.isArray(ids) && ids.length > 0) {
-            // Return specific KBs requested
-            return allKnowledge.filter((k: any) => ids.includes(k.id));
-        } else if (ids && typeof ids === 'string') {
-             // Single ID legacy support
-             const match = allKnowledge.find((k: any) => k.id === ids);
-             return match ? [match] : [];
-        } else {
-            // Otherwise return all ACTIVE knowledge bases
-            return allKnowledge.filter((k: any) => k.isActive);
-        }
+        logger.warn(`⚠️ Resource Exhausted (429) for ${current}. Switching to fallback: ${next}`);
+        // Do NOT re-initialize activeGenerativeModel here, just return the name
+        // We want the caller (server.ts) to handle the specific retry with this model name
+        return next;
     }
 
-    async getRequestModel(config: any, journeyState: any) {
+    async getRequestModel(config: any, journeyState: any, overrideModel?: string) {
         const settings = await this.getSettings();
+        
+        // Determine which model to use:
+        // 1. Explicit override (from fallback retry loop)
+        // 2. Settings from Admin Panel
+        // 3. Currently active model
+        let targetModel = overrideModel || settings.activeModel || this.activeModelName;
 
-        // Check if we need to switch models based on settings
-        if (this.activeGenerativeModel && settings.activeModel && this.activeModelName !== settings.activeModel) {
-            logger.info(`🔄 Switching model from ${this.activeModelName} to ${settings.activeModel}`);
-            this.activeGenerativeModel = null;
-        }
-
-        if (!this.activeGenerativeModel) {
-            await this.initialize(settings.activeModel);
+        // If we need to switch the "Active" model (and it's not just a temporary override)
+        // OR if the model isn't initialized yet
+        if (!this.activeGenerativeModel || (!overrideModel && this.activeModelName !== targetModel)) {
+             logger.info(`🔄 Switching active model to ${targetModel}`);
+             await this.initialize(targetModel);
         }
 
         // Fetch Knowledge Context
@@ -222,10 +146,10 @@ export class AIService {
             knowledgeContext: contextInjection
         };
 
-        if (!this.activeGenerativeModel) throw new Error("Model failed to initialize");
-
+        // Return a fresh GenerativeModel instance with the specific system instructions for this chat turn
+        // This does NOT affect the global tool-enabled model unless we re-initialized above
         return this.vertexAI.getGenerativeModel({
-            model: this.activeModelName!,
+            model: targetModel!,
             generationConfig: {
                 maxOutputTokens: 2048,
                 temperature: 0.4,
