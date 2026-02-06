@@ -193,13 +193,75 @@
       color: var(--max-color-text-tertiary);
       font-size: 14px;
       overflow: hidden;
+      position: relative; /* For absolute controls */
+    }
+
+    /* Panzoom Wrapper */
+    .panzoom-viewport {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      cursor: grab;
+      position: relative;
+    }
+    .panzoom-viewport:active {
+      cursor: grabbing;
     }
 
     .journey-dashboard {
-      padding: 24px;
-      overflow-y: auto;
-      height: 100%;
-      width: 100%;
+      padding: 40px; /* More padding for infinite feel */
+      width: max-content; /* Allow growth */
+      min-width: 100%;
+      min-height: 100%;
+      transform-origin: 0 0; /* Critical for Panzoom */
+    }
+
+    /* JSON View Override - Reset to standard scroll */
+    .journey-dashboard.json-view-mode {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        cursor: text;
+        transform: none !important; /* Force reset transforms if any */
+    }
+    
+    /* Panzoom Controls */
+    .panzoom-controls {
+        position: absolute;
+        bottom: 24px;
+        right: 24px;
+        display: flex;
+        gap: 8px;
+        z-index: 100;
+        background: var(--max-color-surface-secondary);
+        padding: 6px;
+        border-radius: var(--max-radius-medium);
+        border: 1px solid var(--max-color-border);
+        box-shadow: var(--max-shadow-soft);
+    }
+
+    .panzoom-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: var(--max-radius-small);
+        color: var(--max-color-text-primary);
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .panzoom-btn:hover {
+        background: var(--max-color-surface-tertiary);
+        border-color: var(--max-color-border-subtle);
+    }
+
+    .panzoom-btn svg {
+        width: 20px;
+        height: 20px;
     }
 
     .journey-header {
@@ -1111,17 +1173,47 @@
 
         <!-- Chat Canvas (Right) -->
       <div class="max-chat-canvas" id="chatCanvas">
-        <div class="journey-dashboard" id="journeyDashboard">
-           <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0.5; gap: 24px;">
-              <div style="width: 300px; height: 300px; background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end)); border-radius: 72px; display: flex; align-items: center; justify-content: center; box-shadow: var(--max-shadow-glow);">
-                  <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128.5 42.6" style="width: 180px; height: auto;">
-                      <path d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3V9.1C0,6.2.7,3.9,2.2,2.5,3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.4-.8-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0l.2.1Z" style="fill: #ffffff;"/>
-                      <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c.1-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4.1.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c.1,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c.1,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z" style="fill: #ffffff;"/>
-                      <path d="M97.8,42.6c-1.1,0-2.2-.3-3.2-.8s-1.9-1.3-2.5-2.3c-.7-1-1-2.2-1-3.7,0-1.9.5-3.5,1.6-4.7,1-1.2,2.4-2.5,4.1-3.9,1.2-.9,2.4-1.7,3.5-2.6,1.2-.9,2.3-1.8,3.5-2.7-.8-.7-1.9-1.6-3.2-2.7s-2.6-2.2-3.9-3.3c-1.7-1.4-3.1-2.8-4.1-4.1s-1.5-2.9-1.5-5c0-1.4.4-2.6,1-3.7.7-1,1.5-1.8,2.5-2.3,1-.5,2.1-.8,3.2-.8s2.5.3,3.4.8c.9.6,1.7,1.3,2.4,2.2s1.4,2,2,3.2c1,1.9,1.8,3.7,2.5,5.3s1.3,2.8,1.6,3.7c.3-.9.9-2.1,1.6-3.7.7-1.6,1.6-3.4,2.5-5.3.6-1.2,1.3-2.3,2-3.2.7-.9,1.5-1.7,2.4-2.2,1.1-.5,2.2-.8,3.5-.8s2.2.3,3.3.8c1,.5,1.9,1.3,2.5,2.4.7,1,1,2.2,1,3.7,0,2.1-.5,3.7-1.5,5-1,1.3-2.4,2.7-4.1,4.1-1.2,1-2.3,2-3.5,3s-2.3,2-3.5,2.9c.8.6,1.9,1.4,3.1,2.3,1.2,1,2.5,2,3.7,3,1.7,1.4,3.1,2.7,4.1,3.9,1,1.2,1.6,2.8,1.6,4.7s-.3,2.6-1,3.7c-.7,1-1.5,1.8-2.5,2.3s-2.1.8-3.3.8c-1.3,0-2.5-.3-3.4-.9-.9-.5-1.7-1.3-2.4-2.2-.7-1-1.4-2-2-3.2-.9-1.7-1.7-3.3-2.4-4.7-.8-1.4-1.3-2.7-1.7-3.7-.3,1-.9,2.3-1.7,3.7-.8,1.5-1.6,3-2.4,4.6-1,1.8-2,3.3-3.1,4.5s-2.7,1.8-4.7,1.8h0v.1Z" style="fill: #ffffff;"/>
-                  </svg>
-              </div>
-              <h1 style="font-family: var(--max-font-family-mono); font-weight: 700; letter-spacing: 0.1em; color: var(--max-color-text-tertiary); margin-top: 16px; font-size: 14px;">JOURNEY MAP</h1>
-           </div>
+        <!-- Panzoom Viewport -->
+        <div id="panzoomViewport" class="panzoom-viewport">
+            <!-- Canvas Content -->
+            <div class="journey-dashboard" id="journeyDashboard">
+               <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0.5; gap: 24px;">
+                  <div style="width: 300px; height: 300px; background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end)); border-radius: 72px; display: flex; align-items: center; justify-content: center; box-shadow: var(--max-shadow-glow);">
+                      <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128.5 42.6" style="width: 180px; height: auto;">
+                          <path d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3V9.1C0,6.2.7,3.9,2.2,2.5,3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.4-.8-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0l.2.1Z" style="fill: #ffffff;"/>
+                          <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c.1-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4.1.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c.1,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c.1,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z" style="fill: #ffffff;"/>
+                          <path d="M97.8,42.6c-1.1,0-2.2-.3-3.2-.8s-1.9-1.3-2.5-2.3c-.7-1-1-2.2-1-3.7,0-1.9.5-3.5,1.6-4.7,1-1.2,2.4-2.5,4.1-3.9,1.2-.9,2.4-1.7,3.5-2.6,1.2-.9,2.3-1.8,3.5-2.7-.8-.7-1.9-1.6-3.2-2.7s-2.6-2.2-3.9-3.3c-1.7-1.4-3.1-2.8-4.1-4.1s-1.5-2.9-1.5-5c0-1.4.4-2.6,1-3.7.7-1,1.5-1.8,2.5-2.3,1-.5,2.1-.8,3.2-.8s2.5.3,3.4.8c.9.6,1.7,1.3,2.4,2.2s1.4,2,2,3.2c1,1.9,1.8,3.7,2.5,5.3s1.3,2.8,1.6,3.7c.3-.9.9-2.1,1.6-3.7.7-1.6,1.6-3.4,2.5-5.3.6-1.2,1.3-2.3,2-3.2.7-.9,1.5-1.7,2.4-2.2,1.1-.5,2.2-.8,3.5-.8s2.2.3,3.3.8c1,.5,1.9,1.3,2.5,2.4.7,1,1,2.2,1,3.7,0,2.1-.5,3.7-1.5,5-1,1.3-2.4,2.7-4.1,4.1-1.2,1-2.3,2-3.5,3s-2.3,2-3.5,2.9c.8.6,1.9,1.4,3.1,2.3,1.2,1,2.5,2,3.7,3,1.7,1.4,3.1,2.7,4.1,3.9,1,1.2,1.6,2.8,1.6,4.7s-.3,2.6-1,3.7c-.7,1-1.5,1.8-2.5,2.3s-2.1.8-3.3.8c-1.3,0-2.5-.3-3.4-.9-.9-.5-1.7-1.3-2.4-2.2-.7-1-1.4-2-2-3.2-.9-1.7-1.7-3.3-2.4-4.7-.8-1.4-1.3-2.7-1.7-3.7-.3,1-.9,2.3-1.7,3.7-.8,1.5-1.6,3-2.4,4.6-1,1.8-2,3.3-3.1,4.5s-2.7,1.8-4.7,1.8h0v.1Z" style="fill: #ffffff;"/>
+                      </svg>
+                  </div>
+                  <h1 style="font-family: var(--max-font-family-mono); font-weight: 700; letter-spacing: 0.1em; color: var(--max-color-text-tertiary); margin-top: 16px; font-size: 14px;">JOURNEY MAP</h1>
+               </div>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="panzoom-controls" id="panzoomControls">
+            <button class="panzoom-btn" onclick="panzoomAction('zoomIn')" title="Zoom In">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+            <button class="panzoom-btn" onclick="panzoomAction('zoomOut')" title="Zoom Out">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+            <button class="panzoom-btn" onclick="panzoomAction('fit')" title="Fit to Screen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg>
+            </button>
+            <button class="panzoom-btn" onclick="panzoomAction('reset')" title="Reset View">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                    <path d="M3 3v5h5"/>
+                </svg>
+            </button>
         </div>
       </div>
       
@@ -1137,6 +1229,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
   <script>
     // Global Error Reporting to Winston Backend
     (function() {
@@ -1214,6 +1307,27 @@
     // Toggle View
     function toggleView() {
         state.currentView = state.currentView === 'map' ? 'json' : 'map';
+        
+        // Handle Panzoom Logic
+        const viewport = document.getElementById('journeyDashboard');
+        const controls = document.getElementById('panzoomControls');
+        
+        if (state.currentView === 'json') {
+            if (window.panzoomInstance) {
+                // Pause panzoom
+                window.panzoomInstance.pause();
+            }
+            viewport.classList.add('json-view-mode');
+            if (controls) controls.style.display = 'none';
+        } else {
+            if (window.panzoomInstance) {
+                // Resume panzoom
+                window.panzoomInstance.resume();
+            }
+            viewport.classList.remove('json-view-mode');
+            if (controls) controls.style.display = 'flex';
+        }
+
         if (currentJourney) {
             renderCurrentView();
         }
@@ -1224,10 +1338,80 @@
         
         if (state.currentView === 'map') {
             renderMap(currentJourney);
+            // Re-init or fit if needed, but panzoom handles DOM changes gracefully mostly.
+            // Maybe ensure size is updated if changed drastically
         } else {
             renderJson(currentJourney);
         }
     }
+
+    // ===========================================
+    // Panzoom Setup
+    // ===========================================
+    window.panzoomInstance = null;
+
+    function initPanzoom() {
+        const elem = document.getElementById('journeyDashboard'); // The element to zoom
+        // Note: Panzoom should be applied to the inner content, but user interacts with viewport
+        // Wait, I structured it as #panzoomViewport > #journeyDashboard
+        // So Panzoom initializes on #journeyDashboard, and listens to events on #panzoomViewport (or itself if not set)
+        
+        // Actually, best practice:
+        // elem is the canvas (child)
+        // parent is the viewport
+        
+        const viewport = document.getElementById('panzoomViewport');
+        if (!elem || !viewport) return;
+
+        // Initialize Panzoom
+        window.panzoomInstance = Panzoom(elem, {
+            maxScale: 5,
+            minScale: 0.1,
+            canvas: true, // "Infinite canvas" mode
+            contain: false, // Don't constrain to viewport
+            cursor: 'grab',
+            startScale: 1
+        });
+
+        // Enable Mouse Wheel
+        viewport.addEventListener('wheel', window.panzoomInstance.zoomWithWheel);
+        
+        // Center initial content?
+        // Let's do a fit on load if content exists
+        setTimeout(() => {
+             // panzoomInstance.zoom(1);
+             // panzoomInstance.pan(0, 0);
+        }, 100);
+    }
+
+    function panzoomAction(action) {
+        if (!window.panzoomInstance) return;
+        const pz = window.panzoomInstance;
+        
+        switch(action) {
+            case 'zoomIn':
+                pz.zoomIn();
+                break;
+            case 'zoomOut':
+                pz.zoomOut();
+                break;
+            case 'reset':
+                pz.reset();
+                break;
+            case 'fit':
+                // Fit Logic: 
+                // We need to measure content vs viewport
+                // Panzoom doesn't have a native 'fit' for infinite canvas, usually resetting is close?
+                // Or we can calculate scale.
+                // pz.reset() goes to scale 1, 0,0.
+                // Let's just use reset for now, or investigate if we want 'contain'.
+                pz.reset(); 
+                break;
+        }
+    }
+
+    // Init on load
+    document.addEventListener('DOMContentLoaded', initPanzoom);
 
     // Load History from LocalStorage
     function loadHistory() {
