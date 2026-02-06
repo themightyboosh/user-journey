@@ -72,6 +72,23 @@ server.setErrorHandler((error: any, request, reply) => {
     });
 });
 
+// Process-level Error Handling (Winston Opportunities)
+process.on('unhandledRejection', (reason: any, promise) => {
+    logger.error('Unhandled Rejection at:', { 
+        promise, 
+        reason: reason?.message || reason,
+        stack: reason?.stack 
+    });
+});
+
+process.on('uncaughtException', (error: any) => {
+    logger.error('Uncaught Exception:', { 
+        error: error.message, 
+        stack: error.stack 
+    });
+    // Optional: process.exit(1) if critical
+});
+
 server.register(swagger, {
   openapi: {
     openapi: '3.1.0',

@@ -116,51 +116,56 @@ export class AIService {
     }
 
     async getRequestModel(config: any, journeyState: any, overrideModel?: string) {
-        const settings = await this.getSettings();
-        
-        // Determine which model to use:
-        // 1. Explicit override (from fallback retry loop)
-        // 2. Settings from Admin Panel
-        // 3. Currently active model
-        let targetModel = overrideModel || settings.activeModel || this.activeModelName;
+        try {
+            const settings = await this.adminService.getSettings();
+            
+            // Determine which model to use:
+            // 1. Explicit override (from fallback retry loop)
+            // 2. Settings from Admin Panel
+            // 3. Currently active model
+            let targetModel = overrideModel || settings.activeModel || this.activeModelName;
 
-        // If we need to switch the "Active" model (and it's not just a temporary override)
-        // OR if the model isn't initialized yet
-        if (!this.activeGenerativeModel || (!overrideModel && this.activeModelName !== targetModel)) {
-             logger.info(`🔄 Switching active model to ${targetModel}`);
-             await this.initialize(targetModel);
+            // If we need to switch the "Active" model (and it's not just a temporary override)
+            // OR if the model isn't initialized yet
+            if (!this.activeGenerativeModel || (!overrideModel && this.activeModelName !== targetModel)) {
+                 logger.info(`🔄 Switching active model to ${targetModel}`);
+                 await this.initialize(targetModel);
+            }
+
+            // Fetch Knowledge Context
+            const knowledgeIds = config.knowledgeIds || null;
+            const knowledgeBases = await this.getKnowledge(knowledgeIds);
+            
+            // Concatenate content
+            const contextInjection = knowledgeBases.map((kb: any) => 
+                `\n### KNOWLEDGE BASE: ${kb.title}\n${kb.content}\n`
+            ).join("\n");
+
+            const fullConfig = { 
+                ...config, 
+                agentName: settings.agentName,
+                knowledgeContext: contextInjection
+            };
+
+            // Return a fresh GenerativeModel instance with the specific system instructions for this chat turn
+            // This does NOT affect the global tool-enabled model unless we re-initialized above
+            return this.vertexAI.getGenerativeModel({
+                model: targetModel!,
+                generationConfig: {
+                    maxOutputTokens: 2048,
+                    temperature: 0.4,
+                    topP: 0.9,
+                },
+                systemInstruction: {
+                    role: 'system',
+                    parts: [{ text: buildSystemInstruction(fullConfig, journeyState) }]
+                },
+                tools: JOURNEY_TOOLS as any
+            });
+        } catch (error: any) {
+            logger.error("Error in getRequestModel", { error: error.message, stack: error.stack });
+            throw error;
         }
-
-        // Fetch Knowledge Context
-        const knowledgeIds = config.knowledgeIds || null;
-        const knowledgeBases = await this.getKnowledge(knowledgeIds);
-        
-        // Concatenate content
-        const contextInjection = knowledgeBases.map((kb: any) => 
-            `\n### KNOWLEDGE BASE: ${kb.title}\n${kb.content}\n`
-        ).join("\n");
-
-        const fullConfig = { 
-            ...config, 
-            agentName: settings.agentName,
-            knowledgeContext: contextInjection
-        };
-
-        // Return a fresh GenerativeModel instance with the specific system instructions for this chat turn
-        // This does NOT affect the global tool-enabled model unless we re-initialized above
-        return this.vertexAI.getGenerativeModel({
-            model: targetModel!,
-            generationConfig: {
-                maxOutputTokens: 2048,
-                temperature: 0.4,
-                topP: 0.9,
-            },
-            systemInstruction: {
-                role: 'system',
-                parts: [{ text: buildSystemInstruction(fullConfig, journeyState) }]
-            },
-            tools: JOURNEY_TOOLS as any
-        });
     }
 
     get ActiveModelName() {
