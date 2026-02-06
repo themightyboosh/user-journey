@@ -59,7 +59,7 @@ server.addHook('onReady', async () => {
 });
 
 // Global Error Handler
-server.setErrorHandler((error, request, reply) => {
+server.setErrorHandler((error: any, request, reply) => {
     logger.error('Global Error Handler', { 
         error: error.message, 
         stack: error.stack,
@@ -174,10 +174,12 @@ server.post('/api/chat', async (request, reply) => {
           
           const functionCalls = response.candidates?.[0]?.content?.parts?.filter((p: any) => p.functionCall);
           
-          if (functionCalls && functionCalls.length > 0) {
+            if (functionCalls && functionCalls.length > 0) {
               for (const call of functionCalls) {
                   const fn = call.functionCall;
-                  const toolResult = await aiService.executeTool(fn.name, fn.args);
+                  if (!fn) continue;
+
+                  const toolResult: any = await aiService.executeTool(fn.name, fn.args);
                   
                   const toolResponsePart = {
                       functionResponse: {
@@ -190,7 +192,7 @@ server.post('/api/chat', async (request, reply) => {
                   contents.push(response.candidates![0].content);
                   contents.push({ role: 'function', parts: [toolResponsePart] });
   
-                  if (fn.name === 'create_journey_map' && toolResult.journeyMapId) {
+                  if (fn.name === 'create_journey_map' && toolResult && toolResult.journeyMapId) {
                        config.journeyId = toolResult.journeyMapId;
                        reply.raw.write(`data: ${JSON.stringify({ journeyId: toolResult.journeyMapId })}\n\n`);
                   }

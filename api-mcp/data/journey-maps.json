@@ -4011,5 +4011,171 @@
     },
     "summaryOfFindings": "Scott's daily routine for Banner, a 10-week-old Bernedoodle, revolves around two primary phases: feeding and grooming. Feeding involves a specific ritual where Scott goes to the kitchen, with Banner in tow, to prepare a diet of roast beef and family leftovers, which is then served in a dedicated dog area on the porch. A significant challenge during feeding is the perceived insufficiency of food and Banner's tendency to steal butter. Grooming is focused on fur removal using a specialized brush, often described as a 'sword,' particularly targeting the underbelly. This activity is consistently performed outdoors to manage shedding. The main pain point in grooming is Banner's vocal distress, especially when his underbelly is brushed, indicating discomfort or anxiety.",
     "mentalModels": "1. **\"Puppy as a Companion/Eager Participant\"**: Scott perceives Banner as an active and eager participant in daily routines, particularly evident in Banner following him to the kitchen for meals. This suggests an an expectation of Banner's involvement and excitement.\n2. **\"Grooming as a Necessary Battle\"**: The description of brushing \"like a sword\" and the focus on \"fur removal\" combined with Banner's \"crying\" suggests a mental model where grooming is a somewhat combative but necessary task to maintain cleanliness and furniture, rather than a bonding or relaxing activity.\n3. **\"Food Scarcity & Resource Guarding (from owner's perspective)\"**: Scott's frustration about \"never enough food\" and Banner \"stealing butter\" indicates a mental model where food is a constant point of contention or concern, possibly stemming from a belief that Banner is perpetually hungry or that his diet needs strict management.\n4. **\"Outdoor as a Solution for Mess Management\"**: The consistent choice to groom Banner outdoors highlights a mental model where outdoor spaces are utilized to mitigate the mess associated with pet care, particularly shedding."
+  },
+  "caa0ed6e-1079-49d2-8591-f45a1c9a1ea9": {
+    "journeyMapId": "caa0ed6e-1079-49d2-8591-f45a1c9a1ea9",
+    "sessionId": "d6560b35-460c-4679-a171-eeb1d7c3efb5",
+    "status": "DRAFT",
+    "stage": "CELL_POPULATION",
+    "userName": "Daniel",
+    "name": "User Registration Process",
+    "role": "Product Manager",
+    "description": "Onboarding new users into our platform to support growth and user engagement.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "3e849f74-28d2-464a-b821-a280986bdf93",
+        "sequence": 1,
+        "name": "Sign Up",
+        "description": "Sign Up",
+        "context": ""
+      },
+      {
+        "phaseId": "dbc1f4ce-886a-4dc4-ba02-6eb65a7282cd",
+        "sequence": 2,
+        "name": "Verify",
+        "description": "Verify",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "e4764460-66dd-4c93-8f0e-052bd779ca74",
+        "sequence": 1,
+        "name": "User Actions",
+        "description": "What the user does, such as inputting data and clicking buttons.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "b14dcb13-9c5c-4f27-b1b0-02eca1cff5aa",
+        "sequence": 2,
+        "name": "Emotions",
+        "description": "The user's feelings and emotional state at each point in the journey.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "36547044-692f-421c-83f8-1fa3fd0e43cc",
+        "sequence": 3,
+        "name": "System Responses",
+        "description": "How the system reacts, including sending emails or displaying error messages.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "4d2b6fa9-bed2-468d-8d02-51e75a930091",
+        "sequence": 4,
+        "name": "Pain Points",
+        "description": "Challenges or difficulties the user might encounter.",
+        "context": ""
+      },
+      {
+        "swimlaneId": "31a21fd2-b6e7-45c7-b391-dc862434d1d1",
+        "sequence": 5,
+        "name": "Key Metrics",
+        "description": "Important measurements related to completion rates and user drop-off.",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "0b795d77-7c15-499d-9a0d-d38c2390db27",
+        "phaseId": "3e849f74-28d2-464a-b821-a280986bdf93",
+        "swimlaneId": "e4764460-66dd-4c93-8f0e-052bd779ca74",
+        "headline": "Input Credentials",
+        "description": "Navigating to the registration page, inputting email and chosen password, and clicking the \"Register\" or \"Sign Up\" button.",
+        "context": ""
+      },
+      {
+        "cellId": "0abcf55c-097b-447c-8d64-6c83cf6face9",
+        "phaseId": "3e849f74-28d2-464a-b821-a280986bdf93",
+        "swimlaneId": "b14dcb13-9c5c-4f27-b1b0-02eca1cff5aa",
+        "headline": "Hopeful yet Impatient",
+        "description": "Feeling hopeful and optimistic about joining the platform. However, quickly becoming impatient or frustrated if the registration form is too long or confusing.",
+        "context": ""
+      },
+      {
+        "cellId": "fc648c8f-b2fd-4e44-afa0-1a90513371c6",
+        "phaseId": "3e849f74-28d2-464a-b821-a280986bdf93",
+        "swimlaneId": "36547044-692f-421c-83f8-1fa3fd0e43cc",
+        "headline": "Display Messages & Send Verification Email",
+        "description": "The system might display success messages, show error messages for invalid input (e.g., weak password, existing email), and critically, send a verification email to the user's provided address.",
+        "context": ""
+      },
+      {
+        "cellId": "955a6dcd-057b-4672-b5b6-16c4e29412b3",
+        "phaseId": "3e849f74-28d2-464a-b821-a280986bdf93",
+        "swimlaneId": "4d2b6fa9-bed2-468d-8d02-51e75a930091",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "1c60af4b-17ca-4c4d-8145-a495ed00976b",
+        "phaseId": "3e849f74-28d2-464a-b821-a280986bdf93",
+        "swimlaneId": "31a21fd2-b6e7-45c7-b391-dc862434d1d1",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "527fafe1-3b5e-4735-bd2a-bdb5724d9352",
+        "phaseId": "dbc1f4ce-886a-4dc4-ba02-6eb65a7282cd",
+        "swimlaneId": "e4764460-66dd-4c93-8f0e-052bd779ca74",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "966d403b-f1ac-4bee-8a81-246871e134e2",
+        "phaseId": "dbc1f4ce-886a-4dc4-ba02-6eb65a7282cd",
+        "swimlaneId": "b14dcb13-9c5c-4f27-b1b0-02eca1cff5aa",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "25a901c7-72fd-4c8a-9aa0-1b29534011e5",
+        "phaseId": "dbc1f4ce-886a-4dc4-ba02-6eb65a7282cd",
+        "swimlaneId": "36547044-692f-421c-83f8-1fa3fd0e43cc",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "a1098f15-10ef-454b-b28d-d52e2e7b9df8",
+        "phaseId": "dbc1f4ce-886a-4dc4-ba02-6eb65a7282cd",
+        "swimlaneId": "4d2b6fa9-bed2-468d-8d02-51e75a930091",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "d28bbbcb-1c76-45fd-920e-85cebf133626",
+        "phaseId": "dbc1f4ce-886a-4dc4-ba02-6eb65a7282cd",
+        "swimlaneId": "31a21fd2-b6e7-45c7-b391-dc862434d1d1",
+        "headline": "",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 2,
+      "totalSwimlanes": 5,
+      "totalCellsExpected": 10,
+      "totalCellsPresent": 10,
+      "totalCellsCompleted": 3,
+      "percentCellsComplete": 30
+    },
+    "createdAt": "2026-02-06T18:14:16.632Z",
+    "updatedAt": "2026-02-06T18:14:48.205Z",
+    "version": 8
   }
 }

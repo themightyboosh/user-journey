@@ -294,18 +294,43 @@ export class JourneyService {
         let journey = await Store.get(id);
         if (!journey) return null;
 
-        let mermaidCode = `journey\n    title ${journey.name}\n`;
+        // Flowchart (TD)
+        // Subgraphs for Phases
+        let mermaidCode = `graph TD\n    title ${journey.name}\n`;
+        
+        // Define Styles
+        mermaidCode += `    %% Styles\n    classDef phase fill:#f9f9f9,stroke:#333,stroke-width:2px;\n    classDef swimlane fill:#e1f5fe,stroke:#0277bd,stroke-width:1px;\n`;
+
+        // Create Subgraphs for each Phase
         for (const phase of journey.phases) {
-            mermaidCode += `    section ${phase.name}\n`;
+            mermaidCode += `    subgraph ${phase.phaseId}["${phase.name}"]\n`;
+            
+            // Add nodes for cells within this phase
             for (const swimlane of journey.swimlanes) {
                 const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
                 if (cell && isCellComplete(cell)) {
-                    // Simple representation
-                    mermaidCode += `      ${swimlane.name}: 3: ${cell.headline}\n`;
+                    // Node ID must be unique
+                    const nodeId = `cell_${cell.cellId.replace(/-/g, '_')}`;
+                    // Label includes Swimlane + Headline
+                    const label = `**${swimlane.name}**<br/>${cell.headline}`;
+                    mermaidCode += `        ${nodeId}["${label}"]\n`;
                 }
             }
+            mermaidCode += `    end\n`;
         }
 
+        // Connect Phases sequentially?
+        // Actually, in a Journey Map, items flow left-to-right through phases.
+        // It's hard to auto-connect nodes without knowing the logic.
+        // But we can connect the Subgraphs invisibly to force ordering?
+        // Mermaid doesn't easily support connecting subgraphs directly.
+        // Instead, let's just let them layout naturally or connect "dummy" nodes?
+        // Alternatively, we can assume a linear flow if we want.
+        // For now, let's just group them.
+        
+        // OPTIONAL: Connect first cell of Phase N to first cell of Phase N+1 to encourage layout?
+        // Let's keep it simple first. The user asked for "ALL elements".
+        
         journey.mermaid = { code: mermaidCode };
         journey.outputJson = { code: JSON.stringify(journey, null, 2) };
 

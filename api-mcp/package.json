@@ -11,7 +11,8 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
     "build": "tsc || true",
     "mcp": "ts-node src/mcp-server.ts",
-    "seed": "ts-node src/scripts/seed_journey.ts"
+    "seed": "ts-node src/scripts/seed_journey.ts",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -28,7 +29,7 @@
     "fastify": "^5.7.4",
     "firebase-admin": "^13.6.1",
     "firebase-functions": "^7.0.5",
-    "uuid": "^13.0.0",
+    "uuid": "^9.0.1",
     "winston": "^3.19.0",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.25.1"
@@ -37,7 +38,7 @@
     "@google-cloud/vertexai": "^1.10.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.2.1",
-    "@types/uuid": "^11.0.0",
+    "@types/uuid": "^9.0.8",
     "jest": "^30.2.0",
     "nodemon": "^3.1.11",
     "ts-jest": "^29.4.6",
