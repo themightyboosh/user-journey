@@ -134,7 +134,9 @@ export class AIService {
 
             // Fetch Knowledge Context
             const knowledgeIds = config.knowledgeIds || null;
-            const knowledgeBases = await this.adminService.getKnowledge(); // Access AdminService directly
+            
+            // Use AdminService directly to avoid 'this' context issues with local helper methods
+            const knowledgeBases = await this.adminService.getKnowledge();
             
             // Filter manually since we are bypassing the wrapper
             let activeKnowledge = [];
