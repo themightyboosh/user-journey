@@ -3,6 +3,20 @@ import { Store } from '../store';
 
 export class AdminService {
     private static instance: AdminService;
+    
+    // Simple In-Memory Cache
+    private cache: {
+        settings: { data: any, timestamp: number } | null;
+        knowledge: { data: any[], timestamp: number } | null;
+        links: { data: any[], timestamp: number } | null;
+    } = {
+        settings: null,
+        knowledge: null,
+        links: null
+    };
+
+    // TTL: 60 Seconds
+    private CACHE_TTL = 60 * 1000;
 
     private constructor() {}
 
@@ -13,12 +27,23 @@ export class AdminService {
         return AdminService.instance;
     }
 
+    private isFresh(cacheEntry: { timestamp: number } | null): boolean {
+        if (!cacheEntry) return false;
+        return (Date.now() - cacheEntry.timestamp) < this.CACHE_TTL;
+    }
+
     async getLinks() {
-        return await Store.getLinks();
+        if (this.isFresh(this.cache.links)) {
+            return this.cache.links!.data;
+        }
+        const data = await Store.getLinks();
+        this.cache.links = { data, timestamp: Date.now() };
+        return data;
     }
 
     async getLink(id: string) {
-        const links = await Store.getLinks();
+        // Use getLinks() which handles caching
+        const links = await this.getLinks();
         return links.find((l: any) => l.id === id) || null;
     }
 
@@ -27,7 +52,7 @@ export class AdminService {
 
         if (!id) {
             // Generate sequential ID
-            const links = await Store.getLinks();
+            const links = await this.getLinks(); // Uses cache for reading
             
             // Extract numeric IDs
             const numbers = links
@@ -47,11 +72,12 @@ export class AdminService {
             createdAt: new Date().toISOString(),
         };
         await Store.saveLink(newLink);
+        this.cache.links = null; // Invalidate
         return newLink;
     }
 
     async updateLink(id: string, data: any) {
-        const links = await Store.getLinks();
+        const links = await this.getLinks();
         const existing = links.find((l: any) => l.id === id);
         
         if (!existing) return null;
@@ -62,25 +88,39 @@ export class AdminService {
             updatedAt: new Date().toISOString()
         };
         await Store.saveLink(updated);
+        this.cache.links = null; // Invalidate
         return updated;
     }
 
     async deleteLink(id: string) {
         await Store.deleteLink(id);
+        this.cache.links = null; // Invalidate
         return { success: true };
     }
 
     async getSettings() {
-        return await Store.getSettings();
+        if (this.isFresh(this.cache.settings)) {
+            return this.cache.settings!.data;
+        }
+        const data = await Store.getSettings();
+        this.cache.settings = { data, timestamp: Date.now() };
+        return data;
     }
 
     async saveSettings(data: any) {
         await Store.saveSettings(data);
+        // Update cache immediately instead of invalidating (Write-Through-ish)
+        this.cache.settings = { data, timestamp: Date.now() }; 
         return data;
     }
 
     async getKnowledge() {
-        return await Store.getKnowledge();
+        if (this.isFresh(this.cache.knowledge)) {
+            return this.cache.knowledge!.data;
+        }
+        const data = await Store.getKnowledge();
+        this.cache.knowledge = { data, timestamp: Date.now() };
+        return data;
     }
 
     async createKnowledge(data: any) {
@@ -91,11 +131,12 @@ export class AdminService {
             ...data
         };
         await Store.saveKnowledge(newItem);
+        this.cache.knowledge = null; // Invalidate
         return newItem;
     }
 
     async updateKnowledge(id: string, data: any) {
-        const items = await Store.getKnowledge();
+        const items = await this.getKnowledge();
         const existing = items.find((i: any) => i.id === id);
         
         if (!existing) return null;
@@ -106,11 +147,13 @@ export class AdminService {
             updatedAt: new Date().toISOString()
         };
         await Store.saveKnowledge(updated);
+        this.cache.knowledge = null; // Invalidate
         return updated;
     }
 
     async deleteKnowledge(id: string) {
         await Store.deleteKnowledge(id);
+        this.cache.knowledge = null; // Invalidate
         return { success: true };
     }
 }

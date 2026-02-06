@@ -173,34 +173,35 @@ server.post('/api/chat', async (request, reply) => {
       }
   
       logger.info('Getting request model');
-      let requestModel = await aiService.getRequestModel(config, journeyState);
-      logger.info('Got request model');
+      let modelResult = await aiService.getRequestModel(config, journeyState);
+      let requestModel = modelResult.model;
+      let currentModelName = modelResult.modelName;
+      logger.info(`Got request model: ${currentModelName}`);
   
       let currentTurn = 0;
       const maxTurns = 5;
       let finalDone = false;
   
       // Helper for generation with 429 handling
-      const generateSafe = async (model: any, params: any) => {
+      const generateSafe = async (model: any, params: any, modelName: string) => {
           try {
               const result = await model.generateContent(params);
               const response = await result.response;
-              return { response, model }; 
+              return { response, model, modelName }; 
           } catch (e: any) {
               if (e.message?.includes('429') || e.status === 429 || e.code === 429 || e.message?.includes('RESOURCE_EXHAUSTED')) {
-                   logger.warn("⚠️ 429 RESOURCE EXHAUSTED - Triggering Fallback Model");
+                   logger.warn(`⚠️ 429 RESOURCE EXHAUSTED for ${modelName} - Triggering Fallback Model`);
                    
-                   // 1. Get the next fallback model name (e.g. 'gemini-2.5-flash')
-                   const nextFallbackModel = await aiService.switchToFallback();
+                   // 1. Get the next fallback model name
+                   const nextFallbackModel = aiService.getNextFallback(modelName);
                    
                    // 2. Re-create the request model using the FALLBACK name specifically
-                   // This bypasses the logic that would revert it to the Admin Settings "Pro" model
-                   const newModel = await aiService.getRequestModel(config, journeyState, nextFallbackModel);
+                   const newModelResult = await aiService.getRequestModel(config, journeyState, nextFallbackModel);
                    
                    // 3. Retry once with new model
-                   const result = await newModel.generateContent(params);
+                   const result = await newModelResult.model.generateContent(params);
                    const response = await result.response;
-                   return { response, model: newModel }; 
+                   return { response, model: newModelResult.model, modelName: newModelResult.modelName }; 
               }
               throw e;
           }
@@ -208,9 +209,10 @@ server.post('/api/chat', async (request, reply) => {
 
       // Initial Generation
       logger.info('Starting generation');
-      let genResult = await generateSafe(requestModel, { contents });
+      let genResult = await generateSafe(requestModel, { contents }, currentModelName);
       let response = genResult.response;
-      requestModel = genResult.model; // Update model reference in case of fallback
+      requestModel = genResult.model; // Update model reference
+      currentModelName = genResult.modelName; // Update name reference
       logger.info('Got initial response');
       
       while (currentTurn < maxTurns && !finalDone) {
@@ -218,7 +220,7 @@ server.post('/api/chat', async (request, reply) => {
           
           const functionCalls = response.candidates?.[0]?.content?.parts?.filter((p: any) => p.functionCall);
           
-            if (functionCalls && functionCalls.length > 0) {
+          if (functionCalls && functionCalls.length > 0) {
               for (const call of functionCalls) {
                   const fn = call.functionCall;
                   if (!fn) continue;
@@ -242,9 +244,10 @@ server.post('/api/chat', async (request, reply) => {
                   }
               }
               
-              genResult = await generateSafe(requestModel, { contents });
+              genResult = await generateSafe(requestModel, { contents }, currentModelName);
               response = genResult.response;
               requestModel = genResult.model;
+              currentModelName = genResult.modelName;
           } else {
               const finalText = response.candidates?.[0]?.content?.parts?.[0]?.text || "Processing...";
               reply.raw.write(`data: ${JSON.stringify({ text: finalText })}\n\n`);
