@@ -134,10 +134,21 @@ export class AIService {
 
             // Fetch Knowledge Context
             const knowledgeIds = config.knowledgeIds || null;
-            const knowledgeBases = await this.getKnowledge(knowledgeIds);
+            const knowledgeBases = await this.adminService.getKnowledge(); // Access AdminService directly
+            
+            // Filter manually since we are bypassing the wrapper
+            let activeKnowledge = [];
+            if (knowledgeIds && Array.isArray(knowledgeIds) && knowledgeIds.length > 0) {
+                activeKnowledge = knowledgeBases.filter((k: any) => knowledgeIds.includes(k.id));
+            } else if (knowledgeIds && typeof knowledgeIds === 'string') {
+                 const match = knowledgeBases.find((k: any) => k.id === knowledgeIds);
+                 activeKnowledge = match ? [match] : [];
+            } else {
+                activeKnowledge = knowledgeBases.filter((k: any) => k.isActive);
+            }
             
             // Concatenate content
-            const contextInjection = knowledgeBases.map((kb: any) => 
+            const contextInjection = activeKnowledge.map((kb: any) => 
                 `\n### KNOWLEDGE BASE: ${kb.title}\n${kb.content}\n`
             ).join("\n");
 
