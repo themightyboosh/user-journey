@@ -6,7 +6,7 @@ import path from 'path';
 // Load env vars
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT || 'journey-mapper-ai-8822';
+const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT || 'journey-mapper-1770224883';
 const LOCATION = process.env.VERTEX_AI_LOCATION || 'us-central1';
 const MODEL = 'gemini-2.5-flash';
 

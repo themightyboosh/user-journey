@@ -6,7 +6,7 @@ import path from 'path';
 // Load env vars
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT || 'journey-mapper-ai-8822';
+const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT || 'journey-mapper-1770224883';
 
 // Initialize Firebase
 if (!admin.apps.length) {

@@ -21,7 +21,7 @@ export class AIService {
         }
 
         this.config = {
-            projectId: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || 'journey-mapper-ai-8822',
+            projectId: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || 'journey-mapper-1770224883',
             location: process.env.VERTEX_AI_LOCATION || 'us-central1'
         };
 

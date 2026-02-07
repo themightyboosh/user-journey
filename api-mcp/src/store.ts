@@ -11,7 +11,7 @@ if (isFirebase) {
     try {
         if (!admin.apps.length) {
             admin.initializeApp({
-                projectId: process.env.GOOGLE_CLOUD_PROJECT || 'journey-mapper-ai-8822'
+                projectId: process.env.GOOGLE_CLOUD_PROJECT || 'journey-mapper-1770224883'
             });
             logger.info("Firebase Admin Initialized with explicit projectId");
         } else {

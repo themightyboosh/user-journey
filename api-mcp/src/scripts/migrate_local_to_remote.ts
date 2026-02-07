@@ -26,7 +26,7 @@ async function migrate() {
         // This assumes you are authenticated via `gcloud auth application-default login`
         // and have set GOOGLE_CLOUD_PROJECT or GCLOUD_PROJECT environment variable
         admin.initializeApp({
-            projectId: process.env.GOOGLE_CLOUD_PROJECT || 'journey-mapper-ai-8822'
+            projectId: process.env.GOOGLE_CLOUD_PROJECT || 'journey-mapper-1770224883'
         });
 
         const db = admin.firestore();
