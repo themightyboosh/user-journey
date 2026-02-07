@@ -311,7 +311,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     }
 
     
-    // hasSummaries calculated above
+    // Calculate hasSummaries before using it
+    const hasSummaries = journey.phases.some(p => p.summary) || journey.swimlanes.some(s => s.summary);
     const hasArtifacts = journey.summaryOfFindings || journey.mentalModels || journey.anythingElse || hasSummaries;
     
     if (hasArtifacts) {
@@ -395,8 +396,6 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     }
 
     // --- SECTION 3: PHASES & LANES (Grid) ---
-    const hasSummaries = journey.phases.some(p => p.summary) || journey.swimlanes.some(s => s.summary);
-    
     if (hasSummaries) {
         html += `
             <div class="artifact-section summaries-section" style="width: 100%;">
