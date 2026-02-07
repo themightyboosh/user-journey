@@ -1788,17 +1788,20 @@
               const res = await fetch(`/api/admin/links/${configId}?_t=${Date.now()}`);
               if (res.ok) {
                   const linkData = await res.json();
-                  // Only include fields whose toggles are ON
+                  // If toggles exist, only include fields whose toggles are ON.
+                  // If no toggles (legacy config), include any field that has a value.
+                  const hasToggles = linkData.toggles && Object.keys(linkData.toggles).length > 0;
                   const t = linkData.toggles || {};
+                  const use = (key, val) => hasToggles ? (t[key] ? val : undefined) : (val || undefined);
                   remoteConfig = {
-                      name: t.name ? linkData.name : undefined,
-                      role: t.role ? linkData.role : undefined,
-                      journeyName: t.journey ? linkData.journey : undefined,
-                      welcomePrompt: t.welcomePrompt ? linkData.welcomePrompt : undefined,
-                      journeyPrompt: t.journeyPrompt ? linkData.journeyPrompt : undefined,
-                      ragContext: t.ragContext ? (linkData.ragContext || null) : null,
-                      swimlanes: t.swimlanes ? linkData.swimlanes : undefined,
-                      phases: t.phases ? linkData.phases : undefined
+                      name: use('name', linkData.name),
+                      role: use('role', linkData.role),
+                      journeyName: use('journey', linkData.journey),
+                      welcomePrompt: use('welcomePrompt', linkData.welcomePrompt),
+                      journeyPrompt: use('journeyPrompt', linkData.journeyPrompt),
+                      ragContext: use('ragContext', linkData.ragContext) || null,
+                      swimlanes: use('swimlanes', linkData.swimlanes),
+                      phases: use('phases', linkData.phases)
                   };
               }
           } catch (e) {
