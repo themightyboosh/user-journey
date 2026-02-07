@@ -21,7 +21,6 @@
             </div>
             <div class="admin-nav">
                 <a href="#" class="active" id="nav-links">Links Module</a>
-                <a href="#" id="nav-knowledge">Knowledge Base</a>
                 <a href="#" id="nav-journeys">Journeys</a>
                 <a href="#" id="nav-settings">Settings</a>
             </div>
@@ -145,11 +144,12 @@
                 <div class="config-section">
                     <h2>AI Instructions</h2>
             <div class="form-group">
-                <label>Knowledge Collections</label>
-                <div id="knowledgeSelector" class="checkbox-group">
-                    <!-- Populated via JS -->
+                <label for="ragContext">Additional Context (RAG)</label>
+                <textarea id="ragContext" rows="6" placeholder="Paste or type additional context for the AI to reference during this journey session. E.g. product documentation, terminology, research briefs..." maxlength="4000"></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="help-text" style="margin: 0;">Injected into the AI system prompt. Keep concise for best results.</div>
+                    <div class="help-text" style="margin: 0; font-variant-numeric: tabular-nums;"><span id="ragCharCount">0</span> / 4,000</div>
                 </div>
-                <div class="help-text">Select one or more knowledge bases to inject into this session.</div>
             </div>
                     <div class="form-group">
                         <label for="welcome-prompt">Welcome Prompt Override</label>
@@ -202,56 +202,6 @@
                 </div>
             </div>
             </div> 
-
-            <!-- Knowledge Module -->
-            <div class="admin-content" id="module-knowledge" style="display: none;">
-                <div class="module-header">
-                    <div class="header-text">
-                        <h1>Knowledge Base</h1>
-                        <p>Manage context snippets injected into the AI sessions.</p>
-                    </div>
-                    <div class="header-actions">
-                        <button id="newKnowledgeBtn" class="secondary-btn">New Entry</button>
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 24px; height: calc(100vh - 140px);">
-                    <!-- Knowledge List -->
-                    <div class="knowledge-sidebar" style="width: 300px; flex-shrink: 0; border-right: 1px solid var(--border-color); padding-right: 24px; overflow-y: auto;">
-                        <div id="knowledgeList" class="saved-links-list">
-                            <!-- Populated via JS -->
-                        </div>
-                    </div>
-
-                    <!-- Knowledge Editor -->
-                    <div id="knowledgeForm" style="flex: 1; display: none;">
-                        <div class="config-grid">
-                            <div class="config-section full-width">
-                                <div class="form-group">
-                                    <label for="knowledgeTitle">Title</label>
-                                    <input type="text" id="knowledgeTitle" placeholder="e.g. Vocabulary List">
-                                </div>
-                                <div class="form-group">
-                                    <label for="knowledgeContent">Content (Context Snippet)</label>
-                                    <textarea id="knowledgeContent" rows="15" placeholder="Enter the text to be injected into the AI's system prompt..."></textarea>
-                                    <div class="help-text">This text will be appended to the system instructions when active.</div>
-                                </div>
-                                <div class="form-group checkbox-group">
-                                    <label class="checkbox-container">
-                                        <input type="checkbox" id="knowledgeActive" checked>
-                                        <span class="checkmark"></span>
-                                        Active (Inject by default if no specific ID provided)
-                                    </label>
-                                </div>
-                                <div class="form-actions" style="margin-top: 24px; display: flex; gap: 12px;">
-                                    <button id="saveKnowledgeBtn" class="primary-btn">Create Knowledge Base</button>
-                                    <button id="deleteKnowledgeBtn" class="secondary-btn danger-btn" style="display: none;">Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Settings Module -->
             <div class="admin-content" id="module-settings" style="display: none;">

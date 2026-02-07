@@ -1794,7 +1794,7 @@
                       journeyName: linkData.journey,
                       welcomePrompt: linkData.welcomePrompt,
                       journeyPrompt: linkData.journeyPrompt,
-                      knowledgeIds: linkData.knowledgeIds || (linkData.knowledgeId ? [linkData.knowledgeId] : null),
+                      ragContext: linkData.ragContext || null,
                       swimlanes: linkData.swimlanes
                   };
               }
@@ -1829,7 +1829,7 @@
           journeyName: params.get('journey') || remoteConfig.journeyName,
           welcomePrompt: params.get('welcome-prompt') || remoteConfig.welcomePrompt,
           journeyPrompt: params.get('journey-prompt') || remoteConfig.journeyPrompt,
-          knowledgeIds: params.get('knowledge-ids') ? params.get('knowledge-ids').split(',') : remoteConfig.knowledgeIds,
+          ragContext: remoteConfig.ragContext || null,
           swimlanes: urlSwimlanes || remoteConfig.swimlanes,
           journeyId: journeyId
       };

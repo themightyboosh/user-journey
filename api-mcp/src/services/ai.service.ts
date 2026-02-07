@@ -85,23 +85,11 @@ export class AIService {
             let targetModel = overrideModel || settings.activeModel || 'gemini-2.5-flash-lite';
             this.activeModelName = targetModel; // Update last used for logging/state compatibility
 
-            // Fetch Knowledge Context (Cached via AdminService)
-            const knowledgeIds = config.knowledgeIds || null;
-            const knowledgeBases = await this.adminService.getKnowledge();
-            
-            let activeKnowledge = [];
-            if (knowledgeIds && Array.isArray(knowledgeIds) && knowledgeIds.length > 0) {
-                activeKnowledge = knowledgeBases.filter((k: any) => knowledgeIds.includes(k.id));
-            } else if (knowledgeIds && typeof knowledgeIds === 'string') {
-                 const match = knowledgeBases.find((k: any) => k.id === knowledgeIds);
-                 activeKnowledge = match ? [match] : [];
-            } else {
-                activeKnowledge = knowledgeBases.filter((k: any) => k.isActive);
+            // Build knowledge context from ragContext (inline text from link config)
+            let contextInjection = '';
+            if (config.ragContext && typeof config.ragContext === 'string' && config.ragContext.trim().length > 0) {
+                contextInjection = `\n### ADDITIONAL CONTEXT\n${config.ragContext.trim()}\n`;
             }
-            
-            const contextInjection = activeKnowledge.map((kb: any) => 
-                `\n### KNOWLEDGE BASE: ${kb.title}\n${kb.content}\n`
-            ).join("\n");
 
             const fullConfig = { 
                 ...config, 

@@ -1,11 +1,10 @@
 // Config
-const VERSION = '1.2';
+const VERSION = '1.3';
 console.log('Journey Mapper Admin v' + VERSION);
 
 const BASE_URL = window.location.origin + '/';
 const LINKS_API_URL = window.location.origin + '/api/admin/links';
 const SETTINGS_API_URL = window.location.origin + '/api/admin/settings';
-const KNOWLEDGE_API_URL = window.location.origin + '/api/admin/knowledge';
 const JOURNEYS_API_URL = window.location.origin + '/api/admin/journeys';
 
 // DOM Elements - Links Module
@@ -15,9 +14,10 @@ const formInputs = {
     journey: document.getElementById('journey'),
     welcomePrompt: document.getElementById('welcome-prompt'),
     journeyPrompt: document.getElementById('journey-prompt'),
-    knowledgeSelector: document.getElementById('knowledgeSelector')
+    ragContext: document.getElementById('ragContext')
 };
 const configNameInput = document.getElementById('configName');
+const ragCharCount = document.getElementById('ragCharCount');
 
 const swimlanesContainer = document.getElementById('swimlanesContainer');
 const addSwimlaneBtn = document.getElementById('addSwimlaneBtn');
@@ -35,16 +35,6 @@ const agentNameInput = document.getElementById('agentName');
 const activeModelInput = document.getElementById('activeModel');
 const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 
-// DOM Elements - Knowledge Module
-const knowledgeList = document.getElementById('knowledgeList');
-const newKnowledgeBtn = document.getElementById('newKnowledgeBtn');
-const knowledgeTitle = document.getElementById('knowledgeTitle');
-const knowledgeContent = document.getElementById('knowledgeContent');
-const knowledgeActive = document.getElementById('knowledgeActive');
-const saveKnowledgeBtn = document.getElementById('saveKnowledgeBtn');
-const deleteKnowledgeBtn = document.getElementById('deleteKnowledgeBtn');
-const knowledgeForm = document.getElementById('knowledgeForm');
-
 // DOM Elements - Journeys Module
 const journeyList = document.getElementById('journeyList');
 const adminCanvas = document.getElementById('adminCanvas');
@@ -57,21 +47,17 @@ const filterRadios = document.querySelectorAll('input[name="jFilter"]');
 const navLinks = {
     links: document.getElementById('nav-links'),
     settings: document.getElementById('nav-settings'),
-    knowledge: document.getElementById('nav-knowledge'),
     journeys: document.getElementById('nav-journeys')
 };
 const modules = {
     links: document.getElementById('module-links'),
     settings: document.getElementById('module-settings'),
-    knowledge: document.getElementById('module-knowledge'),
     journeys: document.getElementById('module-journeys')
 };
 
 // State
 let currentLinkId = null;
 let savedLinks = [];
-let currentKnowledgeId = null;
-let savedKnowledge = [];
 let savedJourneys = [];
 let currentJourneyId = null;
 
@@ -80,17 +66,22 @@ function init() {
     // Navigation Logic
     navLinks.links.addEventListener('click', (e) => switchModule(e, 'links'));
     navLinks.settings.addEventListener('click', (e) => switchModule(e, 'settings'));
-    navLinks.knowledge.addEventListener('click', (e) => switchModule(e, 'knowledge'));
     navLinks.journeys.addEventListener('click', (e) => switchModule(e, 'journeys'));
 
     // Links Module Init
     Object.values(formInputs).forEach(input => {
         if(input) {
             input.addEventListener('input', updateUrl);
-            input.addEventListener('change', updateUrl); // Handle select changes
+            input.addEventListener('change', updateUrl);
         }
     });
     configNameInput.addEventListener('input', () => {}); 
+
+    // RAG Character Counter
+    if (formInputs.ragContext) {
+        formInputs.ragContext.addEventListener('input', updateRagCharCount);
+        updateRagCharCount(); // Initialize count
+    }
 
     addSwimlaneBtn.addEventListener('click', () => addSwimlane());
     copyBtn.addEventListener('click', copyToClipboard);
@@ -98,20 +89,12 @@ function init() {
     deleteBtn.addEventListener('click', deleteConfiguration);
     newConfigBtn.addEventListener('click', resetForm);
 
-    // Knowledge Module Init
-    newKnowledgeBtn.addEventListener('click', resetKnowledgeForm);
-    saveKnowledgeBtn.addEventListener('click', saveKnowledge);
-    deleteKnowledgeBtn.addEventListener('click', deleteKnowledge);
-
     // Journeys Module Init
     filterRadios.forEach(radio => radio.addEventListener('change', renderJourneysList));
     clearJourneysBtn.addEventListener('click', clearAllJourneys);
 
     updateUrl();
     fetchLinks();
-    
-    // Fetch knowledge for both modules (management + selector)
-    fetchKnowledge().then(renderKnowledgeSelector);
 
     // Fetch Journeys
     fetchJourneys();
@@ -119,6 +102,22 @@ function init() {
     // Settings Module Init
     saveSettingsBtn.addEventListener('click', saveSettings);
     fetchSettings();
+}
+
+// RAG Character Count
+function updateRagCharCount() {
+    if (!formInputs.ragContext || !ragCharCount) return;
+    const len = formInputs.ragContext.value.length;
+    ragCharCount.textContent = len.toLocaleString();
+    
+    // Visual feedback when approaching limit
+    if (len > 3600) {
+        ragCharCount.style.color = '#ed2224';
+    } else if (len > 3000) {
+        ragCharCount.style.color = '#f59e0b';
+    } else {
+        ragCharCount.style.color = '';
+    }
 }
 
 // Logic: Navigation
@@ -163,7 +162,6 @@ async function fetchJourneys() {
         if (Array.isArray(data)) {
             savedJourneys = data;
         } else if (typeof data === 'object' && data !== null) {
-            // Handle if API returns object map instead of array
             savedJourneys = Object.values(data);
         } else {
             console.error('Unexpected data format:', data);
@@ -226,7 +224,6 @@ function renderJourneysList() {
 
         let name = journey.userName ? `${journey.userName} (${journey.role})` : (journey.role || 'Unknown User');
 
-        // Create inner HTML
         div.innerHTML = `
             <div class="link-content" style="flex: 1;">
                 <div class="link-name">${statusIcon} ${escapeHtml(journey.name || 'Untitled')}</div>
@@ -240,21 +237,17 @@ function renderJourneysList() {
             </button>
         `;
         
-        // Click on row to load
         div.addEventListener('click', (e) => {
-            // Don't trigger if clicking delete button
             if (e.target.closest('.delete-journey-btn')) return;
             loadJourney(journey);
         });
 
-        // Click on delete
         const delBtn = div.querySelector('.delete-journey-btn');
         delBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent loading
+            e.stopPropagation();
             deleteJourney(journey.journeyMapId);
         });
 
-        // Add hover effect logic for delete button
         div.addEventListener('mouseenter', () => { delBtn.style.opacity = '1'; });
         div.addEventListener('mouseleave', () => { delBtn.style.opacity = '0.5'; });
 
@@ -268,7 +261,6 @@ async function deleteJourney(id) {
     try {
         const res = await fetch(`${JOURNEYS_API_URL}/${id}`, { method: 'DELETE' });
         if (res.ok) {
-            // If deleting current, clear view
             if (id === currentJourneyId) {
                 currentJourneyId = null;
                 adminCanvas.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; opacity: 0.5;">Select a journey to preview</div>';
@@ -287,8 +279,6 @@ async function deleteJourney(id) {
 
 async function clearAllJourneys() {
     if (!confirm("WARNING: Are you sure you want to DELETE ALL journeys? This is irreversible.")) return;
-    
-    // Double check
     if (!confirm("Really delete EVERYTHING?")) return;
 
     try {
@@ -310,13 +300,10 @@ async function clearAllJourneys() {
 
 function loadJourney(journey) {
     currentJourneyId = journey.journeyMapId;
-    renderJourneysList(); // Update active state
+    renderJourneysList();
 
-    // Title
     journeyPreviewTitle.textContent = journey.name || 'Untitled Journey';
 
-    // Render Canvas
-    // We assume the renderer.js is loaded globally
     if (typeof renderMap === 'function') {
         renderMap(journey, 'adminCanvas');
     } else {
@@ -324,21 +311,11 @@ function loadJourney(journey) {
         adminCanvas.innerHTML = "Error: Renderer not loaded.";
     }
 
-    // Setup Retake Button
-    // We reconstruct the URL based on the journey parameters to "restart" it
     const params = new URLSearchParams();
     if (journey.userName) params.set('name', journey.userName);
     if (journey.role) params.set('role', journey.role);
     if (journey.name) params.set('journey', journey.name);
-    // We don't have the original prompt configs stored in the journey object usually, 
-    // unless we decide to store them. 
-    // For now, we pass what we have. 
-    // If specific prompts were used, they might be lost unless we add them to the JourneyMap schema.
-    // However, the requirement says "links to the front-end with the same parameters".
-    // Since we don't strictly persist the *input* parameters on the journey object (only the *result*),
-    // we do our best.
     
-    // If the journey has swimlanes, we can pre-populate them to ensure the same structure
     if (journey.swimlanes && journey.swimlanes.length > 0) {
         const swimlanes = journey.swimlanes.map(s => ({ name: s.name, description: s.description }));
         params.set('swimlanes', JSON.stringify(swimlanes));
@@ -346,184 +323,6 @@ function loadJourney(journey) {
 
     retakeBtn.href = `${BASE_URL}?${params.toString()}`;
     retakeBtn.style.display = 'inline-flex';
-}
-
-
-// --- Knowledge Logic ---
-
-async function fetchKnowledge() {
-    try {
-        const urlWithCache = `${KNOWLEDGE_API_URL}?_t=${Date.now()}`;
-        const res = await fetch(urlWithCache);
-        savedKnowledge = await res.json();
-        renderKnowledgeList();
-        renderKnowledgeSelector(); // Ensure selector is up to date
-    } catch (e) {
-        console.error("Failed to fetch knowledge", e);
-        knowledgeList.innerHTML = `<div class="empty-state">Failed to load.</div>`;
-    }
-}
-
-function renderKnowledgeList() {
-    knowledgeList.innerHTML = '';
-    
-    if (savedKnowledge.length === 0) {
-        knowledgeList.innerHTML = `<div class="empty-state">No knowledge bases yet.</div>`;
-        return;
-    }
-
-    savedKnowledge.forEach(item => {
-        const div = document.createElement('div');
-        div.className = `saved-link-item ${item.id === currentKnowledgeId ? 'active' : ''}`;
-        div.innerHTML = `
-            <div class="link-name">${escapeHtml(item.title || 'Untitled')}</div>
-            <div class="link-meta">${item.isActive ? 'Active' : 'Inactive'} • ${item.content.length} chars</div>
-        `;
-        div.onclick = () => loadKnowledge(item);
-        knowledgeList.appendChild(div);
-    });
-}
-
-function loadKnowledge(item) {
-    currentKnowledgeId = item.id;
-    knowledgeTitle.value = item.title || '';
-    knowledgeContent.value = item.content || '';
-    knowledgeActive.checked = !!item.isActive;
-    
-    knowledgeForm.style.display = 'block';
-    deleteKnowledgeBtn.style.display = 'inline-flex';
-    saveKnowledgeBtn.textContent = 'Update Knowledge Base';
-    
-    renderKnowledgeList();
-}
-
-function resetKnowledgeForm() {
-    currentKnowledgeId = null;
-    knowledgeTitle.value = '';
-    knowledgeContent.value = '';
-    knowledgeActive.checked = true;
-    
-    knowledgeForm.style.display = 'block';
-    deleteKnowledgeBtn.style.display = 'none';
-    saveKnowledgeBtn.textContent = 'Create Knowledge Base';
-    knowledgeTitle.focus();
-    renderKnowledgeList();
-}
-
-async function saveKnowledge() {
-    const title = knowledgeTitle.value.trim();
-    const content = knowledgeContent.value.trim();
-    const isActive = knowledgeActive.checked;
-
-    if (!title || !content) {
-        alert("Title and Content are required.");
-        return;
-    }
-
-    const payload = { title, content, isActive };
-
-    try {
-        saveKnowledgeBtn.disabled = true;
-        saveKnowledgeBtn.textContent = 'Saving...';
-
-        let res;
-        if (currentKnowledgeId) {
-            res = await fetch(`${KNOWLEDGE_API_URL}/${currentKnowledgeId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        } else {
-            res = await fetch(KNOWLEDGE_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        }
-
-        if (res.ok) {
-            const saved = await res.json();
-            currentKnowledgeId = saved.id;
-            await fetchKnowledge();
-            loadKnowledge(saved);
-        } else {
-            alert("Failed to save.");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Error saving.");
-    } finally {
-        saveKnowledgeBtn.disabled = false;
-    }
-}
-
-async function deleteKnowledge() {
-    if (!currentKnowledgeId || !confirm("Are you sure?")) return;
-
-    try {
-        await fetch(`${KNOWLEDGE_API_URL}/${currentKnowledgeId}`, { method: 'DELETE' });
-        resetKnowledgeForm();
-        fetchKnowledge();
-    } catch(e) {
-        alert("Error deleting.");
-    }
-}
-
-function renderKnowledgeSelector() {
-    if (!formInputs.knowledgeSelector) return;
-    
-    // Clear current
-    formInputs.knowledgeSelector.innerHTML = '';
-    
-    if (savedKnowledge.length === 0) {
-        formInputs.knowledgeSelector.innerHTML = '<div class="empty-state-small">No active knowledge bases found.</div>';
-        return;
-    }
-
-    // Filter active only
-    savedKnowledge.filter(k => k.isActive).forEach(k => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'checkbox-item';
-        wrapper.style.marginBottom = '8px';
-        
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = `kb-${k.id}`;
-        checkbox.value = k.id;
-        checkbox.name = 'knowledgeIds';
-        
-        // Add event listener to update URL on change
-        checkbox.addEventListener('change', updateUrl);
-        
-        const label = document.createElement('label');
-        label.htmlFor = `kb-${k.id}`;
-        label.textContent = k.title;
-        label.style.marginLeft = '8px';
-        
-        wrapper.appendChild(checkbox);
-        wrapper.appendChild(label);
-        formInputs.knowledgeSelector.appendChild(wrapper);
-    });
-
-    // Re-check boxes based on current state (Link or URL)
-    // If we are editing a link, load its IDs
-    if (currentLinkId && savedLinks.length > 0) {
-        const link = savedLinks.find(l => l.id === currentLinkId);
-        if (link && link.knowledgeIds && Array.isArray(link.knowledgeIds)) {
-            link.knowledgeIds.forEach(id => {
-                const cb = document.getElementById(`kb-${id}`);
-                if (cb) cb.checked = true;
-            });
-        }
-        // Legacy support
-        else if (link && link.knowledgeId) {
-             const cb = document.getElementById(`kb-${link.knowledgeId}`);
-             if (cb) cb.checked = true;
-        }
-    }
-    
-    // Refresh list to show KB names if they were missing before
-    renderLinksList();
 }
 
 // --- Settings Logic ---
@@ -573,7 +372,6 @@ async function saveSettings() {
 
 // --- Links Logic ---
 
-// Logic: Fetch Links
 async function fetchLinks() {
     try {
         const urlWithCache = `${LINKS_API_URL}?_t=${Date.now()}`;
@@ -586,7 +384,6 @@ async function fetchLinks() {
     }
 }
 
-// Logic: Render List
 function renderLinksList() {
     savedLinksList.innerHTML = '';
     
@@ -595,7 +392,6 @@ function renderLinksList() {
         return;
     }
 
-    // Sort by updated/created desc
     const sorted = [...savedLinks].sort((a, b) => {
         const dateA = new Date(a.updatedAt || a.createdAt);
         const dateB = new Date(b.updatedAt || b.createdAt);
@@ -603,59 +399,35 @@ function renderLinksList() {
     });
 
     sorted.forEach(link => {
-        // Find KB names
-        let kbInfo = '';
-        if (link.knowledgeIds && Array.isArray(link.knowledgeIds) && link.knowledgeIds.length > 0) {
-             const names = link.knowledgeIds.map(id => {
-                 const k = savedKnowledge.find(k => k.id === id);
-                 return k ? k.title : null;
-             }).filter(Boolean);
-             if (names.length > 0) kbInfo = ` • 📚 ${names.join(', ')}`;
-        } 
-        // Legacy check
-        else if (link.knowledgeId) {
-             const k = savedKnowledge.find(k => k.id === link.knowledgeId);
-             if (k) kbInfo = ` • 📚 ${k.title}`;
+        let ragInfo = '';
+        if (link.ragContext && link.ragContext.trim().length > 0) {
+            ragInfo = ` • 📄 RAG (${link.ragContext.length} chars)`;
         }
 
         const div = document.createElement('div');
         div.className = `saved-link-item ${link.id === currentLinkId ? 'active' : ''}`;
         div.innerHTML = `
             <div class="link-name">${escapeHtml(link.configName || 'Untitled')}</div>
-            <div class="link-meta">${link.journey || 'No journey specified'}${escapeHtml(kbInfo)}</div>
+            <div class="link-meta">${link.journey || 'No journey specified'}${escapeHtml(ragInfo)}</div>
         `;
         div.onclick = () => loadConfiguration(link);
         savedLinksList.appendChild(div);
     });
 }
 
-// Logic: Load Config
 function loadConfiguration(link) {
     currentLinkId = link.id;
     
-    // Populate fields
     configNameInput.value = link.configName || '';
     formInputs.name.value = link.name || '';
     formInputs.role.value = link.role || '';
     formInputs.journey.value = link.journey || '';
     formInputs.welcomePrompt.value = link.welcomePrompt || '';
     formInputs.journeyPrompt.value = link.journeyPrompt || '';
-    
-    // Set Knowledge Base Selector
-    // Reset all first
-    const checkboxes = formInputs.knowledgeSelector.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(cb => cb.checked = false);
+    formInputs.ragContext.value = link.ragContext || '';
 
-    if (link.knowledgeIds && Array.isArray(link.knowledgeIds)) {
-        link.knowledgeIds.forEach(id => {
-            const cb = document.getElementById(`kb-${id}`);
-            if (cb) cb.checked = true;
-        });
-    } else if (link.knowledgeId) {
-        // Legacy support
-        const cb = document.getElementById(`kb-${link.knowledgeId}`);
-        if (cb) cb.checked = true;
-    }
+    // Update char count
+    updateRagCharCount();
 
     // Populate Swimlanes
     swimlanesContainer.innerHTML = '';
@@ -663,14 +435,12 @@ function loadConfiguration(link) {
         link.swimlanes.forEach(sl => addSwimlane(sl.name, sl.description));
     }
 
-    // Update UI
     deleteBtn.style.display = 'inline-flex';
     saveBtn.textContent = 'Update Configuration';
-    renderLinksList(); // Re-render to show active state
+    renderLinksList();
     updateUrl();
 }
 
-// Logic: Reset Form
 function resetForm() {
     currentLinkId = null;
     configNameInput.value = '';
@@ -678,21 +448,18 @@ function resetForm() {
     Object.values(formInputs).forEach(input => {
         if(input && input.value !== undefined) input.value = '';
     });
-    
-    // Uncheck all boxes
-    if (formInputs.knowledgeSelector) {
-        formInputs.knowledgeSelector.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-    }
 
     swimlanesContainer.innerHTML = '';
     
+    // Reset char count
+    updateRagCharCount();
+
     deleteBtn.style.display = 'none';
     saveBtn.textContent = 'Save Configuration';
     renderLinksList();
     updateUrl();
 }
 
-// Logic: Save
 async function saveConfiguration() {
     const configName = configNameInput.value.trim();
     if (!configName) {
@@ -708,11 +475,10 @@ async function saveConfiguration() {
         journey: formInputs.journey.value.trim(),
         welcomePrompt: formInputs.welcomePrompt.value.trim(),
         journeyPrompt: formInputs.journeyPrompt.value.trim(),
-        knowledgeIds: getSelectedKnowledgeIds(),
+        ragContext: formInputs.ragContext.value.trim(),
         swimlanes: getSwimlanesFromDOM()
     };
 
-    // If creating new, generate ID from name (slug)
     if (!currentLinkId) {
         payload.id = slugify(configName);
     }
@@ -723,14 +489,12 @@ async function saveConfiguration() {
 
         let res;
         if (currentLinkId) {
-            // Update
             res = await fetch(`${LINKS_API_URL}/${currentLinkId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
         } else {
-            // Create
             res = await fetch(LINKS_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -740,9 +504,9 @@ async function saveConfiguration() {
 
         if (res.ok) {
             const savedLink = await res.json();
-            currentLinkId = savedLink.id; // Set ID if it was new
-            await fetchLinks(); // Refresh list
-            loadConfiguration(savedLink); // Ensure UI state matches
+            currentLinkId = savedLink.id;
+            await fetchLinks();
+            loadConfiguration(savedLink);
         } else {
             alert("Failed to save.");
         }
@@ -751,11 +515,9 @@ async function saveConfiguration() {
         alert("Error saving configuration.");
     } finally {
         saveBtn.disabled = false;
-        // Label sets in loadConfiguration
     }
 }
 
-// Logic: Delete
 async function deleteConfiguration() {
     if (!currentLinkId || !confirm("Are you sure you want to delete this configuration?")) return;
 
@@ -789,7 +551,6 @@ function addSwimlane(name = '', desc = '') {
     nameInput.value = name;
     descInput.value = desc;
 
-    // Events
     nameInput.addEventListener('input', updateUrl);
     descInput.addEventListener('input', updateUrl);
     removeBtn.addEventListener('click', () => {
@@ -815,61 +576,43 @@ function getSwimlanesFromDOM() {
     }).filter(Boolean);
 }
 
-// Helper to get checked knowledge IDs
-function getSelectedKnowledgeIds() {
-    if (!formInputs.knowledgeSelector) return [];
-    const checked = Array.from(formInputs.knowledgeSelector.querySelectorAll('input[type="checkbox"]:checked'));
-    return checked.map(cb => cb.value);
-}
-
 // Logic: Generate URL
 function updateUrl() {
     const params = new URLSearchParams();
 
-    // 1. Basic Fields
     if (formInputs.name.value.trim()) params.set('name', formInputs.name.value.trim());
     if (formInputs.role.value.trim()) params.set('role', formInputs.role.value.trim());
     if (formInputs.journey.value.trim()) params.set('journey', formInputs.journey.value.trim());
     if (formInputs.welcomePrompt.value.trim()) params.set('welcome-prompt', formInputs.welcomePrompt.value.trim());
     if (formInputs.journeyPrompt.value.trim()) params.set('journey-prompt', formInputs.journeyPrompt.value.trim());
     
-    // Knowledge IDs
-    const kIds = getSelectedKnowledgeIds();
-    if (kIds.length > 0) {
-        params.set('knowledge-ids', kIds.join(','));
-    }
+    // RAG context is stored on the link config, not in the URL (too large for query params)
+    // It's passed to the AI via the link's saved config when loaded via ?id=
 
-    // 2. Swimlanes
     const validSwimlanes = getSwimlanesFromDOM();
-
     if (validSwimlanes.length > 0) {
         params.set('swimlanes', JSON.stringify(validSwimlanes));
     }
 
-    // 3. Construct Final URL
     let finalUrl = '';
-    
-    // If we have a saved ID, use the Short URL
     if (currentLinkId) {
         finalUrl = `${BASE_URL}?id=${currentLinkId}`;
     } else {
-        // Fallback to Long URL (Query Params)
         const queryString = params.toString();
         finalUrl = queryString ? `${BASE_URL}?${queryString}` : BASE_URL;
     }
 
-    // 4. Update UI
     generatedUrlCode.innerHTML = `<a href="${finalUrl}" target="_blank">${finalUrl}</a>`;
     testLinkBtn.href = finalUrl;
 }
 
 function slugify(text) {
     return text.toString().toLowerCase()
-        .replace(/\s+/g, '_')           // Replace spaces with _
-        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-        .replace(/\-\-+/g, '_')         // Replace multiple - with single _
-        .replace(/^-+/, '')             // Trim - from start of text
-        .replace(/-+$/, '');            // Trim - from end of text
+        .replace(/\s+/g, '_')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '_')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
 }
 
 function escapeHtml(text) {
@@ -878,9 +621,8 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Logic: Copy
 function copyToClipboard() {
-    const url = generatedUrlCode.innerText; // Use innerText to get the text content of the link
+    const url = generatedUrlCode.innerText;
     navigator.clipboard.writeText(url).then(() => {
         const originalHtml = copyBtn.innerHTML;
         copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #22c55e;"><polyline points="20 6 9 17 4 12"/></svg>`;
