@@ -1,5 +1,5 @@
 import { VertexAI, GenerativeModel } from '@google-cloud/vertexai';
-import { buildSystemInstruction } from '../ai/prompts';
+import { buildSystemInstruction, SessionConfig } from '../ai/prompts';
 import { JOURNEY_TOOLS } from '../ai/tools';
 import { JourneyService } from './journey.service';
 import { AdminService } from './admin.service';
@@ -76,7 +76,25 @@ export class AIService {
         return next;
     }
 
-    async getRequestModel(config: any, journeyState: any, overrideModel?: string) {
+    /**
+     * Determine appropriate maxOutputTokens based on current journey stage.
+     * Artifact generation (CELL_POPULATION late / COMPLETE) needs more tokens
+     * for the full summary, mental models, and quotes.
+     */
+    private getMaxOutputTokens(journeyState: any): number {
+        if (!journeyState) return 2048;
+        const stage = journeyState.stage;
+        // Artifact generation and completion need significantly more room
+        if (stage === 'COMPLETE') return 4096;
+        // Late cell population where ethnographic questions + final check happen
+        if (stage === 'CELL_POPULATION' && journeyState.metrics) {
+            const pct = journeyState.metrics.percentCellsComplete;
+            if (pct >= 80) return 3072; // Near completion, model will produce longer synthesis
+        }
+        return 2048;
+    }
+
+    async getRequestModel(config: SessionConfig, journeyState: any, overrideModel?: string) {
         try {
             // AdminService is now cached, so this is fast!
             const settings = await this.adminService.getSettings();
@@ -91,16 +109,18 @@ export class AIService {
                 contextInjection = `\n### ADDITIONAL CONTEXT\n${config.ragContext.trim()}\n`;
             }
 
-            const fullConfig = { 
+            const fullConfig: SessionConfig = { 
                 ...config, 
                 agentName: settings.agentName,
                 knowledgeContext: contextInjection
             };
 
+            const maxOutputTokens = this.getMaxOutputTokens(journeyState);
+
             const model = this.vertexAI.getGenerativeModel({
                 model: targetModel,
                 generationConfig: {
-                    maxOutputTokens: 2048,
+                    maxOutputTokens,
                     temperature: 0.4,
                     topP: 0.9,
                 },
@@ -126,42 +146,45 @@ export class AIService {
 
     // --- Background Processing ---
     private async triggerBackgroundSummaries(journeyId: string, phaseId: string, swimlaneId: string) {
-        // ... implementation
         logger.info(`[Background] Checking summaries for Journey: ${journeyId}`);
 
+        // Fetch journey ONCE for both checks (reduces Firestore reads)
+        const journey = await this.journeyService.getJourney(journeyId);
+        if (!journey) return;
+
         // 1. Check Phase Completion
-        const isPhaseComplete = await this.journeyService.checkPhaseCompletion(journeyId, phaseId);
+        const phaseCells = journey.cells.filter(c => c.phaseId === phaseId);
+        const isPhaseComplete = phaseCells.length > 0 && 
+            phaseCells.every(c => c.headline && c.description && c.headline.trim() !== '' && c.description.trim() !== '');
+
         if (isPhaseComplete) {
-            const journey = await this.journeyService.getJourney(journeyId);
-            const phase = journey?.phases.find(p => p.phaseId === phaseId);
-            
-            if (journey && phase) {
-                 const cells = journey.cells.filter(c => c.phaseId === phaseId);
-                 const summary = await this.generateSummary(
-                     `Summarize the user's experience specifically during the "${phase.name}" phase.`,
-                     cells
-                 );
-                 if (summary) {
-                     await this.journeyService.savePhaseSummary(journeyId, phaseId, summary);
-                 }
+            const phase = journey.phases.find(p => p.phaseId === phaseId);
+            if (phase) {
+                const summary = await this.generateSummary(
+                    `Summarize the user's experience specifically during the "${phase.name}" phase.`,
+                    phaseCells
+                );
+                if (summary) {
+                    await this.journeyService.savePhaseSummary(journeyId, phaseId, summary);
+                }
             }
         }
 
         // 2. Check Swimlane Completion
-        const isSwimlaneComplete = await this.journeyService.checkSwimlaneCompletion(journeyId, swimlaneId);
+        const swimlaneCells = journey.cells.filter(c => c.swimlaneId === swimlaneId);
+        const isSwimlaneComplete = swimlaneCells.length > 0 &&
+            swimlaneCells.every(c => c.headline && c.description && c.headline.trim() !== '' && c.description.trim() !== '');
+
         if (isSwimlaneComplete) {
-            const journey = await this.journeyService.getJourney(journeyId);
-            const swimlane = journey?.swimlanes.find(s => s.swimlaneId === swimlaneId);
-            
-            if (journey && swimlane) {
-                 const cells = journey.cells.filter(c => c.swimlaneId === swimlaneId);
-                 const summary = await this.generateSummary(
-                     `Summarize the user's experience related to "${swimlane.name}" across the entire journey.`,
-                     cells
-                 );
-                 if (summary) {
-                     await this.journeyService.saveSwimlaneSummary(journeyId, swimlaneId, summary);
-                 }
+            const swimlane = journey.swimlanes.find(s => s.swimlaneId === swimlaneId);
+            if (swimlane) {
+                const summary = await this.generateSummary(
+                    `Summarize the user's experience related to "${swimlane.name}" across the entire journey.`,
+                    swimlaneCells
+                );
+                if (summary) {
+                    await this.journeyService.saveSwimlaneSummary(journeyId, swimlaneId, summary);
+                }
             }
         }
     }
@@ -200,6 +223,53 @@ export class AIService {
         return await this.journeyService.getJourney(id);
     }
 
+    /**
+     * Get remaining cells info for a journey.
+     * Returns a structured breakdown of completed vs. remaining cells.
+     */
+    async getCellsRemaining(journeyId: string) {
+        const journey = await this.journeyService.getJourney(journeyId);
+        if (!journey) return null;
+
+        const remaining: Array<{ phase: string; swimlane: string; phaseId: string; swimlaneId: string; cellId: string }> = [];
+        const completed: Array<{ phase: string; swimlane: string; headline: string }> = [];
+
+        for (const cell of journey.cells) {
+            const phase = journey.phases.find(p => p.phaseId === cell.phaseId);
+            const swimlane = journey.swimlanes.find(s => s.swimlaneId === cell.swimlaneId);
+            const phaseName = phase?.name || 'Unknown';
+            const swimlaneName = swimlane?.name || 'Unknown';
+
+            const isDone = cell.headline && cell.headline.trim().length > 0 
+                        && cell.description && cell.description.trim().length > 0;
+
+            if (isDone) {
+                completed.push({ phase: phaseName, swimlane: swimlaneName, headline: cell.headline });
+            } else {
+                remaining.push({ 
+                    phase: phaseName, 
+                    swimlane: swimlaneName,
+                    phaseId: cell.phaseId,
+                    swimlaneId: cell.swimlaneId,
+                    cellId: cell.cellId
+                });
+            }
+        }
+
+        return {
+            journeyId,
+            stage: journey.stage,
+            totalCells: journey.cells.length,
+            completedCount: completed.length,
+            remainingCount: remaining.length,
+            percentComplete: journey.cells.length > 0 
+                ? Math.round((completed.length / journey.cells.length) * 100) 
+                : 0,
+            remaining,
+            completed
+        };
+    }
+
     async executeTool(name: string, args: any) {
         logger.info(`🛠️ Executing Tool: ${name}`, args);
         
@@ -215,21 +285,26 @@ export class AIService {
                     return await this.journeyService.setSwimlanesBulk(args.journeyMapId, args.swimlanes);
                 case 'generate_matrix':
                     return await this.journeyService.generateMatrix(args.journeyMapId);
-                case 'update_cell':
+                case 'update_cell': {
+                    // Fetch journey ONCE for all resolution needs (was 3 reads, now 1)
+                    const journey = await this.journeyService.getJourney(args.journeyMapId);
+                    if (!journey) return { error: "Journey not found" };
+
                     let targetCellId = args.cellId;
-                    let pId = null;
-                    let sId = null;
+                    let pId: string | null = null;
+                    let sId: string | null = null;
     
                     if (!targetCellId && args.phaseName && args.swimlaneName) {
-                        const journey = await this.journeyService.getJourney(args.journeyMapId);
-                        if (journey) {
-                            const findMatch = (list: any[], name: string) => list.find(item => item.name.toLowerCase().trim() === name.toLowerCase().trim());
-                            const phase = findMatch(journey.phases, args.phaseName);
-                            const swimlane = findMatch(journey.swimlanes, args.swimlaneName);
-                            
-                            if (phase && swimlane) {
-                                const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
-                                if (cell) targetCellId = cell.cellId;
+                        const findMatch = (list: any[], name: string) => list.find(item => item.name.toLowerCase().trim() === name.toLowerCase().trim());
+                        const phase = findMatch(journey.phases, args.phaseName);
+                        const swimlane = findMatch(journey.swimlanes, args.swimlaneName);
+                        
+                        if (phase && swimlane) {
+                            const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+                            if (cell) {
+                                targetCellId = cell.cellId;
+                                pId = phase.phaseId;
+                                sId = swimlane.swimlaneId;
                             }
                         }
                     }
@@ -238,28 +313,25 @@ export class AIService {
                         return { error: "Missing cellId and could not resolve phaseName/swimlaneName to a valid cell." };
                     }
 
-                    // Get IDs for summarization trigger
-                    if (targetCellId) {
-                         const journey = await this.journeyService.getJourney(args.journeyMapId);
-                         const cell = journey?.cells.find(c => c.cellId === targetCellId);
-                         if (cell) {
-                             pId = cell.phaseId;
-                             sId = cell.swimlaneId;
-                         }
+                    // Get IDs for summarization trigger (using already-fetched journey)
+                    if (!pId || !sId) {
+                        const cell = journey.cells.find(c => c.cellId === targetCellId);
+                        if (cell) {
+                            pId = cell.phaseId;
+                            sId = cell.swimlaneId;
+                        }
                     }
     
                     const result = await this.journeyService.updateCell(args.journeyMapId, targetCellId, args);
 
-                    // Trigger Background Summarization (Serialized to prevent race conditions)
+                    // Fire-and-forget background summarization (don't block the response)
                     if (pId && sId) {
-                        try {
-                            await this.triggerBackgroundSummaries(args.journeyMapId, pId, sId);
-                        } catch (err) {
-                            logger.error("Background Summary Error", err);
-                        }
+                        this.triggerBackgroundSummaries(args.journeyMapId, pId, sId)
+                            .catch(err => logger.error("Background Summary Error", err));
                     }
 
                     return result;
+                }
 
                 case 'generate_artifacts':
                     return await this.journeyService.generateArtifacts(args.journeyMapId, args);

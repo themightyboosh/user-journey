@@ -5,6 +5,7 @@ import swaggerUi from '@fastify/swagger-ui';
 import { JourneyService } from './services/journey.service';
 import { AdminService } from './services/admin.service';
 import { AIService } from './services/ai.service';
+import { SessionConfig } from './ai/prompts';
 import logger from './logger';
 
 export const server: FastifyInstance = Fastify({ 
@@ -105,6 +106,9 @@ server.register(swaggerUi, {
   routePrefix: '/docs',
 });
 
+// --- Utility: sleep for backoff ---
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 // --- Chat & AI Endpoints ---
 
 server.get('/api/health', async (request, reply) => {
@@ -123,8 +127,16 @@ server.get('/api/journey-state/:id', async (request, reply) => {
     return data;
 });
 
+// --- Cells Remaining Endpoint ---
+server.get('/api/cells-remaining/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const data = await aiService.getCellsRemaining(id);
+    if (!data) return reply.status(404).send({ error: "Journey not found" });
+    return data;
+});
+
 server.post('/api/chat', async (request, reply) => {
-    logger.info('[HANDLER] /api/chat hit'); // <--- Very first log
+    logger.info('[HANDLER] /api/chat hit');
 
     // Set Headers for SSE immediately but don't flush yet
     reply.raw.setHeader('Content-Type', 'text/event-stream');
@@ -143,7 +155,7 @@ server.post('/api/chat', async (request, reply) => {
         return reply.status(400).send({ error: 'Invalid JSON body' });
     }
 
-    const { message, history = [], config = {}, journeyId } = body || {};
+    const { message, history = [], config = {} as SessionConfig, journeyId } = body || {};
   
     if (journeyId) config.journeyId = journeyId;
     
@@ -165,7 +177,7 @@ server.post('/api/chat', async (request, reply) => {
       contents.push({ role: 'user', parts: [{ text: message }] });
   
       // Fetch Journey State for Context
-      let journeyState = null;
+      let journeyState: any = null;
       if (config.journeyId) {
           logger.info('Fetching journey state', { journeyId: config.journeyId });
           journeyState = await aiService.getJourneyState(config.journeyId);
@@ -182,23 +194,37 @@ server.post('/api/chat', async (request, reply) => {
       const maxTurns = 5;
       let finalDone = false;
   
-      // Helper for generation with 429 handling
-      const generateSafe = async (model: any, params: any, modelName: string) => {
+      // Helper for generation with 429 handling + backoff retry
+      const generateSafe = async (model: any, params: any, modelName: string, retryCount = 0): Promise<any> => {
           try {
               const result = await model.generateContent(params);
               const response = await result.response;
               return { response, model, modelName }; 
           } catch (e: any) {
               if (e.message?.includes('429') || e.status === 429 || e.code === 429 || e.message?.includes('RESOURCE_EXHAUSTED')) {
-                   logger.warn(`⚠️ 429 RESOURCE EXHAUSTED for ${modelName} - Triggering Fallback Model`);
+                   logger.warn(`⚠️ 429 RESOURCE EXHAUSTED for ${modelName} (attempt ${retryCount + 1})`);
                    
-                   // 1. Get the next fallback model name
+                   // Backoff: wait before retrying (1s first, 3s second)
+                   const backoffMs = retryCount === 0 ? 1000 : 3000;
+                   await sleep(backoffMs);
+
+                   // Get the next fallback model name
                    const nextFallbackModel = aiService.getNextFallback(modelName);
                    
-                   // 2. Re-create the request model using the FALLBACK name specifically
-                   const newModelResult = await aiService.getRequestModel(config, journeyState, nextFallbackModel);
+                   // Re-create the request model using the FALLBACK name
+                   // Re-fetch journey state so the fallback model gets fresh context
+                   let freshState = journeyState;
+                   if (config.journeyId) {
+                       freshState = await aiService.getJourneyState(config.journeyId);
+                   }
+                   const newModelResult = await aiService.getRequestModel(config, freshState, nextFallbackModel);
                    
-                   // 3. Retry once with new model
+                   // Allow up to 2 retries total (original + 2 fallbacks)
+                   if (retryCount < 2) {
+                       return generateSafe(newModelResult.model, params, newModelResult.modelName, retryCount + 1);
+                   }
+                   
+                   // Final attempt without recursion
                    const result = await newModelResult.model.generateContent(params);
                    const response = await result.response;
                    return { response, model: newModelResult.model, modelName: newModelResult.modelName }; 
@@ -211,14 +237,27 @@ server.post('/api/chat', async (request, reply) => {
       logger.info('Starting generation');
       let genResult = await generateSafe(requestModel, { contents }, currentModelName);
       let response = genResult.response;
-      requestModel = genResult.model; // Update model reference
-      currentModelName = genResult.modelName; // Update name reference
+      requestModel = genResult.model;
+      currentModelName = genResult.modelName;
       logger.info('Got initial response');
       
       while (currentTurn < maxTurns && !finalDone) {
           currentTurn++;
           
-          const functionCalls = response.candidates?.[0]?.content?.parts?.filter((p: any) => p.functionCall);
+          // Guard against empty candidates (safety filters can return empty)
+          const candidates = response.candidates;
+          if (!candidates || candidates.length === 0 || !candidates[0]?.content?.parts) {
+              logger.warn('Empty candidates in response - possible safety filter block', {
+                  finishReason: candidates?.[0]?.finishReason,
+                  safetyRatings: candidates?.[0]?.safetyRatings
+              });
+              reply.raw.write(`data: ${JSON.stringify({ text: "I need to rephrase my response. Could you repeat your last message?" })}\n\n`);
+              reply.raw.write(`data: ${JSON.stringify({ done: true, journeyId: config.journeyId })}\n\n`);
+              finalDone = true;
+              break;
+          }
+
+          const functionCalls = candidates[0].content.parts.filter((p: any) => p.functionCall);
           
           if (functionCalls && functionCalls.length > 0) {
               for (const call of functionCalls) {
@@ -235,7 +274,7 @@ server.post('/api/chat', async (request, reply) => {
                   };
                   
                   // Add model response and tool result to history
-                  contents.push(response.candidates![0].content);
+                  contents.push(candidates[0].content);
                   contents.push({ role: 'function', parts: [toolResponsePart] });
   
                   if (fn.name === 'create_journey_map' && toolResult && toolResult.journeyMapId) {
@@ -244,12 +283,27 @@ server.post('/api/chat', async (request, reply) => {
                   }
               }
               
+              // P0 FIX: Re-fetch journey state after tool calls so the model
+              // gets a fresh system instruction reflecting the mutations just made.
+              if (config.journeyId) {
+                  journeyState = await aiService.getJourneyState(config.journeyId);
+                  logger.info('Refreshed journey state after tool calls', { 
+                      stage: journeyState?.stage,
+                      cellsCompleted: journeyState?.metrics?.totalCellsCompleted 
+                  });
+              }
+
+              // Rebuild model with fresh state so system instruction is current
+              const freshModelResult = await aiService.getRequestModel(config, journeyState, currentModelName);
+              requestModel = freshModelResult.model;
+              currentModelName = freshModelResult.modelName;
+
               genResult = await generateSafe(requestModel, { contents }, currentModelName);
               response = genResult.response;
               requestModel = genResult.model;
               currentModelName = genResult.modelName;
           } else {
-              const finalText = response.candidates?.[0]?.content?.parts?.[0]?.text || "Processing...";
+              const finalText = candidates[0].content.parts[0]?.text || "Processing...";
               reply.raw.write(`data: ${JSON.stringify({ text: finalText })}\n\n`);
               reply.raw.write(`data: ${JSON.stringify({ done: true, journeyId: config.journeyId })}\n\n`);
               finalDone = true;
@@ -264,7 +318,7 @@ server.post('/api/chat', async (request, reply) => {
       reply.raw.end();
   
     } catch (error: any) {
-      console.error('Chat error:', error);
+      logger.error('Chat error:', { error: error.message, stack: error.stack });
       reply.raw.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
       reply.raw.end();
     }
@@ -450,28 +504,6 @@ server.get('/api/admin/settings', async (request, reply) => {
 server.put('/api/admin/settings', async (request, reply) => {
     const body = request.body as any;
     return await adminService.saveSettings(body);
-});
-
-// --- Admin Knowledge ---
-
-server.get('/api/admin/knowledge', async (request, reply) => {
-    return await adminService.getKnowledge();
-});
-
-server.post('/api/admin/knowledge', async (request, reply) => {
-    const body = request.body as any;
-    return await adminService.createKnowledge(body);
-});
-
-server.put('/api/admin/knowledge/:id', async (request, reply) => {
-    const { id } = request.params as { id: string };
-    const body = request.body as any;
-    return await adminService.updateKnowledge(id, body);
-});
-
-server.delete('/api/admin/knowledge/:id', async (request, reply) => {
-    const { id } = request.params as { id: string };
-    return await adminService.deleteKnowledge(id);
 });
 
 // --- Admin Journeys ---

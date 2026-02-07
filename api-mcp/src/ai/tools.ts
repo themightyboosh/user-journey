@@ -12,7 +12,7 @@ export const JOURNEY_TOOLS = [
                         role: { type: "STRING", description: "User's role" },
                         description: { type: "STRING", description: "Any extra context provided" }
                     },
-                    required: ["name", "role"]
+                    required: ["name", "userName", "role"]
                 }
             },
             {
@@ -111,7 +111,7 @@ export const JOURNEY_TOOLS = [
                         mentalModels: { type: "STRING", description: "Identified mental models" },
                         quotes: { 
                             type: "ARRAY", 
-                            description: "2-5 most interesting direct quotes from the participant",
+                            description: "2-5 most interesting verbatim direct quotes from the participant's chat messages",
                             items: { type: "STRING" }
                         },
                         anythingElse: { type: "STRING", description: "Any final additions from the user" }
