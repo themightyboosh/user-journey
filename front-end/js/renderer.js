@@ -215,27 +215,34 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
 
     const hasContent = journey.phases.length > 0 || journey.swimlanes.length > 0;
     
+    // Title & Quote Logic
+    let titleRowHtml = `<span style="font-size: 64px; line-height: 1.1; font-weight: 600; color: var(--max-color-text-primary);">${escapeHtml(journey.name) || 'Untitled Journey'}</span>`;
+    if (journey.quotes && journey.quotes.length > 0) {
+        titleRowHtml += `<span style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 64px; line-height: 1.1; color: #ffffff; margin-left: 16px;">
+                            "${escapeHtml(journey.quotes[0])}"
+                         </span>`;
+    }
+
     let html = `
         <div class="journey-board-container" style="width: ${finalWidth}px; max-width: none;">
-        <div class="journey-header" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-bottom: 60px; padding-bottom: 40px; ${hasContent ? 'border-bottom: 1px solid var(--max-color-border);' : 'border-bottom: none;'}">
+        <div class="journey-header" style="display: flex; flex-direction: column; gap: 32px; align-items: flex-start; margin-bottom: 60px; padding-bottom: 40px; ${hasContent ? 'border-bottom: 1px solid var(--max-color-border);' : 'border-bottom: none;'}">
             
-            <!-- Left Column: Identity -->
-            <div class="header-left">
-                <div class="journey-title" style="display: flex; flex-direction: column; align-items: flex-start; gap: 32px;">
-                    <div style="transform: scale(1.6); transform-origin: left center; margin-bottom: 16px;">${maxLogoSvg}</div>
-                    <span style="font-size: 64px; line-height: 1.1;">${escapeHtml(journey.name) || 'Untitled Journey'}</span>
-                </div>
-                <div class="journey-role" style="margin-top: 24px; font-size: 32px; padding-left: 0; padding-top: 4px; padding-bottom: 4px; font-weight: 500; color: var(--max-color-text-secondary);">
-                    ${journey.userName ? `<span style="font-weight: 700; color: var(--max-color-text-primary);">${escapeHtml(journey.userName)}</span>, ` : ''}
-                    ${escapeHtml(journey.role)}
-                </div>
-                ${journey.description ? `<div style="margin-top: 24px; font-size: 48px; line-height: 1.3; color: var(--max-color-text-primary); max-width: 90%; font-weight: 600;">${escapeHtml(journey.description)}</div>` : ''}
+            <!-- Row 1: Max Logo -->
+            <div style="transform: scale(1.6); transform-origin: left center; margin-bottom: 8px;">${maxLogoSvg}</div>
+
+            <!-- Row 2: Title + Quote -->
+            <div style="width: 100%;">
+                ${titleRowHtml}
             </div>
 
-            <!-- Right Column: Quote -->
-            <div class="header-right" style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; height: 100%;">
-                ${quoteHtml}
+            <!-- Row 3: Name & Role -->
+            <div class="journey-role" style="font-size: 32px; font-weight: 500; color: var(--max-color-text-secondary);">
+                ${journey.userName ? `<span style="font-weight: 700; color: var(--max-color-text-primary);">${escapeHtml(journey.userName)}</span>, ` : ''}
+                ${escapeHtml(journey.role)}
             </div>
+
+            <!-- Row 4: Description -->
+            ${journey.description ? `<div style="font-size: 48px; line-height: 1.3; color: var(--max-color-text-primary); max-width: 90%; font-weight: 600;">${escapeHtml(journey.description)}</div>` : ''}
         </div>
     `;
 
@@ -300,10 +307,11 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     const isComplete = journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE' || (journey.mentalModels && journey.mentalModels.length > 10) || (journey.summaryOfFindings && journey.summaryOfFindings.length > 10);
 
     if (isComplete) {
-        // Add complete class to body for full takeover
+        // Add complete class to body for full takeover (host may style this)
         document.body.classList.add('journey-complete');
         
-        if (window.innerWidth <= 768 && !document.body.classList.contains('show-map')) {
+        // Auto-switch mobile view if the host provides toggleMobileView
+        if (window.innerWidth <= 768 && !document.body.classList.contains('show-map') && typeof toggleMobileView === 'function') {
             setTimeout(() => { if (!document.body.classList.contains('show-map')) toggleMobileView(); }, 500);
         }
     } else {
@@ -341,7 +349,14 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         } else if (rawModels.match(/^[-*•]\s/m)) {
             models = rawModels.split(/^[-*•]\s*/m).filter(m => m.trim().length > 0);
         } else {
-            models = rawModels.split(/\n\n+/).filter(m => m.trim().length > 0);
+            // Fallback: Split by single newline if double newline doesn't exist, assuming list format
+            // If the content is just one block, this might split paragraphs, but usually mental models are distinct items.
+            // Check if we have double newlines first
+            if (rawModels.includes('\n\n')) {
+                models = rawModels.split(/\n\n+/).filter(m => m.trim().length > 0);
+            } else {
+                models = rawModels.split(/\n+/).filter(m => m.trim().length > 0);
+            }
         }
         
         if (models.length > 0) {
@@ -409,7 +424,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                 if (p.summary) {
                     html += `
                         <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column;">
-                            <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Phase</div>
+                            <div style="font-family: var(--max-font-family-mono); font-size: 22px; color: #ffffff; background-color: var(--max-color-accent); padding: 4px 8px; border-radius: 4px; display: inline-block; width: fit-content; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Phase</div>
                             <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(p.name)}</h4>
                             <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary); flex-grow: 1;">${formatMessage(p.summary)}</div>
                         </div>
@@ -424,7 +439,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                 if (s.summary) {
                     html += `
                         <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column;">
-                            <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Lane</div>
+                            <div style="font-family: var(--max-font-family-mono); font-size: 22px; color: #ffffff; background-color: var(--max-color-accent); padding: 4px 8px; border-radius: 4px; display: inline-block; width: fit-content; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Lane</div>
                             <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(s.name)}</h4>
                             <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary); flex-grow: 1;">${formatMessage(s.summary)}</div>
                         </div>

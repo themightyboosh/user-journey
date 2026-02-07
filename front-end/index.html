@@ -96,6 +96,9 @@
       font-style: normal;
     }
   </style>
+
+  <!-- Shared Journey Viewer (renderer.js output styles) -->
+  <link rel="stylesheet" href="styles/journey-viewer.css?v=1">
   
   <style>
     /* ========================================
@@ -229,18 +232,7 @@
       position: relative; /* Ensure offsetParent for children */
     }
 
-    /* Container for the Board Look */
-    .journey-board-container {
-        border: 1px solid var(--max-color-border);
-        background: #000000;
-        padding: 60px 100px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        border-radius: var(--max-radius-large);
-        /* Ensure it wraps content tightly around the widest child (the table) */
-        display: inline-block; 
-        /* width is now set via JS style attribute based on phase count */
-        box-sizing: border-box;
-    }
+    /* .journey-board-container — see styles/journey-viewer.css */
 
     /* JSON View Override - Reset to standard scroll */
     .journey-dashboard.json-view-mode {
@@ -298,179 +290,11 @@
         display: none; /* Hide icons in favor of text if present, or just use text */
     }
 
-    .journey-header {
-        margin-bottom: 24px;
-        border-bottom: 1px solid var(--max-color-border-subtle);
-        padding-bottom: 16px;
-    }
+    /* .journey-header, .journey-title, .journey-role — see styles/journey-viewer.css */
 
-    .journey-title {
-        font-size: 48px; /* 2x Bigger */
-        font-weight: 600;
-        color: var(--max-color-accent);
-        margin-bottom: 8px;
-    }
+    /* .context-card, .context-content — see styles/journey-viewer.css */
 
-    .journey-role {
-        font-family: var(--max-font-family-mono);
-        font-size: 14px;
-        color: var(--max-color-text-primary);
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .context-card {
-        background: var(--max-color-surface-secondary);
-        border: 1px solid var(--max-color-border);
-        border-radius: var(--max-radius-medium);
-        padding: 16px;
-        margin-bottom: 24px;
-    }
-
-    .context-card h3 {
-        font-family: var(--max-font-family-mono);
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--max-color-text-secondary);
-        margin-bottom: 8px;
-        text-transform: uppercase;
-    }
-
-    .context-content {
-        font-size: 14px;
-        line-height: 1.6;
-        color: var(--max-color-text-primary);
-        white-space: normal;
-    }
-
-    .context-content ul, .context-content ol {
-        margin-left: 20px;
-        margin-bottom: 12px;
-    }
-    .context-content li {
-        margin-bottom: 4px;
-    }
-    .context-content p {
-        margin-bottom: 12px;
-    }
-    .context-content h3 {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--max-color-text-primary);
-        margin-top: 16px;
-        margin-bottom: 8px;
-    }
-    .context-content strong {
-        color: var(--max-color-text-primary);
-        font-weight: 600;
-    }
-
-    /* Living Table */
-    .journey-table {
-        display: grid;
-        gap: 20px; /* Increased gap for better separation */
-        padding: 20px 0;
-    }
-
-    .phase-header {
-        font-weight: 700;
-        color: var(--max-color-text-primary);
-        text-align: center;
-        padding: 24px 16px;
-        background: var(--max-color-surface-secondary);
-        border-radius: var(--max-radius-medium);
-        border: 1px solid var(--max-color-border);
-        font-size: 30px;
-        /* "Smart" Sticky look (visual hierarchy) */
-        box-shadow: 0 4px 0 var(--max-color-border-subtle);
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .swimlane-header {
-        font-weight: 600;
-        color: var(--max-color-text-secondary);
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        justify-content: flex-start; /* Align to top of cells */
-        padding-top: 24px; /* Match cell padding */
-        padding-right: 24px;
-        border-right: 2px solid var(--max-color-border); /* Keep the vertical divider */
-        text-align: right;
-        font-size: 28px;
-    }
-
-    .swimlane-name {
-        color: var(--max-color-text-primary);
-        margin-bottom: 8px;
-    }
-
-    .swimlane-desc {
-        font-family: var(--max-font-family-mono);
-        font-size: 16px;
-        color: var(--max-color-text-tertiary);
-        font-weight: 400;
-        max-width: 100%;
-        overflow: visible;
-        text-overflow: clip;
-        white-space: normal;
-        line-height: 1.4;
-    }
-
-    .journey-cell {
-        background: var(--max-color-surface-secondary);
-        border: 1px solid var(--max-color-border);
-        border-radius: var(--max-radius-medium);
-        padding: 24px; /* More padding */
-        min-height: 160px; /* Taller default */
-        height: auto;
-        transition: all 0.2s ease;
-        cursor: default;
-        position: relative;
-        /* Card Look */
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .journey-cell:hover {
-        border-color: var(--max-color-accent);
-        transform: translateY(-2px);
-        box-shadow: var(--max-shadow-soft);
-        z-index: 1; /* Bring to front */
-    }
-
-    .journey-cell.empty {
-        background: rgba(255,255,255,0.01);
-        border-style: dashed;
-        border-color: var(--max-color-border-subtle);
-        opacity: 0.6;
-        cursor: default;
-        box-shadow: none;
-    }
-
-    .journey-cell.complete {
-        border-left: 4px solid #22c55e;
-    }
-
-    .cell-action {
-        font-weight: 600;
-        color: var(--max-color-text-primary);
-        margin-bottom: 12px;
-        font-size: 26px;
-        line-height: 1.3;
-    }
-
-    .cell-context {
-        font-family: var(--max-font-family-mono);
-        font-size: 20px;
-        color: var(--max-color-text-secondary);
-        display: block;
-        overflow: visible;
-        white-space: normal;
-        line-height: 1.6;
-    }
+    /* .journey-table, .phase-header, .swimlane-*, .journey-cell, .cell-* — see styles/journey-viewer.css */
 
     /* ========================================
        MOBILE VIEW (Unified Canvas)
@@ -480,29 +304,7 @@
     /* Mobile Responsive Logic - Cleaned */
     /* Mobile-specific adjustments removed to maintain desktop parity */
 
-    /* Modal / Detail View */
-    .cell-detail-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.8);
-        z-index: 10;
-        display: none;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .cell-detail-modal {
-        background: var(--max-color-surface-primary);
-        border: 1px solid var(--max-color-border);
-        border-radius: var(--max-radius-medium);
-        padding: 24px;
-        width: 80%;
-        max-width: 500px;
-        box-shadow: var(--max-shadow-glow);
-    }
+    /* .cell-detail-overlay, .cell-detail-modal — see styles/journey-viewer.css */
 
     /* ========================================
        HEADER
@@ -1337,7 +1139,7 @@
         };
     })();
   </script>
-  <script src="js/renderer.js?v=1016"></script>
+  <script src="js/renderer.js?v=1018"></script>
   <script src="js/json-renderer.js"></script>
   <script>
     // ===========================================

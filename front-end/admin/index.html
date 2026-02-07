@@ -8,7 +8,9 @@
     <!-- Design System -->
     <link rel="stylesheet" href="../styles/max-design-tokens.css">
     <link rel="stylesheet" href="../styles/max-components.css">
-    <link rel="stylesheet" href="style.css?v=2.2">
+    <!-- Shared Journey Viewer (renderer.js output styles) -->
+    <link rel="stylesheet" href="../styles/journey-viewer.css?v=1">
+    <link rel="stylesheet" href="style.css?v=2.4">
 
     <!-- Fonts -->
     <style>
@@ -94,11 +96,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
                 <div class="admin-logo">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128.5 42.6" style="height: 24px; width: auto;">
-                        <path d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3V9.1C0,6.2.7,3.9,2.2,2.5,3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.7.4-1.8.6-3.2.6s-2.5-.2-3.2-.6c-.8-.4-1.4-1-1.8-1.8-.4-.8-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0l.2.1Z" style="fill: var(--max-color-accent);"/>
-                        <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c.1-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4.1.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c.1,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c.1,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z" style="fill: var(--max-color-text-primary);"/>
-                        <path d="M97.8,42.6c-1.1,0-2.2-.3-3.2-.8s-1.9-1.3-2.5-2.3c-.7-1-1-2.2-1-3.7,0-1.9.5-3.5,1.6-4.7,1-1.2,2.4-2.5,4.1-3.9,1.2-.9,2.4-1.7,3.5-2.6,1.2-.9,2.3-1.8,3.5-2.7-.8-.7-1.9-1.6-3.2-2.7s-2.6-2.2-3.9-3.3c-1.7-1.4-3.1-2.8-4.1-4.1s-1.5-2.9-1.5-5c0-1.4.4-2.6,1-3.7.7-1,1.5-1.8,2.5-2.3,1-.5,2.1-.8,3.2-.8s2.5.3,3.4.8c.9.6,1.7,1.3,2.4,2.2s1.4,2,2,3.2c1,1.9,1.8,3.7,2.5,5.3s1.3,2.8,1.6,3.7c.3-.9.9-2.1,1.6-3.7.7-1.6,1.6-3.4,2.5-5.3.6-1.2,1.3-2.3,2-3.2.7-.9,1.5-1.7,2.4-2.2,1.1-.5,2.2-.8,3.5-.8s2.2.3,3.3.8c1,.5,1.9,1.3,2.5,2.4.7,1,1,2.2,1,3.7,0,2.1-.5,3.7-1.5,5-1,1.3-2.4,2.7-4.1,4.1-1.2,1-2.3,2-3.5,3s-2.3,2-3.5,2.9c.8.6,1.9,1.4,3.1,2.3,1.2,1,2.5,2,3.7,3,1.7,1.4,3.1,2.7,4.1,3.9,1,1.2,1.6,2.8,1.6,4.7s-.3,2.6-1,3.7c-.7,1-1.5,1.8-2.5,2.3s-2.1.8-3.3.8c-1.3,0-2.5-.3-3.4-.9-.9-.5-1.7-1.3-2.4-2.2-.7-1-1.4-2-2-3.2-.9-1.7-1.7-3.3-2.4-4.7-.8-1.4-1.3-2.7-1.7-3.7-.3,1-.9,2.3-1.7,3.7-.8,1.5-1.6,3-2.4,4.6-1,1.8-2,3.3-3.1,4.5s-2.7,1.8-4.7,1.8h0v.1Z" style="fill: var(--max-color-text-primary);"/>
-                    </svg>
+                    <img src="../max_header.svg" alt="M.AX Journey" style="height: 28px; width: auto;">
                     <div class="logo-text"><span>Admin</span></div>
                 </div>
             </div>
@@ -155,37 +153,32 @@
                 <div class="admin-module" id="module-journeys" style="display: none;">
                     <div class="module-header">
                         <div class="header-text">
-                            <h1>Journeys</h1>
-                            <p>View and manage captured journey maps.</p>
+                            <h1>Completed Journeys</h1>
+                            <p>View and manage completed journey maps.</p>
                         </div>
                         <div class="header-actions">
                             <button id="mobileSidebarToggleJourneys" class="secondary-btn mobile-only">List</button>
-                            <div class="filter-controls">
-                                <label><input type="radio" name="jFilter" value="all" checked> All</label>
-                                <label><input type="radio" name="jFilter" value="complete"> Complete</label>
-                            </div>
+                            <button id="clearJourneysBtn" class="secondary-btn danger-btn" style="display: none;">Clear All</button>
                         </div>
                     </div>
 
                     <div class="journey-viewer-layout">
-                        <div class="main-form">
-                            <div class="form-header">
-                                <h2 id="journeyPreviewTitle">Select a Journey</h2>
-                                <div class="form-actions">
-                                    <a id="retakeBtn" href="#" target="_blank" class="primary-btn" style="display: none;">Retake / View Live</a>
-                                </div>
+                        <div class="viewer-header">
+                            <h2 id="journeyPreviewTitle">Select a Journey</h2>
+                            <div class="form-actions">
+                                <a id="retakeBtn" href="#" target="_blank" class="primary-btn" style="display: none;">Open Live</a>
                             </div>
-                            <div id="adminCanvasContainer" class="canvas-container">
-                                <div id="adminCanvas" class="journey-dashboard">
-                                    <div class="empty-placeholder">Select a journey from the sidebar to preview</div>
-                                </div>
-                                <!-- Cell Detail Modal -->
-                                <div class="cell-detail-overlay" id="cellModal" onclick="closeCellModal(event)">
-                                    <div class="cell-detail-modal">
-                                      <h3 id="modalTitle">Action</h3>
-                                      <div id="modalContext">Context</div>
-                                      <button onclick="closeCellModal(null)" class="modal-close-btn">Close</button>
-                                    </div>
+                        </div>
+                        <div id="adminCanvasContainer" class="admin-canvas-viewport">
+                            <div id="adminCanvas" class="journey-dashboard admin-journey-dashboard">
+                                <div class="empty-placeholder">Select a completed journey to preview</div>
+                            </div>
+                            <!-- Cell Detail Modal -->
+                            <div class="cell-detail-overlay" id="cellModal" onclick="closeCellModal(event)">
+                                <div class="cell-detail-modal">
+                                  <h3 id="modalTitle">Action</h3>
+                                  <div id="modalContext">Context</div>
+                                  <button onclick="closeCellModal(null)" class="modal-close-btn">Close</button>
                                 </div>
                             </div>
                         </div>
@@ -392,22 +385,17 @@
                             </div>
                         </div>
 
-                        <!-- Preview & Actions -->
+                        <!-- Generated URL -->
                         <div class="preview-bar">
-                            <div class="preview-content">
-                                <label>Generated URL:</label>
-                                <div class="url-display">
-                                    <code id="generatedUrl">http://localhost:3000/</code>
-                                    <button id="copyBtn" class="icon-btn" title="Copy to clipboard">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="preview-actions">
-                                <a href="#" id="testLinkBtn" target="_blank" class="primary-btn">Test Link</a>
+                            <label>Generated URL:</label>
+                            <div class="url-display">
+                                <code id="generatedUrl">http://localhost:3000/</code>
+                                <button id="copyBtn" class="icon-btn" title="Copy to clipboard">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -483,7 +471,7 @@
         </div>
     </template>
 
-    <script src="../js/renderer.js?v=1017"></script>
-    <script src="script.js?v=2.2"></script>
+    <script src="../js/renderer.js?v=1018"></script>
+    <script src="script.js?v=2.3"></script>
 </body>
 </html>

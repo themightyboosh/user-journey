@@ -1,5 +1,5 @@
 // Config
-const VERSION = '2.1';
+const VERSION = '2.3';
 console.log('Journey Mapper Admin v' + VERSION);
 
 const BASE_URL = window.location.origin + '/';
@@ -51,7 +51,7 @@ const addSwimlaneBtn = document.getElementById('addSwimlaneBtn');
 const addPhaseBtn = document.getElementById('addPhaseBtn');
 const generatedUrlCode = document.getElementById('generatedUrl');
 const copyBtn = document.getElementById('copyBtn');
-const testLinkBtn = document.getElementById('testLinkBtn');
+// testLinkBtn removed — generated URL is clickable directly
 const swimlaneTemplate = document.getElementById('swimlaneTemplate');
 const phaseTemplate = document.getElementById('phaseTemplate');
 const savedLinksList = document.getElementById('savedLinksList');
@@ -70,7 +70,6 @@ const adminCanvas = document.getElementById('adminCanvas');
 const journeyPreviewTitle = document.getElementById('journeyPreviewTitle');
 const retakeBtn = document.getElementById('retakeBtn');
 const clearJourneysBtn = document.getElementById('clearJourneysBtn');
-const filterRadios = document.querySelectorAll('input[name="jFilter"]');
 
 // Toggle keys (order matches param rows)
 const TOGGLE_KEYS = ['name', 'role', 'journey', 'welcomePrompt', 'journeyPrompt', 'ragContext', 'swimlanes', 'phases'];
@@ -147,7 +146,6 @@ function init() {
     });
 
     // Journeys Module
-    if (filterRadios) filterRadios.forEach(radio => radio.addEventListener('change', renderJourneysList));
     if (clearJourneysBtn) clearJourneysBtn.addEventListener('click', clearAllJourneys);
 
     // Settings Module
@@ -200,7 +198,7 @@ function switchModule(e, moduleName) {
         if (!isMobile) adminSidebar.style.display = 'flex';
     } else if (moduleName === 'journeys') {
         journeyList.style.display = 'block';
-        sidebarTitle.textContent = 'Saved Journeys';
+        sidebarTitle.textContent = 'Completed Journeys';
         newConfigBtn.style.display = 'none';
         if (!isMobile) adminSidebar.style.display = 'flex';
     } else {
@@ -315,38 +313,39 @@ function renderJourneysList() {
     if (!journeyList) return;
     journeyList.innerHTML = '';
 
-    const filterVal = document.querySelector('input[name="jFilter"]:checked')?.value || 'all';
-    let filtered = savedJourneys;
-    if (filterVal === 'complete') {
-        filtered = savedJourneys.filter(j => j.status === 'READY_FOR_REVIEW' || j.stage === 'COMPLETE');
-    }
+    // Only show completed journeys in admin
+    const completed = savedJourneys.filter(j => j.status === 'READY_FOR_REVIEW' || j.stage === 'COMPLETE');
 
-    filtered.sort((a, b) => {
+    completed.sort((a, b) => {
         const dateA = new Date(a.updatedAt || a.createdAt || 0);
         const dateB = new Date(b.updatedAt || b.createdAt || 0);
         return dateB - dateA;
     });
 
-    if (filtered.length === 0) {
-        journeyList.innerHTML = `<div class="empty-state">No journeys found.</div>`;
-        if(clearJourneysBtn) clearJourneysBtn.style.display = 'none';
+    // Show/hide Clear All button (clears ALL journeys including partial)
+    const hasAnyJourneys = savedJourneys.length > 0;
+    if (clearJourneysBtn) clearJourneysBtn.style.display = hasAnyJourneys ? 'inline-flex' : 'none';
+
+    if (completed.length === 0) {
+        const partialCount = savedJourneys.length - completed.length;
+        const hint = partialCount > 0 
+            ? `No completed journeys yet. ${partialCount} in progress.` 
+            : 'No journeys yet.';
+        journeyList.innerHTML = `<div class="empty-state">${hint}</div>`;
         return;
     }
 
-    if(clearJourneysBtn) clearJourneysBtn.style.display = 'inline-flex';
-
-    filtered.forEach(journey => {
+    completed.forEach(journey => {
         if (!journey) return;
         const div = document.createElement('div');
         div.className = `saved-link-item ${journey.journeyMapId === currentJourneyId ? 'active' : ''}`;
-        let statusIcon = journey.stage === 'COMPLETE' ? '✅' : '📝';
         let date = 'Unknown Date';
         try { date = new Date(journey.updatedAt || journey.createdAt).toLocaleDateString(); } catch (e) {}
         let name = journey.userName ? `${journey.userName} (${journey.role})` : (journey.role || 'Unknown User');
 
         div.innerHTML = `
             <div class="link-content" style="flex: 1;">
-                <div class="link-name">${statusIcon} ${escapeHtml(journey.name || 'Untitled')}</div>
+                <div class="link-name">${escapeHtml(journey.name || 'Untitled')}</div>
                 <div class="link-meta">${escapeHtml(name)} • ${date}</div>
             </div>
             <button class="delete-journey-btn icon-btn small danger" title="Delete" style="opacity: 0.5; margin-left: 8px;">
@@ -375,7 +374,7 @@ async function deleteJourney(id) {
         if (res.ok) {
             if (id === currentJourneyId) {
                 currentJourneyId = null;
-                adminCanvas.innerHTML = '<div class="empty-placeholder">Select a journey from the sidebar to preview</div>';
+                adminCanvas.innerHTML = '<div class="empty-placeholder">Select a completed journey to preview</div>';
                 journeyPreviewTitle.textContent = 'Select a Journey';
                 retakeBtn.style.display = 'none';
             }
@@ -385,13 +384,16 @@ async function deleteJourney(id) {
 }
 
 async function clearAllJourneys() {
-    if (!confirm("WARNING: Are you sure you want to DELETE ALL journeys? This is irreversible.")) return;
+    const partialCount = savedJourneys.filter(j => j.stage !== 'COMPLETE' && j.status !== 'READY_FOR_REVIEW').length;
+    const completeCount = savedJourneys.length - partialCount;
+    const msg = `This will delete ALL journeys (${completeCount} completed, ${partialCount} in-progress). This is irreversible.`;
+    if (!confirm(msg)) return;
     if (!confirm("Really delete EVERYTHING?")) return;
     try {
         const res = await fetch(JOURNEYS_API_URL, { method: 'DELETE' });
         if (res.ok) {
             currentJourneyId = null;
-            adminCanvas.innerHTML = '<div class="empty-placeholder">Select a journey from the sidebar to preview</div>';
+            adminCanvas.innerHTML = '<div class="empty-placeholder">Select a completed journey to preview</div>';
             journeyPreviewTitle.textContent = 'Select a Journey';
             retakeBtn.style.display = 'none';
             fetchJourneys();
@@ -729,7 +731,6 @@ function updateUrl() {
     }
 
     generatedUrlCode.innerHTML = `<a href="${finalUrl}" target="_blank">${finalUrl}</a>`;
-    testLinkBtn.href = finalUrl;
 }
 
 // ========================================
