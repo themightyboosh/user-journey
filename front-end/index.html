@@ -1395,7 +1395,7 @@
         };
     })();
   </script>
-  <script src="js/renderer.js?v=1010"></script>
+  <script src="js/renderer.js?v=1011"></script>
   <script src="js/json-renderer.js"></script>
   <script>
     // ===========================================
@@ -1543,49 +1543,41 @@
         if (!window.panzoomInstance) return;
         const pz = window.panzoomInstance;
         const viewport = document.getElementById('panzoomViewport');
-        if (!viewport) return;
-        
-        const rect = viewport.getBoundingClientRect();
-        const cx = rect.left + (rect.width / 2);
-        const cy = rect.top + (rect.height / 2);
+        const dashboard = document.getElementById('journeyDashboard');
+        if (!viewport || !dashboard) return;
         
         switch(action) {
-            case 'zoomIn':
-                pz.zoomIn({ focal: { clientX: cx, clientY: cy } });
+            case 'zoomIn': {
+                // Zoom toward the center of whatever is currently visible (viewport center)
+                const rect = viewport.getBoundingClientRect();
+                pz.zoomIn({ focal: { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 } });
                 break;
-            case 'zoomOut':
-                pz.zoomOut({ focal: { clientX: cx, clientY: cy } });
+            }
+            case 'zoomOut': {
+                const rect = viewport.getBoundingClientRect();
+                pz.zoomOut({ focal: { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 } });
                 break;
-            case 'reset':
-                // Reset to scale 1 and CENTER the content
-                const dashboard = document.getElementById('journeyDashboard');
+            }
+            case 'reset': {
+                // Reset to scale 1 and CENTER the board in the viewport
                 const container = document.querySelector('.journey-board-container');
+                if (!container) { pz.reset(); break; }
                 
-                if (dashboard && container) {
-                     // 1. Set Scale 1
-                     pz.zoom(1, { animate: true });
-                     
-                     // 2. Calculate Center Pan
-                     const targetW = container.offsetWidth;
-                     const targetH = container.offsetHeight;
-                     const targetX = container.offsetLeft;
-                     const targetY = container.offsetTop;
-                     
-                     const containerCenterX = targetX + (targetW / 2);
-                     const containerCenterY = targetY + (targetH / 2);
-                     
-                     // Center in viewport
-                     const panX = (rect.width / 2) - containerCenterX;
-                     const panY = (rect.height / 2) - containerCenterY;
-                     
-                     setTimeout(() => {
-                        pz.pan(panX, panY, { animate: true });
-                     }, 10);
-                } else {
-                    // Fallback
-                    pz.reset();
-                }
+                const vW = viewport.clientWidth;
+                const vH = viewport.clientHeight;
+                const bcx = container.offsetLeft + (container.offsetWidth / 2);
+                const bcy = container.offsetTop + (container.offsetHeight / 2);
+                
+                // At scale 1: panX = vW/2 - bcx, panY = vH/2 - bcy
+                // (same formula since vW/(2*1) = vW/2)
+                const panX = (vW / 2) - bcx;
+                const panY = (vH / 2) - bcy;
+                
+                pz.setOptions({ animate: true });
+                pz.zoom(1);
+                pz.pan(panX, panY);
                 break;
+            }
             case 'fit':
                 performFit();
                 break;
@@ -1598,106 +1590,68 @@
         const dashboard = document.getElementById('journeyDashboard');
         const container = document.querySelector('.journey-board-container');
         
-        // Re-query viewport to get fresh dimensions (e.g. after chat sidebar hides)
+        // Re-query viewport to get fresh dimensions (critical after sidebar hides)
         const viewport = document.getElementById('panzoomViewport');
         if (!viewport || !dashboard) return;
         
-        // Ensure origin is top-left for our math to work
+        // Ensure origin is top-left for our math
         dashboard.style.transformOrigin = '0 0';
         
-        // 1. Get Dimensions
-        const viewportRect = viewport.getBoundingClientRect();
-        const viewportW = viewportRect.width;
-        const viewportH = viewportRect.height;
+        // 1. Get viewport dimensions (the visible area)
+        const viewportW = viewport.clientWidth;
+        const viewportH = viewport.clientHeight;
         
-        // 2. Determine Target Dimensions & Position (Unscaled)
-        let targetX = 0;
-        let targetY = 0;
-        let targetW = dashboard.scrollWidth;
-        let targetH = dashboard.scrollHeight;
+        // 2. Get board dimensions (unscaled - offsetWidth/Height are NOT affected by CSS transforms)
+        let boardX, boardY, boardW, boardH;
         
         if (container) {
-            targetX = container.offsetLeft;
-            targetY = container.offsetTop;
-            targetW = container.offsetWidth;
-            targetH = container.offsetHeight;
+            // offsetLeft/Top are relative to offsetParent (#journeyDashboard which has position: relative)
+            boardX = container.offsetLeft;
+            boardY = container.offsetTop;
+            boardW = container.offsetWidth;
+            boardH = container.offsetHeight;
         } else {
-            // If no container (e.g. empty state), center the dashboard content roughly
-            // Dashboard padding is 80px
-            targetX = 0;
-            targetY = 0;
+            // No board yet - nothing to fit
+            return;
         }
 
-        if (targetW === 0 || targetH === 0 || viewportW === 0 || viewportH === 0) return;
+        if (boardW === 0 || boardH === 0 || viewportW === 0 || viewportH === 0) return;
 
-        // 3. Calculate Scale
-        const padding = 20; // Reduced padding for tighter fit
+        // 3. Calculate scale to fit board in viewport with padding
+        const padding = 40;
         const availableW = viewportW - (padding * 2);
         const availableH = viewportH - (padding * 2);
         
-        const scaleX = availableW / targetW;
-        const scaleY = availableH / targetH;
-        
-        // Clamp scale
-        let newScale = Math.min(scaleX, scaleY);
-        const minScale = 0.1;
-        const maxScale = 5;
-        newScale = Math.max(minScale, Math.min(maxScale, newScale));
-        
-        // 4. Calculate Pan
-        // Center of container in dashboard coordinates
-        const containerCenterX = targetX + (targetW / 2);
-        const containerCenterY = targetY + (targetH / 2);
-        
-        // We want containerCenter to be at viewportCenter
-        // P_x + C_x * S = V_x
-        // P_x = V_x - C_x * S
-        const panX = (viewportW / 2) - (containerCenterX * newScale);
-        const panY = (viewportH / 2) - (containerCenterY * newScale);
+        let newScale = Math.min(availableW / boardW, availableH / boardH);
+        newScale = Math.max(0.1, Math.min(5, newScale)); // Clamp to Panzoom limits
 
-        // 5. Execute
-        pz.setOptions({ duration: 0, animate: false });
+        // 4. Calculate pan to CENTER the board
+        //
+        // Panzoom transform: scale(S) translate(X, Y)
+        // CSS applies right-to-left: translate first, then scale from origin
+        // So a local point (lx, ly) appears on screen at: ((lx + X) * S, (ly + Y) * S)
+        //
+        // We want the board center to appear at the viewport center:
+        //   (boardCenterX + X) * S = viewportW / 2
+        //   X = viewportW / (2 * S) - boardCenterX
+        //
+        const boardCenterX = boardX + (boardW / 2);
+        const boardCenterY = boardY + (boardH / 2);
         
-        // Force reset then apply to avoid accumulation errors
-        // Note: Panzoom doesn't have a 'setTransform' method exposed directly on the instance usually, 
-        // but zoom() and pan() work. 
-        // We set scale first, then pan.
+        const panX = (viewportW / (2 * newScale)) - boardCenterX;
+        const panY = (viewportH / (2 * newScale)) - boardCenterY;
+
+        // 5. Apply atomically (no animation, no setTimeout between zoom and pan)
+        pz.setOptions({ animate: false });
         pz.zoom(newScale);
-        setTimeout(() => {
-            pz.pan(panX, panY);
-            
-            // Re-enable animation
-            setTimeout(() => {
-                pz.setOptions({ duration: 200, animate: true });
-            }, 50);
-        }, 0);
+        pz.pan(panX, panY);
         
-        // DEBUG VISUALIZATION
-        // Draw a red box around the target area to verify we have the right coordinates
-        // remove old debug box
-        const oldBox = document.getElementById('debug-fit-box');
-        if (oldBox) oldBox.remove();
-        
-        /* Uncomment to see debug box
-        const box = document.createElement('div');
-        box.id = 'debug-fit-box';
-        box.style.position = 'absolute';
-        box.style.left = targetX + 'px';
-        box.style.top = targetY + 'px';
-        box.style.width = targetW + 'px';
-        box.style.height = targetH + 'px';
-        box.style.border = '4px solid red';
-        box.style.pointerEvents = 'none';
-        box.style.zIndex = '9999';
-        dashboard.appendChild(box);
-        */
-        
-        console.log("Fit Calc:", {
-            vW: viewportW, vH: viewportH,
-            tX: targetX, tY: targetY, tW: targetW, tH: targetH,
-            scale: newScale,
-            panX, panY
+        // Re-enable animation after a frame
+        requestAnimationFrame(() => {
+            pz.setOptions({ animate: true });
         });
+        
+        console.log("Fit:", { viewportW, viewportH, boardX, boardY, boardW, boardH, newScale, panX, panY });
     }
 
     let hasAutoFitComplete = false;
@@ -1709,27 +1663,29 @@
     window.addEventListener('journeyRendered', (e) => {
         const { width, height } = e.detail;
         
-        // Check if dimensions changed significantly (gate passed/new phase)
+        // Check if dimensions changed significantly (new phase/gate passed)
         const hasSizeChanged = Math.abs(width - lastRenderedWidth) > 50 || Math.abs(height - lastRenderedHeight) > 50;
         
-        // Also check if we just entered complete state
         const isComplete = currentJourney && (currentJourney.stage === 'COMPLETE' || currentJourney.status === 'READY_FOR_REVIEW' || document.body.classList.contains('journey-complete'));
         
-        // Update history
         lastRenderedWidth = width;
         lastRenderedHeight = height;
 
         if (hasSizeChanged || (isComplete && !hasAutoFitComplete)) {
-             // Wait for fonts/layout
+             // Wait for fonts to load (affects text layout/size)
              document.fonts.ready.then(() => {
-                 // If completing, give extra time for sidebar animation
-                 const delay = isComplete ? 300 : 100;
-                 setTimeout(performFit, delay);
-                 
-                 // Double tap for safety on complete
                  if (isComplete) {
-                    setTimeout(performFit, 800);
-                    hasAutoFitComplete = true;
+                    // When completing, the chat sidebar hides via display:none which is instant,
+                    // but flexbox reflow needs a frame. Use rAF to ensure layout is settled.
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            performFit();
+                            hasAutoFitComplete = true;
+                        });
+                    });
+                 } else {
+                    // During active journey, fit after a brief layout settle
+                    requestAnimationFrame(() => performFit());
                  }
              });
         }
@@ -2499,10 +2455,12 @@
         const btn = document.getElementById('mobileToggleBtn');
         if (document.body.classList.contains('show-map')) {
             btn.textContent = 'Chat';
-            // Auto-fit when switching to map
-            setTimeout(() => {
-                if(window.panzoomInstance) performFit();
-            }, 100);
+            // Auto-fit when switching to map - wait for layout reflow
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if(window.panzoomInstance) performFit();
+                });
+            });
         } else {
             btn.textContent = 'Map';
         }
@@ -2625,12 +2583,12 @@
         // Ensure buttons show
         document.body.classList.add('journey-complete');
         
-        // Fit
-        setTimeout(() => {
-            if(window.panzoomInstance) {
-                performFit();
-            }
-        }, 100);
+        // Fit after layout settles
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if(window.panzoomInstance) performFit();
+            });
+        });
         
         console.log("Generated Journey:", journey);
     }
