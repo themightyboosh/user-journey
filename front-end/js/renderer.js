@@ -171,7 +171,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     // Prepare Header Components
     let quoteHtml = '';
     if (journey.quotes && journey.quotes.length > 0) {
-        quoteHtml = `<div style="font-family: var(--max-font-family); font-weight: 400; font-style: italic; font-size: 64px; line-height: 1.2; color: #ffffff; max-width: 800px;">
+        quoteHtml = `<div style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 64px; line-height: 1.2; color: #ffffff; max-width: 800px;">
                     "${escapeHtml(journey.quotes[0])}"
                  </div>`;
     }
@@ -192,8 +192,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
             
             <!-- Left Column: Identity -->
             <div class="header-left">
-                <div class="journey-title" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
-                    <div style="transform: scale(0.8); transform-origin: left center;">${maxLogoSvg}</div>
+                <div class="journey-title" style="display: flex; flex-direction: column; align-items: flex-start; gap: 32px;">
+                    <div style="transform: scale(1.6); transform-origin: left center; margin-bottom: 16px;">${maxLogoSvg}</div>
                     <span style="font-size: 64px; line-height: 1.1;">${escapeHtml(journey.name) || 'Untitled Journey'}</span>
                 </div>
                 <div class="journey-role" style="margin-top: 24px; font-size: 32px; padding-left: 0; padding-top: 4px; padding-bottom: 4px; font-weight: 500; color: var(--max-color-text-secondary);">
