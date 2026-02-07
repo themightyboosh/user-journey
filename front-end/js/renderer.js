@@ -213,7 +213,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     
     let html = `
         <div class="journey-board-container" style="width: ${finalWidth}px; max-width: none;">
-        <div class="journey-header" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-bottom: 60px; padding-bottom: 40px; ${hasContent ? 'border-bottom: 1px solid var(--max-color-border);' : ''}">
+        <div class="journey-header" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-bottom: 60px; padding-bottom: 40px; ${hasContent ? 'border-bottom: 1px solid var(--max-color-border);' : 'border-bottom: none;'}">
             
             <!-- Left Column: Identity -->
             <div class="header-left">
@@ -306,7 +306,12 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         document.body.classList.remove('journey-complete');
     }
 
-    html += `<div class="final-artifacts" style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 60px; width: 100%;">`;
+    
+    // hasSummaries calculated above
+    const hasArtifacts = journey.summaryOfFindings || journey.mentalModels || journey.anythingElse || hasSummaries;
+    
+    if (hasArtifacts) {
+        html += `<div class="final-artifacts" style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 60px; width: 100%;">`;
 
     // --- SECTION 1: OVERVIEW (Full Width) ---
     if (journey.summaryOfFindings) {
@@ -457,6 +462,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     }
     
     html += `</div>`; // End artifacts container 
+    }
+ 
     html += `</div>`; // End board container
 
     container.innerHTML = html;
