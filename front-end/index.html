@@ -1540,27 +1540,34 @@
     }
 
     function panzoomAction(action) {
-        if (!window.panzoomInstance) return;
+        if (!window.panzoomInstance) {
+            console.warn("Panzoom instance missing, re-initializing...");
+            initPanzoom();
+            if (!window.panzoomInstance) return;
+        }
+        
         const pz = window.panzoomInstance;
         const viewport = document.getElementById('panzoomViewport');
         if (!viewport) return;
         
         const rect = viewport.getBoundingClientRect();
-        // Focus on the CENTER of the viewport, not the top-left or mouse position
         const cx = rect.width / 2;
         const cy = rect.height / 2;
         
+        // Use a consistent step
+        const ZOOM_STEP = 0.3;
+
         switch(action) {
             case 'zoomIn':
-                // Focal point is relative to the element, but panzoom handles clientX/Y
-                // We use client center of viewport
-                pz.zoomIn({ focal: { clientX: rect.left + cx, clientY: rect.top + cy } });
+                // Try zooming without focal first to ensure it works, or fallback to center
+                pz.zoomIn({ step: ZOOM_STEP }); 
                 break;
             case 'zoomOut':
-                pz.zoomOut({ focal: { clientX: rect.left + cx, clientY: rect.top + cy } });
+                pz.zoomOut({ step: ZOOM_STEP });
                 break;
             case 'reset':
-                // Reset to scale 1 and CENTER the content
+                // ... logic ...
+
                 const dashboard = document.getElementById('journeyDashboard');
                 const container = document.querySelector('.journey-board-container');
                 
