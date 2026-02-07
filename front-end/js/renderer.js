@@ -337,27 +337,23 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
 
     html += `<div class="final-artifacts" style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 60px; width: 100%;">`;
 
-    // --- ROW 1: Overview | Mental Models (50/50) ---
-    html += `<div class="artifacts-grid-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; width: 100%;">`;
-    
-    // Column 1: Overview
-    html += `<div class="artifacts-col-overview">`;
+    // --- SECTION 1: OVERVIEW (Full Width) ---
     if (journey.summaryOfFindings) {
         html += `
-            <div class="context-card" style="height: 100%;">
+            <div class="artifact-section overview-section" style="width: 100%;">
                 <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Overview</h3>
-                <div class="context-content" style="font-size: 18px;">${formatMessage(journey.summaryOfFindings)}</div>
+                <div class="context-card" style="width: 100%;">
+                    <div class="context-content" style="font-size: 18px;">${formatMessage(journey.summaryOfFindings)}</div>
+                </div>
             </div>`;
     } else {
         html += `<div style="opacity: 0.5; font-style: italic;">Overview pending...</div>`;
     }
-    html += `</div>`; // End Column 1 Overview
 
-    // Column 2: Mental Models
-    html += `<div class="artifacts-col-mental-models">`;
+    // --- SECTION 2: MENTAL MODELS (Grid) ---
     if (journey.mentalModels) {
         html += `
-            <div>
+            <div class="artifact-section models-section" style="width: 100%;">
                 <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Mental Models</h3>
         `;
         
@@ -372,7 +368,9 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         }
         
         if (models.length > 0) {
-            html += `<div style="display: flex; flex-direction: column; gap: 12px;">`;
+            // Grid Layout for Models
+            html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 24px;">`;
+            
             models.forEach((model, index) => {
                 let title = `Model ${index + 1}`;
                 let content = model;
@@ -388,13 +386,16 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                     }
                 }
                 
+                // Fix: Format the title to handle markdown like **Bold**
+                const formattedTitle = formatMessage(title).replace(/^<p>|<\/p>$/g, ''); 
+
                 html += `
                     <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 32px; border-radius: 16px; display: flex; gap: 24px; align-items: flex-start;">
                         <div style="flex-shrink: 0; margin-top: 4px;">
                             ${getSematicIcon(title + ' ' + content)}
                         </div>
                         <div>
-                            <h4 style="font-size: 20px; font-weight: 700; color: var(--max-color-text-primary); margin-bottom: 8px;">${escapeHtml(title)}</h4>
+                            <h4 style="font-size: 20px; font-weight: 700; color: var(--max-color-text-primary); margin-bottom: 8px;">${formattedTitle}</h4>
                             <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(content)}</div>
                         </div>
                     </div>
@@ -408,47 +409,49 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     } else {
         html += `<div style="opacity: 0.5; font-style: italic;">Mental Models pending...</div>`;
     }
-    html += `</div>`; // End Mental Models Wrapper
-    html += `</div>`; // End Column 2 Mental Models
-    html += `</div>`; // End Row 1 Grid Container
 
+    // --- SECTION 3: PHASES & LANES (Grid) ---
+    const hasSummaries = journey.phases.some(p => p.summary) || journey.swimlanes.some(s => s.summary);
+    
+    if (hasSummaries) {
+        html += `
+            <div class="artifact-section summaries-section" style="width: 100%;">
+                 <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Key Takeaways</h3>
+                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px;">
+        `;
 
-    // --- ROW 2: Phases & Lanes (Flexbox Wrap) ---
-    html += `<div class="artifacts-flex-row" style="margin-top: 60px;">`;
-    // Single container for all summaries - use Flexbox to wrap cards
-    html += `<div class="artifacts-cards-container" style="display: flex; flex-wrap: wrap; gap: 24px; width: 100%;">`;
+        // 1. Phase Summaries
+        if (journey.phases.some(p => p.summary)) {
+            journey.phases.forEach(p => {
+                if (p.summary) {
+                    html += `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column;">
+                            <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Phase</div>
+                            <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(p.name)}</h4>
+                            <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary); flex-grow: 1;">${formatMessage(p.summary)}</div>
+                        </div>
+                    `;
+                }
+            });
+        }
 
-    // 1. Phase Summaries
-    if (journey.phases.some(p => p.summary)) {
-        journey.phases.forEach(p => {
-            if (p.summary) {
-                html += `
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column; flex: 1 1 400px; max-width: 100%;">
-                        <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Phase</div>
-                        <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(p.name)}</h4>
-                        <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary); flex-grow: 1;">${formatMessage(p.summary)}</div>
-                    </div>
-                `;
-            }
-        });
+        // 2. Lane Summaries
+        if (journey.swimlanes.some(s => s.summary)) {
+            journey.swimlanes.forEach(s => {
+                if (s.summary) {
+                    html += `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column;">
+                            <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Lane</div>
+                            <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(s.name)}</h4>
+                            <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary); flex-grow: 1;">${formatMessage(s.summary)}</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+        
+        html += `</div></div>`;
     }
-
-    // 2. Lane Summaries
-    if (journey.swimlanes.some(s => s.summary)) {
-        journey.swimlanes.forEach(s => {
-            if (s.summary) {
-                html += `
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column; flex: 1 1 400px; max-width: 100%;">
-                        <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Lane</div>
-                        <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(s.name)}</h4>
-                        <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary); flex-grow: 1;">${formatMessage(s.summary)}</div>
-                    </div>
-                `;
-            }
-        });
-    }
-
-    html += `</div></div>`; // End Flex Container and Section
     
     // Additional Context (Full Width)
     if (journey.anythingElse) {

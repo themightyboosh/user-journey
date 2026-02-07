@@ -76,6 +76,7 @@ STATE MACHINE:
     *   **Transition**: Move to Completion.
     13. **Completion & Analysis**: 
     *   **Logic**: Synthesize all gathered data. GENERATE distinct artifacts:
+    *   **RAG Constraint**: If KNOWLEDGE BASE content was provided in the context, you MUST explicitly reference how the user's journey aligns with or deviates from that knowledge in BOTH the 'Summary of Findings' and 'Mental Models'. Cite the source if possible.
         1.  **Summary of Findings**: A comprehensive summary of the journey data.
         2.  **Mental Models**: Identify key mental models the user exhibited. Do NOT use numbered lists. Use bullet points or paragraphs.
         3.  **Quotes**: Extract ONE (1) quote or response that best summarizes the entire journey from the user.
