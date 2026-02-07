@@ -260,28 +260,31 @@ server.post('/api/chat', async (request, reply) => {
           const functionCalls = candidates[0].content.parts.filter((p: any) => p.functionCall);
           
           if (functionCalls && functionCalls.length > 0) {
+              // Execute all function calls and collect responses
+              const functionResponseParts: any[] = [];
               for (const call of functionCalls) {
                   const fn = call.functionCall;
                   if (!fn) continue;
 
                   const toolResult: any = await aiService.executeTool(fn.name, fn.args);
                   
-                  const toolResponsePart = {
+                  functionResponseParts.push({
                       functionResponse: {
                           name: fn.name,
                           response: { content: toolResult }
                       }
-                  };
-                  
-                  // Add model response and tool result to history
-                  contents.push(candidates[0].content);
-                  contents.push({ role: 'function', parts: [toolResponsePart] });
+                  });
   
                   if (fn.name === 'create_journey_map' && toolResult && toolResult.journeyMapId) {
                        config.journeyId = toolResult.journeyMapId;
                        reply.raw.write(`data: ${JSON.stringify({ journeyId: toolResult.journeyMapId })}\n\n`);
                   }
               }
+
+              // Push model response (with all call parts) ONCE,
+              // then ONE function message with ALL response parts (1:1 match required by Vertex AI)
+              contents.push(candidates[0].content);
+              contents.push({ role: 'function', parts: functionResponseParts });
               
               // P0 FIX: Re-fetch journey state after tool calls so the model
               // gets a fresh system instruction reflecting the mutations just made.

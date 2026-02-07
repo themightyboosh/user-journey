@@ -216,11 +216,9 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     const hasContent = journey.phases.length > 0 || journey.swimlanes.length > 0;
     
     // Title & Quote Logic
-    let titleRowHtml = `<span style="font-size: 64px; line-height: 1.1; font-weight: 600; color: var(--max-color-text-primary);">${escapeHtml(journey.name) || 'Untitled Journey'}</span>`;
+    let titleRowHtml = `<span style="font-size: 64px; line-height: 1.1; font-weight: 600; color: var(--max-color-accent);">${escapeHtml(journey.name) || 'Untitled Journey'}</span>`;
     if (journey.quotes && journey.quotes.length > 0) {
-        titleRowHtml += `<span style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 64px; line-height: 1.1; color: #ffffff; margin-left: 16px;">
-                            "${escapeHtml(journey.quotes[0])}"
-                         </span>`;
+        titleRowHtml += `<span style="font-size: 64px; line-height: 1.1; color: var(--max-color-text-secondary); margin: 0 16px;">::</span><span style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 64px; line-height: 1.1; color: #ffffff;">"${escapeHtml(journey.quotes[0])}"</span>`;
     }
 
     let html = `
@@ -451,8 +449,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         html += `</div></div>`;
     }
     
-    // Additional Context (Full Width)
-    if (journey.anythingElse) {
+    // Additional Context (Full Width) — hide if trivially short (<20 chars ≈ filler like "None", "N/A")
+    if (journey.anythingElse && journey.anythingElse.trim().length >= 20) {
             html += `
             <div class="context-card">
                 <h3 style="color: var(--max-color-accent); font-size: 24px; margin-bottom: 16px;">Additional Context</h3>
