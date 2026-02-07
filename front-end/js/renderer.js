@@ -338,10 +338,10 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     html += `<div class="final-artifacts" style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 60px; width: 100%;">`;
 
     // --- ROW 1: Overview | Mental Models (50/50) ---
-    html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; width: 100%;">`;
+    html += `<div class="artifacts-grid-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; width: 100%;">`;
     
     // Column 1: Overview
-    html += `<div>`;
+    html += `<div class="artifacts-col-overview">`;
     if (journey.summaryOfFindings) {
         html += `
             <div class="context-card" style="height: 100%;">
@@ -351,10 +351,10 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     } else {
         html += `<div style="opacity: 0.5; font-style: italic;">Overview pending...</div>`;
     }
-    html += `</div>`;
+    html += `</div>`; // End Column 1 Overview
 
     // Column 2: Mental Models
-    html += `<div>`;
+    html += `<div class="artifacts-col-mental-models">`;
     if (journey.mentalModels) {
         html += `
             <div>
@@ -408,13 +408,15 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     } else {
         html += `<div style="opacity: 0.5; font-style: italic;">Mental Models pending...</div>`;
     }
-    html += `</div>`; // End Row 1
+    html += `</div>`; // End Mental Models Wrapper
+    html += `</div>`; // End Column 2 Mental Models
+    html += `</div>`; // End Row 1 Grid Container
 
 
     // --- ROW 2: Phases & Lanes (Flexbox Wrap) ---
-    html += `<div style="margin-top: 60px;">`;
+    html += `<div class="artifacts-flex-row" style="margin-top: 60px;">`;
     // Single container for all summaries - use Flexbox to wrap cards
-    html += `<div style="display: flex; flex-wrap: wrap; gap: 24px; width: 100%;">`;
+    html += `<div class="artifacts-cards-container" style="display: flex; flex-wrap: wrap; gap: 24px; width: 100%;">`;
 
     // 1. Phase Summaries
     if (journey.phases.some(p => p.summary)) {
