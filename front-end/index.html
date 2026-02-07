@@ -203,10 +203,12 @@
       overflow: hidden;
       cursor: grab;
       position: relative;
-      /* Dot Grid Background on Viewport */
+      /* Grid Background on Viewport */
       background-color: var(--max-color-background);
-      background-image: radial-gradient(var(--max-color-border) 1px, transparent 1px);
-      background-size: 20px 20px;
+      background-image: 
+        linear-gradient(to right, rgba(46, 204, 113, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(46, 204, 113, 0.08) 1px, transparent 1px);
+      background-size: 40px 40px;
     }
     .panzoom-viewport:active {
       cursor: grabbing;
