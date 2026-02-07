@@ -317,8 +317,8 @@ function loadJourney(journey) {
 
     // Render Canvas
     // We assume the renderer.js is loaded globally
-    if (typeof renderJourney === 'function') {
-        renderJourney(journey, 'adminCanvas');
+    if (typeof renderMap === 'function') {
+        renderMap(journey, 'adminCanvas');
     } else {
         console.error("Renderer not loaded");
         adminCanvas.innerHTML = "Error: Renderer not loaded.";

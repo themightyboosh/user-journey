@@ -76,7 +76,7 @@ STATE MACHINE:
     *   **Transition**: Move to Completion.
     13. **Completion & Analysis**: 
     *   **Logic**: Synthesize all gathered data. GENERATE distinct artifacts:
-    *   **RAG Constraint**: If KNOWLEDGE BASE content was provided in the context, you MUST explicitly reference how the user's journey aligns with or deviates from that knowledge in BOTH the 'Summary of Findings' and 'Mental Models'. Cite the source if possible.
+    {{RAG_CONSTRAINT}}
         1.  **Summary of Findings**: A comprehensive summary of the journey data.
         2.  **Mental Models**: Identify key mental models the user exhibited. Do NOT use numbered lists. Use bullet points or paragraphs.
         3.  **Quotes**: Extract ONE (1) quote or response that best summarizes the entire journey from the user.
@@ -148,6 +148,13 @@ export function buildSystemInstruction(config: any = {}, journeyState: any = nul
     instruction = instruction.replace(/{{AGENT_NAME}}/g, agentName);
     instruction = instruction.replace('{{WELCOME_PROMPT}}', welcomePrompt);
     instruction = instruction.replace('{{JOURNEY_PROMPT}}', journeyPrompt);
+
+    // --- RAG Constraint Injection ---
+    let ragConstraint = "";
+    if (config.knowledgeContext) {
+        ragConstraint = `*   **RAG Constraint**: Since KNOWLEDGE BASE content is provided in the context, you MUST explicitly reference how the user's journey aligns with or deviates from that knowledge in BOTH the 'Summary of Findings' and 'Mental Models'. Cite the source if possible.`;
+    }
+    instruction = instruction.replace('{{RAG_CONSTRAINT}}', ragConstraint);
 
     // --- Context Injection ---
     let contextInjection = "\n\nCONTEXT FROM URL/SYSTEM:\n";
