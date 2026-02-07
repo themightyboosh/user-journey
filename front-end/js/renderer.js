@@ -99,10 +99,6 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     const container = document.getElementById(targetElementId);
     if (!container || !journey) return;
 
-    // Hide default placeholder logo when content arrives
-    const placeholder = document.getElementById('canvasPlaceholder');
-    if (placeholder) placeholder.style.display = 'none';
-
     // Update global state for modals
     currentRenderedJourney = journey;
 
@@ -226,57 +222,40 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         // 1. Header Row
         html += `<div></div>`; // Top-left corner empty
         
-        if (journey.phases.length > 0) {
+        // 1. Phase Headers
+        journey.phases.forEach(phase => {
+            const desc = phase.description ? ` title="${escapeHtml(phase.description)}"` : '';
+            html += `<div class="phase-header"${desc}>
+                        ${escapeHtml(phase.name)}
+                     </div>`;
+        });
+
+        // 2. Swimlane Rows (only render rows that exist)
+        journey.swimlanes.forEach(swimlane => {
+            // Row Header
+            const desc = swimlane.description ? ` title="${escapeHtml(swimlane.description)}"` : '';
+            html += `<div class="swimlane-header"${desc}>
+                        <div class="swimlane-name">${escapeHtml(swimlane.name)}</div>
+                        ${swimlane.description ? `<div class="swimlane-desc">${escapeHtml(swimlane.description)}</div>` : ''}
+                     </div>`;
+
+            // Cells — only render filled ones, skip empty
             journey.phases.forEach(phase => {
-                const desc = phase.description ? ` title="${escapeHtml(phase.description)}"` : '';
-                html += `<div class="phase-header"${desc}>
-                            ${escapeHtml(phase.name)}
-                         </div>`;
-            });
-        } else {
-            html += `<div class="phase-header" style="opacity: 0.5; font-style: italic;">Phases pending...</div>`;
-        }
-
-        // 2. Rows
-        if (journey.swimlanes.length > 0) {
-            journey.swimlanes.forEach(swimlane => {
-                // Row Header
-                const desc = swimlane.description ? ` title="${escapeHtml(swimlane.description)}"` : '';
-                html += `<div class="swimlane-header"${desc}>
-                            <div class="swimlane-name">${escapeHtml(swimlane.name)}</div>
-                            ${swimlane.description ? `<div class="swimlane-desc">${escapeHtml(swimlane.description)}</div>` : ''}
-                         </div>`;
-
-                // Cells
-                if (journey.phases.length > 0) {
-                    journey.phases.forEach(phase => {
-                        const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
-                        
-                        if (cell && cell.headline) {
-                            html += `
-                                <div class="journey-cell complete">
-                                    <div class="cell-action">${escapeHtml(cell.headline)}</div>
-                                    <div class="cell-context">${escapeHtml(cell.description)}</div>
-                                </div>
-                            `;
-                        } else if (cell) {
-                            html += `<div class="journey-cell empty"></div>`;
-                        } else {
-                            html += `<div class="journey-cell empty" style="border-style: none; background: rgba(255,255,255,0.02)"></div>`;
-                        }
-                    });
+                const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+                
+                if (cell && cell.headline) {
+                    html += `
+                        <div class="journey-cell complete">
+                            <div class="cell-action">${escapeHtml(cell.headline)}</div>
+                            <div class="cell-context">${escapeHtml(cell.description)}</div>
+                        </div>
+                    `;
                 } else {
-                     html += `<div class="journey-cell empty" style="border-style: none;"></div>`;
+                    // Empty grid slot to maintain table alignment
+                    html += `<div></div>`;
                 }
             });
-        } else {
-             if (journey.phases.length > 0) {
-                 html += `<div class="swimlane-header" style="opacity: 0.5; font-style: italic;">Swimlanes pending...</div>`;
-                 journey.phases.forEach(() => {
-                     html += `<div class="journey-cell empty" style="border-style: none;"></div>`;
-                 });
-             }
-        }
+        });
 
         html += `</div>`; // End table
 
@@ -311,8 +290,6 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                 <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Overview</h3>
                 <div style="font-size: 18px; line-height: 1.6; color: var(--max-color-text-primary);">${formatMessage(journey.summaryOfFindings)}</div>
             </div>`;
-    } else {
-        html += `<div style="opacity: 0.5; font-style: italic;">Overview pending...</div>`;
     }
 
     // --- SECTION 2: MENTAL MODELS (Grid) ---
@@ -371,8 +348,6 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
             html += `<div>${formatMessage(journey.mentalModels)}</div>`;
         }
         html += `</div>`;
-    } else {
-        html += `<div style="opacity: 0.5; font-style: italic;">Mental Models pending...</div>`;
     }
 
     // --- SECTION 3: PHASES & LANES (Grid) ---
