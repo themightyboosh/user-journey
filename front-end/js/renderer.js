@@ -326,10 +326,10 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         document.body.classList.remove('journey-complete');
     }
 
-    html += `<div class="final-artifacts" style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 60px;">`;
+    html += `<div class="final-artifacts" style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 60px; width: 100%;">`;
 
     // --- ROW 1: Overview | Mental Models (50/50) ---
-    html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start;">`;
+    html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; width: 100%;">`;
     
     // Column 1: Overview
     html += `<div>`;
