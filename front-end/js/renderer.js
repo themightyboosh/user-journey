@@ -411,54 +411,49 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     html += `</div>`; // End Row 1
 
 
-    // --- ROW 2: Phases | Lanes (Distributed Masonry-ish) ---
-    // Instead of two strict columns, we'll make a responsive grid that fills the width
-    // This allows cards to distribute across available columns
+    // --- ROW 2: Phases | Lanes (50/50 Split) ---
     html += `<div style="margin-top: 60px;">`;
-    html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; width: 100%;">`;
+    html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%;">`;
 
-    // Combine all summary items into one list for distribution
-    const summaryItems = [];
-    
-    // Add Phases
+    // Column 1: Phases
+    html += `<div>`;
     if (journey.phases.some(p => p.summary)) {
         journey.phases.forEach(p => {
             if (p.summary) {
-                summaryItems.push({
-                    type: 'Phase',
-                    title: p.name,
-                    content: p.summary
-                });
+                html += `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column; margin-bottom: 24px;">
+                        <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Phase</div>
+                        <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(p.name)}</h4>
+                        <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(p.summary)}</div>
+                    </div>
+                `;
             }
         });
+    } else {
+        html += `<div style="opacity: 0.5; font-style: italic;">Phase summaries pending...</div>`;
     }
-    
-    // Add Lanes
+    html += `</div>`;
+
+    // Column 2: Lanes
+    html += `<div>`;
     if (journey.swimlanes.some(s => s.summary)) {
         journey.swimlanes.forEach(s => {
             if (s.summary) {
-                summaryItems.push({
-                    type: 'Lane',
-                    title: s.name,
-                    content: s.summary
-                });
+                html += `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column; margin-bottom: 24px;">
+                        <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Lane</div>
+                        <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(s.name)}</h4>
+                        <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(s.summary)}</div>
+                    </div>
+                `;
             }
         });
+    } else {
+        html += `<div style="opacity: 0.5; font-style: italic;">Lane summaries pending...</div>`;
     }
-    
-    // Render Cards
-    summaryItems.forEach(item => {
-        html += `
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column;">
-                <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">${item.type}</div>
-                <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(item.title)}</h4>
-                <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(item.content)}</div>
-            </div>
-        `;
-    });
+    html += `</div>`;
 
-    html += `</div>`; // End Grid
-    html += `</div>`; // End Row 2 Container
+    html += `</div></div>`; // End Grid and Container
     
     // Additional Context (Full Width)
     if (journey.anythingElse) {
