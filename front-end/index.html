@@ -1476,8 +1476,36 @@
             animate: true // Smooth transitions
         });
 
-        // Enable Mouse Wheel
-        viewport.addEventListener('wheel', window.panzoomInstance.zoomWithWheel);
+        // Enable Mouse Wheel with custom focal point zooming for '0 0' origin
+        viewport.addEventListener('wheel', (event) => {
+            if (event.ctrlKey || event.metaKey) {
+                event.preventDefault();
+
+                const pz = window.panzoomInstance;
+                const currentScale = pz.getScale();
+                const currentPan = pz.getPan();
+
+                // Calculate zoom delta
+                const delta = event.deltaY > 0 ? -0.1 : 0.1;
+                const newScale = Math.max(0.1, Math.min(5, currentScale + delta));
+
+                // Get mouse position relative to viewport
+                const rect = viewport.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                // Calculate the point in local coordinates
+                const localX = (mouseX / currentScale) - currentPan.x;
+                const localY = (mouseY / currentScale) - currentPan.y;
+
+                // Calculate new pan to keep the local point under the mouse
+                const newPanX = (mouseX / newScale) - localX;
+                const newPanY = (mouseY / newScale) - localY;
+
+                pz.zoom(newScale, { animate: false });
+                pz.pan(newPanX, newPanY, { animate: false });
+            }
+        });
         
         // Sync Background Grid (Infinite Canvas Effect)
         elem.addEventListener('panzoomchange', (event) => {
