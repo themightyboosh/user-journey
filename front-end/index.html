@@ -203,17 +203,33 @@
       overflow: hidden;
       cursor: grab;
       position: relative;
+      /* Dot Grid Background on Viewport */
+      background-color: var(--max-color-background);
+      background-image: radial-gradient(var(--max-color-border) 1px, transparent 1px);
+      background-size: 20px 20px;
     }
     .panzoom-viewport:active {
       cursor: grabbing;
     }
 
     .journey-dashboard {
-      padding: 40px; /* More padding for infinite feel */
+      padding: 80px; /* More padding for aesthetic */
       width: max-content; /* Allow growth */
       min-width: 100%;
       min-height: 100%;
       transform-origin: 0 0; /* Critical for Panzoom */
+    }
+
+    /* Container for the Board Look */
+    .journey-board-container {
+        border: 1px solid var(--max-color-border);
+        background: var(--max-color-surface-primary);
+        padding: 40px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        border-radius: var(--max-radius-large);
+        /* Ensure it wraps content */
+        display: inline-block; 
+        min-width: 1000px; /* Minimum board size */
     }
 
     /* JSON View Override - Reset to standard scroll */
@@ -279,7 +295,7 @@
     }
 
     .journey-title {
-      font-size: 24px;
+      font-size: 48px; /* 2x Bigger */
       font-weight: 600;
       color: var(--max-color-accent);
       margin-bottom: 8px;
@@ -343,18 +359,24 @@
     /* Living Table */
     .journey-table {
       display: grid;
-      gap: 16px;
-      /* Grid template columns set dynamically via JS, but we use minmax to prevent stretch */
+      gap: 20px; /* Increased gap for better separation */
+      padding: 20px 0;
     }
 
     .phase-header {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--max-color-text-primary);
       text-align: center;
-      padding: 8px;
-      background: var(--max-color-surface-tertiary);
-      border-radius: var(--max-radius-small);
+      padding: 24px 16px;
+      background: var(--max-color-surface-secondary);
+      border-radius: var(--max-radius-medium);
       border: 1px solid var(--max-color-border);
+      font-size: 30px;
+      /* "Smart" Sticky look (visual hierarchy) */
+      box-shadow: 0 4px 0 var(--max-color-border-subtle);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .swimlane-header {
@@ -363,71 +385,81 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      justify-content: center;
-      padding-right: 12px;
-      border-right: 2px solid var(--max-color-border);
+      justify-content: flex-start; /* Align to top of cells */
+      padding-top: 24px; /* Match cell padding */
+      padding-right: 24px;
+      border-right: 2px solid var(--max-color-border); /* Keep the vertical divider */
       text-align: right;
+      font-size: 28px;
     }
 
     .swimlane-name {
       color: var(--max-color-text-primary);
+      margin-bottom: 8px;
     }
 
     .swimlane-desc {
       font-family: var(--max-font-family-mono);
-      font-size: 11px;
+      font-size: 16px;
       color: var(--max-color-text-tertiary);
-      margin-top: 4px;
       font-weight: 400;
       max-width: 100%;
       overflow: visible;
       text-overflow: clip;
       white-space: normal;
+      line-height: 1.4;
     }
 
     .journey-cell {
       background: var(--max-color-surface-secondary);
       border: 1px solid var(--max-color-border);
-      border-radius: var(--max-radius-small);
-      padding: 12px;
-      min-height: 100px;
+      border-radius: var(--max-radius-medium);
+      padding: 24px; /* More padding */
+      min-height: 160px; /* Taller default */
       height: auto;
       transition: all 0.2s ease;
-      cursor: default; /* Changed from pointer */
+      cursor: default;
       position: relative;
+      /* Card Look */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .journey-cell:hover {
       border-color: var(--max-color-accent);
-      /* transform: translateY(-2px); Removed translate */
-      /* box-shadow: var(--max-shadow-soft); Removed shadow */
+      transform: translateY(-2px);
+      box-shadow: var(--max-shadow-soft);
+      z-index: 1; /* Bring to front */
     }
 
     .journey-cell.empty {
-      background: transparent;
+      background: rgba(255,255,255,0.01);
       border-style: dashed;
-      opacity: 0.5;
+      border-color: var(--max-color-border-subtle);
+      opacity: 0.6;
       cursor: default;
+      box-shadow: none;
     }
 
     .journey-cell.complete {
-      border-left: 3px solid #22c55e;
+      border-left: 4px solid #22c55e;
     }
 
     .cell-action {
-      font-weight: 500;
+      font-weight: 600;
       color: var(--max-color-text-primary);
-      margin-bottom: 6px;
-      font-size: 13px;
+      margin-bottom: 12px;
+      font-size: 26px;
+      line-height: 1.3;
     }
 
     .cell-context {
       font-family: var(--max-font-family-mono);
-      font-size: 11px;
+      font-size: 20px;
       color: var(--max-color-text-secondary);
       display: block;
       overflow: visible;
       white-space: normal;
+      line-height: 1.6;
     }
 
     /* ========================================
@@ -1059,6 +1091,8 @@
         border: 1px solid var(--max-color-border);
         box-shadow: var(--max-shadow-soft);
         flex-wrap: wrap; /* Allow wrapping on small screens if needed */
+        max-width: 90vw; /* Prevent overflow on mobile */
+        justify-content: flex-end;
     }
 
     .panzoom-btn {
@@ -1276,6 +1310,9 @@
             <button id="btnExportImg" class="panzoom-btn" onclick="exportToImage()" style="display: none;" title="Export Image">
                 IMG
             </button>
+            <button class="panzoom-btn" onclick="debugGenerateRandom()" title="Debug Gen" style="color: var(--max-color-accent);">
+                TEST GEN
+            </button>
         </div>
       </div>
       
@@ -1324,6 +1361,7 @@
         window.onerror = function(msg, url, line, col, error) {
             sendLog('error', `Uncaught: ${msg}`, {
                 file: url,
+                line,
                 line,
                 col,
                 stack: error ? error.stack : 'no-stack'
@@ -1461,16 +1499,74 @@
                 pz.reset();
                 break;
             case 'fit':
-                // Fit Logic: 
-                // We need to measure content vs viewport
-                // Panzoom doesn't have a native 'fit' for infinite canvas, usually resetting is close?
-                // Or we can calculate scale.
-                // pz.reset() goes to scale 1, 0,0.
-                // Let's just use reset for now, or investigate if we want 'contain'.
-                pz.reset(); 
+                performFit();
                 break;
         }
     }
+
+    function performFit() {
+        if (!window.panzoomInstance) return;
+        const pz = window.panzoomInstance;
+        const viewport = document.getElementById('panzoomViewport');
+        const content = document.getElementById('journeyDashboard');
+        
+        if (!viewport || !content) return;
+        
+        const viewportRect = viewport.getBoundingClientRect();
+        const contentRect = content.getBoundingClientRect();
+        
+        // We need the *unscaled* dimensions of content for accurate calculation
+        // But contentRect is scaled. 
+        // Best approach with Panzoom is to reset first (scale 1) then measure?
+        // Or use the scale from panzoom to derive unscaled.
+        const scale = pz.getScale();
+        const unscaledWidth = contentRect.width / scale;
+        const unscaledHeight = contentRect.height / scale;
+        
+        // Add some padding (e.g. 40px)
+        const padding = 80;
+        const availableWidth = viewportRect.width - padding;
+        const availableHeight = viewportRect.height - padding;
+        
+        const scaleX = availableWidth / unscaledWidth;
+        const scaleY = availableHeight / unscaledHeight;
+        
+        // Fit whole map
+        const newScale = Math.min(scaleX, scaleY, 1); // Don't zoom in past 1 if it fits
+        
+        // Reset then scale/pan
+        // pz.reset() resets to scale 1, x 0, y 0.
+        // We want to center it.
+        
+        // Panzoom's 'zoom' method zooms around a point.
+        // It's easier to just set the transform directly or use zoom(newScale) then pan to center.
+        // But panzoom doesn't expose 'center' easily without coordinates.
+        
+        // Heuristic: Reset, then Zoom to newScale (which usually centers if options set, but we set transform-origin 0 0)
+        // With transform-origin 0 0, zooming scales from top-left.
+        // So we calculate the pan needed to center.
+        
+        const offsetX = (viewportRect.width - (unscaledWidth * newScale)) / 2;
+        const offsetY = (viewportRect.height - (unscaledHeight * newScale)) / 2;
+        
+        pz.zoom(newScale);
+        pz.pan(offsetX, offsetY);
+    }
+
+    let hasAutoFitComplete = false;
+
+    // Listen for render events from renderer.js
+    window.addEventListener('journeyRendered', (e) => {
+        // Only auto-fit if we just completed
+        if (currentJourney && (currentJourney.stage === 'COMPLETE' || currentJourney.status === 'READY_FOR_REVIEW')) {
+             if (!hasAutoFitComplete) {
+                 setTimeout(performFit, 100);
+                 hasAutoFitComplete = true;
+             }
+        } else {
+             // Reset logic if needed, but generally we don't go backwards from complete
+        }
+    });
 
     // Init on load
     document.addEventListener('DOMContentLoaded', initPanzoom);
@@ -2147,15 +2243,39 @@
         const element = document.getElementById('journeyDashboard');
         if (!element) return;
 
-        // Temporarily reset transform for capture
+        // 1. Reset Transform to ensure full capture
         const originalTransform = element.style.transform;
-        element.style.transform = 'none'; // Reset zoom
+        element.style.transform = 'none'; 
         
-        // Use html2canvas
-        // We can reuse html2pdf library's internal html2canvas or just rely on it being loaded
-        // html2pdf bundles html2canvas
+        // 2. Calculate Full Dimensions
+        // We need the scroll dimensions to capture everything
+        const width = element.scrollWidth;
+        const height = element.scrollHeight;
         
-        html2pdf().from(element).outputImg('img').then((img) => {
+        // 3. Configure html2pdf to use html2canvas with full dimensions
+        // We set windowWidth/windowHeight to ensure it renders at full size
+        const opt = {
+            margin: 0,
+            filename: `journey-map-${new Date().toISOString().split('T')[0]}.png`,
+            image: { type: 'png', quality: 1.0 },
+            html2canvas: { 
+                scale: 2, // High res
+                useCORS: true,
+                backgroundColor: '#0a0c10', // Match background
+                windowWidth: width,
+                windowHeight: height,
+                width: width,
+                height: height,
+                scrollX: 0,
+                scrollY: 0,
+                x: 0,
+                y: 0
+            },
+            jsPDF: { unit: 'px', format: [width, height], orientation: 'landscape' } // Not used for img output but good practice
+        };
+        
+        // 4. Capture
+        html2pdf().set(opt).from(element).outputImg('img').then((img) => {
             // Create a link to download
             const link = document.createElement('a');
             link.href = img.src;
@@ -2165,6 +2285,10 @@
             document.body.removeChild(link);
             
             // Restore transform
+            element.style.transform = originalTransform;
+        }).catch(err => {
+            console.error("Image export failed:", err);
+            // Restore on error too
             element.style.transform = originalTransform;
         });
     }
@@ -2229,6 +2353,75 @@
                 cancelFullScreen.call(doc);
             }
         }
+    }
+
+    // ===========================================
+    // DEBUG: Random Journey Generator
+    // ===========================================
+    function debugGenerateRandom() {
+        const phasesPool = ["Discovery", "Research", "Evaluation", "Purchase", "Implementation", "Onboarding", "Usage", "Expansion", "Renewal", "Advocacy"];
+        const swimlanesPool = ["Doing", "Thinking", "Feeling", "Touchpoints", "Pain Points", "Opportunities", "Data", "Systems"];
+        
+        // Random Count
+        const phaseCount = Math.floor(Math.random() * 5) + 4; // 4 to 8 phases
+        const swimlaneCount = Math.floor(Math.random() * 4) + 3; // 3 to 6 swimlanes
+        
+        // Select random subset
+        const phases = phasesPool.sort(() => 0.5 - Math.random()).slice(0, phaseCount);
+        const swimlanes = swimlanesPool.sort(() => 0.5 - Math.random()).slice(0, swimlaneCount);
+        
+        // Build Objects
+        const phaseObjs = phases.map((p, i) => ({ phaseId: `p${i}`, name: p, summary: `Summary for ${p}. Lorem ipsum dolor sit amet.` }));
+        const swimlaneObjs = swimlanes.map((s, i) => ({ swimlaneId: `s${i}`, name: s, summary: `Summary for ${s}. Consectetur adipiscing elit.` }));
+        
+        const cells = [];
+        phaseObjs.forEach(p => {
+            swimlaneObjs.forEach(s => {
+                if (Math.random() > 0.2) { // 80% chance of cell
+                    cells.push({
+                        cellId: `${p.phaseId}-${s.swimlaneId}`,
+                        phaseId: p.phaseId,
+                        swimlaneId: s.swimlaneId,
+                        headline: `Action in ${p.name}`,
+                        description: `User is ${s.name.toLowerCase()} something related to ${p.name.toLowerCase()}. This is a generated description to test layout width and height.`
+                    });
+                }
+            });
+        });
+        
+        const journey = {
+            id: 'debug-' + Date.now(),
+            name: "Generated Test Journey",
+            role: "Test Persona",
+            userName: "Debug User",
+            status: "READY_FOR_REVIEW",
+            stage: "COMPLETE",
+            description: "This is a randomly generated journey map to test the layout, fixed widths, board container, and dot grid background.",
+            phases: phaseObjs,
+            swimlanes: swimlaneObjs,
+            cells: cells,
+            mentalModels: "1. Model Alpha: Users think linear.\n2. Model Beta: Users jump around.\n3. Model Gamma: Price is key.",
+            summaryOfFindings: "Overall, the journey is fragmented. We need better cohesion in the purchase phase.",
+            quotes: ["This is the absolute best test quote I have ever seen."]
+        };
+        
+        currentJourney = journey;
+        currentJourneyId = journey.id;
+        
+        // Render
+        renderMap(journey);
+        
+        // Ensure buttons show
+        document.body.classList.add('journey-complete');
+        
+        // Fit
+        setTimeout(() => {
+            if(window.panzoomInstance) {
+                performFit();
+            }
+        }, 100);
+        
+        console.log("Generated Journey:", journey);
     }
   </script>
 </body>

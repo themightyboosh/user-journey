@@ -107,7 +107,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         roleDisplay = `<span style="font-weight: 700; color: var(--max-color-text-primary);">${escapeHtml(journey.userName)}</span>, ${roleDisplay}`;
     }
 
-    // Hero Quote Logic (Added)
+    // Hero Quote Logic
     if (journey.quotes && journey.quotes.length > 0) {
         const quoteText = journey.quotes[0];
         roleDisplay += `<span style="color: var(--max-color-accent); font-weight: 400; font-style: italic; margin-left: 8px;"> — "${escapeHtml(quoteText)}"</span>`;
@@ -116,6 +116,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     const maxLogoSvg = ``;
 
     let html = `
+        <div class="journey-board-container">
         <div class="journey-header">
             <div class="journey-title" style="display: flex; align-items: center; gap: 16px;">
                 ${maxLogoSvg}
@@ -136,9 +137,10 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
 
     // Always render table if we have phases or swimlanes
     if (journey.phases.length > 0 || journey.swimlanes.length > 0) {
-        // Grid Template: Fix stretching by using minmax
-        // 150px for header, then minmax(280px, 1fr) for columns
-        const gridTemplate = `150px ${journey.phases.length > 0 ? `repeat(${journey.phases.length}, minmax(280px, 1fr))` : '1fr'}`;
+        // Grid Template: STRICT FIXED WIDTHS
+        // 200px for header, then 400px fixed for each phase
+        const colWidth = '400px';
+        const gridTemplate = `200px ${journey.phases.length > 0 ? `repeat(${journey.phases.length}, ${colWidth})` : '1fr'}`;
         
         html += `<div class="journey-table" style="grid-template-columns: ${gridTemplate};">`;
 
@@ -241,28 +243,102 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         html += `</div>`;
     }
 
-    // --- ARTIFACTS SECTION (Consolidated) ---
+    // --- ARTIFACTS SECTION (Consolidated 50/50 Split) ---
     // Render sections if they exist, or if the journey is complete
     
     // Auto-switch to map on mobile if complete
-    // Moved logic down to button visibility check for consistency
-    // Removed duplicate block here to avoid conflict
-    
-    html += `<div class="final-artifacts" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 24px;">`;
+    const isComplete = journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE' || (journey.mentalModels && journey.mentalModels.length > 10) || (journey.summaryOfFindings && journey.summaryOfFindings.length > 10);
 
-    // 1. Overview (Summary of Findings)
+    if (isComplete) {
+        // Add complete class to body for full takeover
+        document.body.classList.add('journey-complete');
+        
+        if (window.innerWidth <= 768 && !document.body.classList.contains('show-map')) {
+            setTimeout(() => { if (!document.body.classList.contains('show-map')) toggleMobileView(); }, 500);
+        }
+    } else {
+        document.body.classList.remove('journey-complete');
+    }
+
+    html += `<div class="final-artifacts" style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border); display: flex; flex-direction: column; gap: 60px;">`;
+
+    // --- ROW 1: Overview | Mental Models (50/50) ---
+    html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;">`;
+    
+    // Column 1: Overview
+    html += `<div>`;
     if (journey.summaryOfFindings) {
         html += `
-            <div class="context-card">
+            <div class="context-card" style="height: 100%;">
                 <h3 style="color: var(--max-color-accent); margin-bottom: 8px;">Overview</h3>
                 <div class="context-content">${formatMessage(journey.summaryOfFindings)}</div>
             </div>`;
+    } else {
+        html += `<div style="opacity: 0.5; font-style: italic;">Overview pending...</div>`;
     }
+    html += `</div>`;
 
-    // 2. Phases (Phase Summaries) - Individual Cards
+    // Column 2: Mental Models
+    html += `<div>`;
+    if (journey.mentalModels) {
+        html += `
+            <div>
+                <h3 style="color: var(--max-color-accent); margin-bottom: 16px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Mental Models</h3>
+        `;
+        
+        const rawModels = journey.mentalModels;
+        let models = [];
+        if (rawModels.match(/^\d+\./m)) {
+            models = rawModels.split(/^\d+\.\s*/m).filter(m => m.trim().length > 0);
+        } else if (rawModels.match(/^[-*•]\s/m)) {
+            models = rawModels.split(/^[-*•]\s*/m).filter(m => m.trim().length > 0);
+        } else {
+            models = rawModels.split(/\n\n+/).filter(m => m.trim().length > 0);
+        }
+        
+        if (models.length > 0) {
+            html += `<div style="display: flex; flex-direction: column; gap: 12px;">`;
+            models.forEach((model, index) => {
+                let title = `Model ${index + 1}`;
+                let content = model;
+                const colonMatch = model.match(/^([^:]+):\s*(.*)/s);
+                if (colonMatch) {
+                    title = colonMatch[1];
+                    content = colonMatch[2];
+                } else {
+                    const dotIdx = model.indexOf('.');
+                    if (dotIdx > 0 && dotIdx < 50) {
+                         title = model.substring(0, dotIdx);
+                         content = model.substring(dotIdx + 1);
+                    }
+                }
+                
+                html += `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 20px; border-radius: 8px;">
+                        <h4 style="font-size: 16px; font-weight: 700; color: var(--max-color-text-primary); margin-bottom: 8px;">${escapeHtml(title)}</h4>
+                        <div style="font-size: 14px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(content)}</div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        } else {
+            html += `<div>${formatMessage(journey.mentalModels)}</div>`;
+        }
+        html += `</div>`;
+    } else {
+        html += `<div style="opacity: 0.5; font-style: italic;">Mental Models pending...</div>`;
+    }
+    html += `</div>`; // End Row 1
+
+
+    // --- ROW 2: Phases | Lanes (50/50) ---
+    html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;">`;
+
+    // Column 1: Phase Summaries
+    html += `<div>`;
     if (journey.phases.some(p => p.summary)) {
         html += `
-            <div style="margin-top: 24px;">
+            <div>
                 <h3 style="color: var(--max-color-accent); margin-bottom: 16px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Phases</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     ${journey.phases.map(p => p.summary ? `
@@ -274,11 +350,13 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                 </div>
             </div>`;
     }
+    html += `</div>`;
 
-    // 3. Lanes (Swimlane Summaries) - Individual Cards
+    // Column 2: Lane Summaries
+    html += `<div>`;
     if (journey.swimlanes.some(s => s.summary)) {
         html += `
-            <div style="margin-top: 24px;">
+            <div>
                 <h3 style="color: var(--max-color-accent); margin-bottom: 16px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Lanes</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     ${journey.swimlanes.map(s => s.summary ? `
@@ -290,75 +368,9 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                 </div>
             </div>`;
     }
-
-        // 4. Mental Models (Split into Cards)
-        if (journey.mentalModels) {
-            html += `
-                <div style="margin-top: 24px;">
-                    <h3 style="color: var(--max-color-accent); margin-bottom: 16px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Mental Models</h3>
-            `;
-            
-            // Split by double newline or numbered list pattern
-            // Heuristic: If it looks like a list "1. ", split it. If just paragraphs, split by \n\n.
-            // The previous formatting logic might have already turned it into HTML. 
-            // Let's assume raw text first, but 'journey.mentalModels' might be raw.
-            // Actually, let's just parse the raw string.
-            
-            const rawModels = journey.mentalModels;
-            // Split logic: Look for "1.", "2." OR bullet points OR double newlines
-            // We want to create individual "cards" or blocks for each model.
-            
-            let models = [];
-            if (rawModels.match(/^\d+\./m)) {
-                // Split by numbered list
-                models = rawModels.split(/^\d+\.\s*/m).filter(m => m.trim().length > 0);
-            } else if (rawModels.match(/^[-*•]\s/m)) {
-                // Split by bullets
-                models = rawModels.split(/^[-*•]\s*/m).filter(m => m.trim().length > 0);
-            } else {
-                // Split by paragraphs
-                models = rawModels.split(/\n\n+/).filter(m => m.trim().length > 0);
-            }
-            
-            if (models.length > 0) {
-                // Stacked Full Width Cards for mental models
-                html += `<div style="display: flex; flex-direction: column; gap: 12px;">`;
-                models.forEach((model, index) => {
-                    // Try to extract a title if possible (first sentence or up to colon)
-                    let title = `Model ${index + 1}`;
-                    let content = model;
-                    
-                    // Simple heuristic: "Name: Description"
-                    const colonMatch = model.match(/^([^:]+):\s*(.*)/s);
-                    if (colonMatch) {
-                        title = colonMatch[1];
-                        content = colonMatch[2];
-                    } else {
-                        // Or first sentence
-                        const dotIdx = model.indexOf('.');
-                        if (dotIdx > 0 && dotIdx < 50) {
-                             title = model.substring(0, dotIdx);
-                             content = model.substring(dotIdx + 1);
-                        }
-                    }
-                    
-                    html += `
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 20px; border-radius: 8px;">
-                            <h4 style="font-size: 14px; font-weight: 700; color: var(--max-color-text-primary); margin-bottom: 8px;">${escapeHtml(title)}</h4>
-                            <div style="font-size: 14px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(content)}</div>
-                        </div>
-                    `;
-                });
-                html += `</div>`;
-            } else {
-                // Fallback
-                html += `<div>${formatMessage(journey.mentalModels)}</div>`;
-            }
-
-            html += `</div>`;
-        }
+    html += `</div>`; // End Row 2
     
-    // 5. Additional Context (if any)
+    // Additional Context (Full Width)
     if (journey.anythingElse) {
             html += `
             <div class="context-card">
@@ -368,11 +380,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     }
     
     // Buttons (Action Area) - Show when complete OR if we have artifacts
-    // Expanded logic: If status is Ready/Complete OR if we have mental models/summary (implies completeness)
-    const isComplete = journey.status === 'READY_FOR_REVIEW' || journey.stage === 'COMPLETE' || (journey.mentalModels && journey.mentalModels.length > 10) || (journey.summaryOfFindings && journey.summaryOfFindings.length > 10);
-
     if (isComplete) {
-        // Show the extended Panzoom controls
         const btnCopy = document.getElementById('btnCopyConv');
         const btnPdf = document.getElementById('btnExportPdf');
         const btnImg = document.getElementById('btnExportImg');
@@ -380,17 +388,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         if (btnCopy) btnCopy.style.display = 'flex';
         if (btnPdf) btnPdf.style.display = 'flex';
         if (btnImg) btnImg.style.display = 'flex';
-
-        // Add complete class to body for full takeover if not already
-        if (!document.body.classList.contains('journey-complete')) {
-             document.body.classList.add('journey-complete');
-             // Auto-toggle mobile view if needed
-             if (window.innerWidth <= 768 && !document.body.classList.contains('show-map')) {
-                setTimeout(() => { if (!document.body.classList.contains('show-map')) toggleMobileView(); }, 500);
-            }
-        }
     } else {
-        // Hide if not complete
         const btnCopy = document.getElementById('btnCopyConv');
         const btnPdf = document.getElementById('btnExportPdf');
         const btnImg = document.getElementById('btnExportImg');
@@ -398,17 +396,17 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         if (btnCopy) btnCopy.style.display = 'none';
         if (btnPdf) btnPdf.style.display = 'none';
         if (btnImg) btnImg.style.display = 'none';
-        
-        document.body.classList.remove('journey-complete');
     }
     
     html += `</div>`; // End artifacts container 
-    
-    // else {
-    //    // html += `...` (REMOVED: Placeholder when journey exists but is empty)
-    // }
+    html += `</div>`; // End board container
 
     container.innerHTML = html;
+    
+    // Dispatch event to notify Panzoom
+    window.dispatchEvent(new CustomEvent('journeyRendered', { 
+        detail: { width: container.scrollWidth, height: container.scrollHeight } 
+    }));
 }
 
 // Export to PDF
@@ -418,21 +416,20 @@ function exportToPdf() {
     // 1. Prepare Container
     const printContainer = document.createElement('div');
     printContainer.id = 'pdf-export-container';
-    printContainer.className = 'pdf-export-mode'; // Apply print styles
-    // Positioning strategy: Fixed at 0,0 but behind everything. 
-    // -9999px often causes empty renders with html2canvas as it clips to viewport.
-    printContainer.style.position = 'fixed';
-    printContainer.style.left = '0';
-    printContainer.style.top = '0';
-    printContainer.style.zIndex = '-9999'; // Way behind everything
-    printContainer.style.background = '#ffffff'; // Ensure white bg
-    printContainer.style.width = '1100px'; // Fixed width for Landscape Letter approx
-    printContainer.style.minHeight = '100vh'; // Ensure height
-    printContainer.style.overflow = 'visible'; // Allow full content flow
+    printContainer.className = 'pdf-export-mode'; 
     
-    // Print Logo SVG
+    // Positioning: Fixed offscreen, but with distinct z-index
+    printContainer.style.position = 'fixed';
+    printContainer.style.left = '-9999px';
+    printContainer.style.top = '0';
+    printContainer.style.zIndex = '9999'; 
+    printContainer.style.background = '#ffffff';
+    printContainer.style.width = '1400px'; // Wider base for better layout
+    printContainer.style.minHeight = '100vh';
+    
+    // Print Logo SVG (Same as before)
     const printLogoSvg = `
-    <svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 128.5 42.6" style="height: 32px; width: auto;">
+    <svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 128.5 42.6" style="height: 48px; width: auto;">
       <style>.st0{fill:#ed2224;}</style>
       <path class="st0" d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3S0,37.5,0,36.4V9.1c0-2.9.7-5.2,2.2-6.6C3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.7.4-1.8.6-3.2.6s-2.5-.2-3.2-.6c-.8-.4-1.4-1-1.8-1.8s-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0s.2,0,.2,0Z"/>
       <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c0-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4,0,.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c0,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c0,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z"/>
@@ -441,14 +438,13 @@ function exportToPdf() {
 
     // 2. Constants
     const MAX_ROWS = 3;
-    const MAX_COLS = 5;
+    const MAX_COLS = 4; // Reduced slightly to ensure fit
     const phases = currentRenderedJourney.phases;
     const swimlanes = currentRenderedJourney.swimlanes;
 
     // 3. Helper: Render Header
     const renderHeader = (subtitle = '') => {
         let heroQuote = '';
-        // If we have a single hero quote (array of 1 or just a string if migrated)
         if (currentRenderedJourney.quotes && currentRenderedJourney.quotes.length > 0) {
             const quoteText = currentRenderedJourney.quotes[0];
             heroQuote = ` <span style="color: #ed2224; font-weight: normal; font-style: italic;"> — "${escapeHtml(quoteText)}"</span>`;
@@ -459,9 +455,9 @@ function exportToPdf() {
             <div style="display: flex; justify-content: space-between; align-items: flex-end;">
                 <div class="journey-title" style="display: flex; align-items: center; gap: 16px;">
                     ${printLogoSvg}
-                    <span style="color: #000; font-size: 24px; font-weight: 600;">${escapeHtml(currentRenderedJourney.name)}</span>
+                    <span style="color: #000; font-size: 32px; font-weight: 600;">${escapeHtml(currentRenderedJourney.name)}</span>
                 </div>
-                <div class="journey-role" style="color: #000;">
+                <div class="journey-role" style="color: #000; font-size: 14px;">
                     ${currentRenderedJourney.userName ? `<span style="font-weight: 700;">${escapeHtml(currentRenderedJourney.userName)}</span>, ` : ''}
                     ${escapeHtml(currentRenderedJourney.role)}
                     ${heroQuote}
@@ -496,34 +492,29 @@ function exportToPdf() {
                 
                 const page = document.createElement('div');
                 page.className = 'pdf-page';
-                page.style.padding = '20px';
+                page.style.padding = '30px';
                 page.style.boxSizing = 'border-box';
                 page.style.width = '100%';
+                page.style.breakAfter = 'always';
+                page.style.pageBreakAfter = 'always';
                 
-                // Page Break for subsequent pages
-                if (pageCount > 0) {
-                    const breakEl = document.createElement('div');
-                    breakEl.className = 'html2pdf__page-break';
-                    printContainer.appendChild(breakEl);
-                }
-
-                // Grid Template
-                const gridTemplate = `150px ${currentPhases.length > 0 ? `repeat(${currentPhases.length}, 1fr)` : '1fr'}`;
+                // Grid Template for PDF - Fixed widths are safer for html2canvas
+                const gridTemplate = `200px ${currentPhases.length > 0 ? `repeat(${currentPhases.length}, 1fr)` : '1fr'}`;
                 
-                let tableHtml = `<div class="journey-table" style="grid-template-columns: ${gridTemplate}; gap: 16px; display: grid;">`;
+                let tableHtml = `<div class="journey-table" style="grid-template-columns: ${gridTemplate}; gap: 10px; display: grid;">`;
                 
                 // Header Row
                 tableHtml += `<div></div>`; // Top-left
                 currentPhases.forEach(phase => {
-                    tableHtml += `<div class="phase-header" style="background: #f3f4f6; color: #000; font-weight: 600; padding: 8px; text-align: center; border: 1px solid #e5e7eb;">${escapeHtml(phase.name)}</div>`;
+                    tableHtml += `<div class="phase-header" style="background: #f3f4f6; color: #000; font-weight: 600; padding: 12px; text-align: center; border: 1px solid #e5e7eb; font-size: 14px;">${escapeHtml(phase.name)}</div>`;
                 });
 
                 // Data Rows
                 currentSwimlanes.forEach(swimlane => {
                     // Row Header
-                    tableHtml += `<div class="swimlane-header" style="text-align: right; padding-right: 12px; font-weight: 600; color: #000;">
+                    tableHtml += `<div class="swimlane-header" style="text-align: right; padding-right: 16px; font-weight: 600; color: #000; font-size: 14px;">
                                     <div class="swimlane-name">${escapeHtml(swimlane.name)}</div>
-                                    <div class="swimlane-desc" style="font-size: 11px; color: #6b7280; margin-top: 4px; font-weight: 400;">${escapeHtml(swimlane.description)}</div>
+                                    <div class="swimlane-desc" style="font-size: 10px; color: #6b7280; margin-top: 6px; font-weight: 400;">${escapeHtml(swimlane.description)}</div>
                                   </div>`;
                     
                     // Cells
@@ -532,9 +523,9 @@ function exportToPdf() {
                         
                         if (cell && cell.headline) {
                             tableHtml += `
-                                <div class="journey-cell" style="background: #fff; border: 1px solid #e5e7eb; padding: 12px; height: auto; min-height: 0;">
-                                    <div class="cell-action" style="font-weight: 600; margin-bottom: 6px; color: #000;">${escapeHtml(cell.headline)}</div>
-                                    <div class="cell-context" style="font-size: 11px; color: #333; line-height: 1.4;">${escapeHtml(cell.description)}</div>
+                                <div class="journey-cell" style="background: #fff; border: 1px solid #e5e7eb; padding: 12px; height: auto; min-height: 100px;">
+                                    <div class="cell-action" style="font-weight: 600; margin-bottom: 8px; color: #000; font-size: 12px;">${escapeHtml(cell.headline)}</div>
+                                    <div class="cell-context" style="font-size: 10px; color: #333; line-height: 1.4;">${escapeHtml(cell.description)}</div>
                                 </div>
                             `;
                         } else {
@@ -553,78 +544,91 @@ function exportToPdf() {
     }
 
     // 5. Final Artifacts Page
-    if (currentRenderedJourney.status === 'READY_FOR_REVIEW' || currentRenderedJourney.stage === 'COMPLETE') {
+    if (currentRenderedJourney.status === 'READY_FOR_REVIEW' || currentRenderedJourney.stage === 'COMPLETE' || currentRenderedJourney.mentalModels) {
         const artifactsPage = document.createElement('div');
         artifactsPage.className = 'pdf-page';
-        artifactsPage.style.padding = '20px';
-        
-        const breakEl = document.createElement('div');
-        breakEl.className = 'html2pdf__page-break';
-        printContainer.appendChild(breakEl);
+        artifactsPage.style.padding = '30px';
+        artifactsPage.style.breakBefore = 'always';
+        artifactsPage.style.pageBreakBefore = 'always';
 
         let artifactsHtml = renderHeader('Overview & Analysis');
-        artifactsHtml += `<div style="display: flex; flex-direction: column; gap: 24px; margin-top: 20px;">`;
+        artifactsHtml += `<div style="display: flex; flex-direction: column; gap: 30px; margin-top: 20px;">`;
 
-        // 1. Overview (Summary of Findings)
+        // --- ROW 1: Overview | Mental Models (50/50 Grid) ---
+        artifactsHtml += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">`;
+        
+        // Col 1: Overview
+        artifactsHtml += `<div>`;
         if (currentRenderedJourney.summaryOfFindings) {
             artifactsHtml += `
-                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px;">
-                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 8px;">Overview</h3>
-                    <div class="context-content" style="color: #000;">${formatMessage(currentRenderedJourney.summaryOfFindings)}</div>
+                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px;">
+                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 12px;">Overview</h3>
+                    <div class="context-content" style="color: #000; font-size: 11px;">${formatMessage(currentRenderedJourney.summaryOfFindings)}</div>
                 </div>`;
         }
+        artifactsHtml += `</div>`;
 
-        // 2. Phases (Phase Summaries) - Single Container
+        // Col 2: Mental Models
+        artifactsHtml += `<div>`;
+        if (currentRenderedJourney.mentalModels) {
+             artifactsHtml += `
+                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px;">
+                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 12px;">Mental Models</h3>
+                    <div class="context-content" style="color: #000; font-size: 11px;">${formatMessage(currentRenderedJourney.mentalModels)}</div>
+                </div>`;
+        }
+        artifactsHtml += `</div>`;
+        artifactsHtml += `</div>`; // End Row 1
+
+        // --- ROW 2: Phases | Lanes (50/50 Grid) ---
+        artifactsHtml += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">`;
+
+        // Col 1: Phases
+        artifactsHtml += `<div>`;
         if (currentRenderedJourney.phases.some(p => p.summary)) {
             artifactsHtml += `
-                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; break-inside: avoid;">
+                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; break-inside: avoid;">
                     <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 12px; letter-spacing: 0.05em;">Phases</h3>
-                    <div class="context-content" style="color: #000; font-size: 12px;">
+                    <div class="context-content" style="color: #000; font-size: 11px;">
                         ${currentRenderedJourney.phases.map(p => p.summary ? `
                             <div style="margin-bottom: 16px;">
-                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #000;">${escapeHtml(p.name)}</h4>
+                                <h4 style="font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #000;">${escapeHtml(p.name)}</h4>
                                 <div>${formatMessage(p.summary)}</div>
                             </div>
                         ` : '').join('')}
                     </div>
                 </div>`;
         }
+        artifactsHtml += `</div>`;
 
-        // 3. Lanes (Swimlane Summaries) - Single Container
+        // Col 2: Lanes
+        artifactsHtml += `<div>`;
         if (currentRenderedJourney.swimlanes.some(s => s.summary)) {
             artifactsHtml += `
-                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; break-inside: avoid;">
+                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; break-inside: avoid;">
                     <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 12px; letter-spacing: 0.05em;">Lanes</h3>
-                    <div class="context-content" style="color: #000; font-size: 12px;">
+                    <div class="context-content" style="color: #000; font-size: 11px;">
                          ${currentRenderedJourney.swimlanes.map(s => s.summary ? `
                             <div style="margin-bottom: 16px;">
-                                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #000;">${escapeHtml(s.name)}</h4>
+                                <h4 style="font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #000;">${escapeHtml(s.name)}</h4>
                                 <div>${formatMessage(s.summary)}</div>
                             </div>
                         ` : '').join('')}
                     </div>
                 </div>`;
         }
-        
-        // 4. Mental Models
-        if (currentRenderedJourney.mentalModels) {
-            artifactsHtml += `
-                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px;">
-                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 8px;">Mental Models</h3>
-                    <div class="context-content" style="color: #000;">${formatMessage(currentRenderedJourney.mentalModels)}</div>
-                </div>`;
-        }
-
-        // 5. Additional Context
-        if (currentRenderedJourney.anythingElse) {
-            artifactsHtml += `
-                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px;">
-                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 8px;">Additional Context</h3>
-                    <div class="context-content" style="color: #000;">${formatMessage(currentRenderedJourney.anythingElse)}</div>
-                </div>`;
-        }
-        
         artifactsHtml += `</div>`;
+        artifactsHtml += `</div>`; // End Row 2
+
+        // Additional Context
+        if (currentRenderedJourney.anythingElse) {
+             artifactsHtml += `
+                <div class="context-card" style="background: #fff; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; margin-top: 24px;">
+                    <h3 style="font-size: 14px; font-weight: 600; text-transform: uppercase; color: #ed2224; margin-bottom: 8px;">Additional Context</h3>
+                    <div class="context-content" style="color: #000; font-size: 11px;">${formatMessage(currentRenderedJourney.anythingElse)}</div>
+                </div>`;
+        }
+        
         artifactsPage.innerHTML = artifactsHtml;
         printContainer.appendChild(artifactsPage);
     }
@@ -633,17 +637,17 @@ function exportToPdf() {
     document.body.appendChild(printContainer);
 
     const opt = {
-      margin:       0.2, // Small margin
+      margin:       [0.2, 0.2], 
       filename:     `journey-map-${new Date().toISOString().split('T')[0]}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { 
           scale: 2, 
           useCORS: true, 
           letterRendering: true,
-          // Explicitly set window width/height to ensure capture
-          windowWidth: 1200
+          windowWidth: 1400, // Match container width
+          scrollY: 0
       },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' },
+      jsPDF:        { unit: 'in', format: 'legal', orientation: 'landscape' }, // Use Legal for more width
       pagebreak:    { mode: ['css', 'legacy'] }
     };
 
