@@ -14,51 +14,74 @@ function escapeHtml(text) {
 window.escapeHtml = escapeHtml;
 
 // Helper: Format Markdown-like text
-function formatMessage(text) {
+function formatMessage(text, highlightQuotes = false) {
         if (!text) return '';
         
-        // Basic markdown-like formatting
-        let formatted = escapeHtml(text);
+        let processedText = text;
+
+        // Quote highlighting pre-processing
+        // We use temporary tokens to survive markdown parsing
+        // Detect "text" and replace with tokens
+        if (highlightQuotes) {
+            processedText = processedText.replace(/"([^"]+)"/g, '红QSTART$1红QEND');
+        }
+
+        let html = '';
         
+        // Use marked library if available for robust parsing (RECOMMENDED)
+        if (typeof marked !== 'undefined') {
+            try {
+                // Ensure breaks are handled
+                marked.setOptions({ breaks: true, gfm: true });
+                html = marked.parse(processedText);
+            } catch (e) {
+                console.error('Markdown parsing error:', e);
+                // Fallback to manual if marked fails
+                html = manualFormat(processedText);
+            }
+        } else {
+            // Fallback manual formatting (Legacy)
+            html = manualFormat(processedText);
+        }
+
+        // Post-process: Replace tokens with Red Text span
+        if (highlightQuotes) {
+            html = html.replace(/红QSTART(.*?)红QEND/g, '<span style="color: var(--max-color-accent);">$1</span>');
+        }
+
+        return html;
+    }
+
+    // Helper for manual formatting fallback
+    function manualFormat(text) {
+        let formatted = escapeHtml(text);
         // Code blocks
         formatted = formatted.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-        
         // Inline code
         formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
-        
         // Headers (###)
         formatted = formatted.replace(/^###\s+(.*$)/gm, '<h3>$1</h3>');
-        
         // Bold
         formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-        
         // Italic
         formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-        
-        // Line breaks to paragraphs with extra spacing
+        // Line breaks to paragraphs
         formatted = formatted
           .split(/\n\n+/)
           .map(para => para.trim())
           .filter(para => para)
           .map(para => {
-            // Check if it's a list
             if (para.match(/^[-*•]\s/m)) {
-              const items = para.split(/\n/).map(item => 
-                `<li>${item.replace(/^[-*•]\s*/, '')}</li>`
-              ).join('');
+              const items = para.split(/\n/).map(item => `<li>${item.replace(/^[-*•]\s*/, '')}</li>`).join('');
               return `<ul>${items}</ul>`;
             }
-            // Check if it's a numbered list
             if (para.match(/^\d+\.\s/m)) {
-              const items = para.split(/\n/).map(item => 
-                `<li>${item.replace(/^\d+\.\s*/, '')}</li>`
-              ).join('');
+              const items = para.split(/\n/).map(item => `<li>${item.replace(/^\d+\.\s*/, '')}</li>`).join('');
               return `<ol>${items}</ol>`;
             }
             return `<p style="margin-bottom: 1.5em; line-height: 1.6;">${para.replace(/\n/g, '<br>')}</p>`;
           })
           .join('');
-        
         return formatted;
     }
 
@@ -186,9 +209,11 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     // Let's set the width to the larger of minBoardWidth or calculatedWidth + padding
     const finalWidth = Math.max(minBoardWidth, calculatedWidth + 120); // 120px buffer for container padding
 
+    const hasContent = journey.phases.length > 0 || journey.swimlanes.length > 0;
+    
     let html = `
         <div class="journey-board-container" style="width: ${finalWidth}px; max-width: none;">
-        <div class="journey-header" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-bottom: 60px; padding-bottom: 40px; border-bottom: 1px solid var(--max-color-border);">
+        <div class="journey-header" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-bottom: 60px; padding-bottom: 40px; ${hasContent ? 'border-bottom: 1px solid var(--max-color-border);' : ''}">
             
             <!-- Left Column: Identity -->
             <div class="header-left">
@@ -287,8 +312,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     if (journey.summaryOfFindings) {
         html += `
             <div class="artifact-section overview-section" style="width: 100%;">
-                <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Overview</h3>
-                <div style="font-size: 18px; line-height: 1.6; color: var(--max-color-text-primary);">${formatMessage(journey.summaryOfFindings)}</div>
+                <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Summary</h3>
+                <div style="font-size: 24px; line-height: 1.6; color: var(--max-color-text-primary);">${formatMessage(journey.summaryOfFindings, true)}</div>
             </div>`;
     }
 
@@ -328,8 +353,18 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                     }
                 }
                 
-                // Fix: Format the title to handle markdown like **Bold**
-                const formattedTitle = formatMessage(title).replace(/^<p>|<\/p>$/g, ''); 
+                // Clean up title: remove markdown bold/italic markers manually if formatMessage didn't catch them due to fragmentation
+                // Also handle cases where the split left hanging markers
+                let cleanTitle = title.trim();
+                let cleanContent = content.trim();
+
+                // Remove leading/trailing ** or * from title if it looks like a bold header
+                cleanTitle = cleanTitle.replace(/^\*\*|\*\*$/g, '').replace(/^\*|\*$/g, '');
+                
+                // Remove leading ** from content if it looks like a continuation of bold
+                cleanContent = cleanContent.replace(/^\*\*\s*/, '');
+
+                const formattedTitle = formatMessage(cleanTitle).replace(/^<p>|<\/p>$/g, ''); 
 
                 html += `
                     <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 32px; border-radius: 16px; display: flex; gap: 24px; align-items: flex-start;">
@@ -338,7 +373,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                         </div>
                         <div>
                             <h4 style="font-size: 20px; font-weight: 700; color: var(--max-color-text-primary); margin-bottom: 8px;">${formattedTitle}</h4>
-                            <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(content)}</div>
+                            <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(cleanContent)}</div>
                         </div>
                     </div>
                 `;
