@@ -1542,35 +1542,49 @@
     function panzoomAction(action) {
         if (!window.panzoomInstance) return;
         const pz = window.panzoomInstance;
+        const viewport = document.getElementById('panzoomViewport');
+        if (!viewport) return;
+        
+        const rect = viewport.getBoundingClientRect();
+        const cx = rect.left + (rect.width / 2);
+        const cy = rect.top + (rect.height / 2);
         
         switch(action) {
             case 'zoomIn':
-                pz.zoomIn();
+                pz.zoomIn({ focal: { clientX: cx, clientY: cy } });
                 break;
             case 'zoomOut':
-                pz.zoomOut();
+                pz.zoomOut({ focal: { clientX: cx, clientY: cy } });
                 break;
             case 'reset':
-                // Reset to show top-left of board
-                // Board is at (80, 80) usually. 
-                // We want that at (40, 40) on screen.
-                // 40 = pan + 80 * 1 => pan = -40
-                const dash = document.getElementById('journeyDashboard');
-                const cont = document.querySelector('.journey-board-container');
-                let resetX = -40; 
-                let resetY = -40;
+                // Reset to scale 1 and CENTER the content
+                const dashboard = document.getElementById('journeyDashboard');
+                const container = document.querySelector('.journey-board-container');
                 
-                if (dash && cont) {
-                     // Calculate exact offset
-                     // If board is at offsetLeft 80, and we want it at screen 40:
-                     // 40 = pan + 80 => pan = -40.
-                     // Generally: pan = desiredScreenPos - localPos
-                     resetX = 40 - cont.offsetLeft;
-                     resetY = 40 - cont.offsetTop;
+                if (dashboard && container) {
+                     // 1. Set Scale 1
+                     pz.zoom(1, { animate: true });
+                     
+                     // 2. Calculate Center Pan
+                     const targetW = container.offsetWidth;
+                     const targetH = container.offsetHeight;
+                     const targetX = container.offsetLeft;
+                     const targetY = container.offsetTop;
+                     
+                     const containerCenterX = targetX + (targetW / 2);
+                     const containerCenterY = targetY + (targetH / 2);
+                     
+                     // Center in viewport
+                     const panX = (rect.width / 2) - containerCenterX;
+                     const panY = (rect.height / 2) - containerCenterY;
+                     
+                     setTimeout(() => {
+                        pz.pan(panX, panY, { animate: true });
+                     }, 10);
+                } else {
+                    // Fallback
+                    pz.reset();
                 }
-                
-                pz.zoom(1);
-                pz.pan(resetX, resetY);
                 break;
             case 'fit':
                 performFit();
