@@ -192,8 +192,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
             
             <!-- Left Column: Identity -->
             <div class="header-left">
-                <div class="journey-title" style="display: flex; align-items: center; gap: 24px;">
-                    ${maxLogoSvg}
+                <div class="journey-title" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
+                    <div style="transform: scale(0.8); transform-origin: left center;">${maxLogoSvg}</div>
                     <span style="font-size: 64px; line-height: 1.1;">${escapeHtml(journey.name) || 'Untitled Journey'}</span>
                 </div>
                 <div class="journey-role" style="margin-top: 24px; font-size: 32px; padding-left: 0; padding-top: 4px; padding-bottom: 4px; font-weight: 500; color: var(--max-color-text-secondary);">
