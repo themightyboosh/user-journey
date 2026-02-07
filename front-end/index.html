@@ -218,18 +218,20 @@
       min-width: 100%;
       min-height: 100%;
       transform-origin: 0 0; /* Critical for Panzoom */
+      position: relative; /* Ensure offsetParent for children */
     }
 
     /* Container for the Board Look */
     .journey-board-container {
         border: 1px solid var(--max-color-border);
         background: var(--max-color-surface-primary);
-        padding: 40px;
+        padding: 60px;
         box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         border-radius: var(--max-radius-large);
-        /* Ensure it wraps content */
+        /* Ensure it wraps content tightly around the widest child (the table) */
         display: inline-block; 
-        min-width: 1000px; /* Minimum board size */
+        width: min-content;
+        min-width: 750px; /* Keep a sane minimum */
     }
 
     /* JSON View Override - Reset to standard scroll */
@@ -1313,6 +1315,9 @@
             <button class="panzoom-btn" onclick="debugGenerateRandom()" title="Debug Gen" style="color: var(--max-color-accent);">
                 TEST GEN
             </button>
+            <button class="panzoom-btn" onclick="debugFit()" title="Debug Fit" style="color: var(--max-color-text-tertiary);">
+                ?
+            </button>
         </div>
       </div>
       
@@ -1390,7 +1395,7 @@
         };
     })();
   </script>
-  <script src="js/renderer.js"></script>
+  <script src="js/renderer.js?v=1006"></script>
   <script src="js/json-renderer.js"></script>
   <script>
     // ===========================================
@@ -1496,7 +1501,26 @@
                 pz.zoomOut();
                 break;
             case 'reset':
-                pz.reset();
+                // Reset to show top-left of board
+                // Board is at (80, 80) usually. 
+                // We want that at (40, 40) on screen.
+                // 40 = pan + 80 * 1 => pan = -40
+                const dash = document.getElementById('journeyDashboard');
+                const cont = document.querySelector('.journey-board-container');
+                let resetX = -40; 
+                let resetY = -40;
+                
+                if (dash && cont) {
+                     // Calculate exact offset
+                     // If board is at offsetLeft 80, and we want it at screen 40:
+                     // 40 = pan + 80 => pan = -40.
+                     // Generally: pan = desiredScreenPos - localPos
+                     resetX = 40 - cont.offsetLeft;
+                     resetY = 40 - cont.offsetTop;
+                }
+                
+                pz.zoom(1);
+                pz.pan(resetX, resetY);
                 break;
             case 'fit':
                 performFit();
@@ -1508,49 +1532,77 @@
         if (!window.panzoomInstance) return;
         const pz = window.panzoomInstance;
         const viewport = document.getElementById('panzoomViewport');
-        const content = document.getElementById('journeyDashboard');
+        const dashboard = document.getElementById('journeyDashboard');
+        const container = document.querySelector('.journey-board-container');
         
-        if (!viewport || !content) return;
+        if (!viewport || !dashboard) return;
         
+        // Use container if available, else dashboard
+        // Ensure we are targeting the actual board element for layout
+        const content = container || dashboard;
+        
+        // 1. Get Viewport Dimensions
         const viewportRect = viewport.getBoundingClientRect();
-        const contentRect = content.getBoundingClientRect();
+        const viewportW = viewportRect.width;
+        const viewportH = viewportRect.height;
         
-        // We need the *unscaled* dimensions of content for accurate calculation
-        // But contentRect is scaled. 
-        // Best approach with Panzoom is to reset first (scale 1) then measure?
-        // Or use the scale from panzoom to derive unscaled.
-        const scale = pz.getScale();
-        const unscaledWidth = contentRect.width / scale;
-        const unscaledHeight = contentRect.height / scale;
+        // 2. Determine Target Dimensions & Position (Unscaled)
+        // Since container is inline-block inside a transformed parent, 
+        // offsetLeft/Top/Width/Height are the most reliable unscaled metrics relative to the parent origin.
         
-        // Add some padding (e.g. 40px)
-        const padding = 80;
-        const availableWidth = viewportRect.width - padding;
-        const availableHeight = viewportRect.height - padding;
+        let targetX = 0;
+        let targetY = 0;
+        let targetW = dashboard.scrollWidth;
+        let targetH = dashboard.scrollHeight;
         
-        const scaleX = availableWidth / unscaledWidth;
-        const scaleY = availableHeight / unscaledHeight;
+        if (container) {
+            targetX = container.offsetLeft;
+            targetY = container.offsetTop;
+            targetW = container.offsetWidth;
+            targetH = container.offsetHeight;
+        }
         
-        // Fit whole map
-        const newScale = Math.min(scaleX, scaleY, 1); // Don't zoom in past 1 if it fits
+        // Safety check
+        if (targetW === 0 || targetH === 0) return;
+
+        // 3. Calculate Scale to Fit
+        const padding = 40; // Margin around the board in the viewport
+        const availableW = viewportW - (padding * 2);
+        const availableH = viewportH - (padding * 2);
         
-        // Reset then scale/pan
-        // pz.reset() resets to scale 1, x 0, y 0.
-        // We want to center it.
+        const scaleX = availableW / targetW;
+        const scaleY = availableH / targetH;
         
-        // Panzoom's 'zoom' method zooms around a point.
-        // It's easier to just set the transform directly or use zoom(newScale) then pan to center.
-        // But panzoom doesn't expose 'center' easily without coordinates.
+        // Fit completely, cap at 0.95 to look nice, ensure we don't zoom in too much on small boards
+        const newScale = Math.min(scaleX, scaleY, 0.95);
         
-        // Heuristic: Reset, then Zoom to newScale (which usually centers if options set, but we set transform-origin 0 0)
-        // With transform-origin 0 0, zooming scales from top-left.
-        // So we calculate the pan needed to center.
+        // 4. Calculate Pan to Center
+        // We want the center of the board (target) to be at the center of the viewport
+        // targetCenterX (relative to parent origin) = targetX + targetW / 2
+        // viewportCenter (relative to viewport) = viewportW / 2
         
-        const offsetX = (viewportRect.width - (unscaledWidth * newScale)) / 2;
-        const offsetY = (viewportRect.height - (unscaledHeight * newScale)) / 2;
+        // Panzoom Transform: matrix(scale, 0, 0, scale, panX, panY)
+        // ScreenPos = pan + LocalPos * scale
+        // viewportCenter = pan + targetCenter * scale
+        // pan = viewportCenter - targetCenter * scale
         
+        const targetCenterX = targetX + (targetW / 2);
+        const targetCenterY = targetY + (targetH / 2);
+        
+        const panX = (viewportW / 2) - (targetCenterX * newScale);
+        const panY = (viewportH / 2) - (targetCenterY * newScale);
+        
+        // 5. Apply
         pz.zoom(newScale);
-        pz.pan(offsetX, offsetY);
+        pz.pan(panX, panY);
+        
+        // Debug Log
+        console.log("Fit Debug:", { 
+            viewport: { w: viewportW, h: viewportH },
+            target: { x: targetX, y: targetY, w: targetW, h: targetH },
+            scale: newScale,
+            pan: { x: panX, y: panY }
+        });
     }
 
     let hasAutoFitComplete = false;
@@ -2243,12 +2295,13 @@
 
     // Export to Image (PNG)
     function exportToImage() {
-        const element = document.getElementById('journeyDashboard');
+        const element = document.querySelector('.journey-board-container');
         if (!element) return;
 
-        // 1. Reset Transform to ensure full capture
-        const originalTransform = element.style.transform;
-        element.style.transform = 'none'; 
+        // 1. Reset Transform to ensure full capture (on parent)
+        const parent = document.getElementById('journeyDashboard');
+        const originalTransform = parent.style.transform;
+        parent.style.transform = 'none'; 
         
         // 2. Calculate Full Dimensions
         // We need the scroll dimensions to capture everything
@@ -2288,11 +2341,11 @@
             document.body.removeChild(link);
             
             // Restore transform
-            element.style.transform = originalTransform;
+            parent.style.transform = originalTransform;
         }).catch(err => {
             console.error("Image export failed:", err);
             // Restore on error too
-            element.style.transform = originalTransform;
+            parent.style.transform = originalTransform;
         });
     }
 
@@ -2359,6 +2412,42 @@
     }
 
     // ===========================================
+    // DEBUG: Fit Debugger
+    // ===========================================
+    function debugFit() {
+        const viewport = document.getElementById('panzoomViewport');
+        const dashboard = document.getElementById('journeyDashboard');
+        const container = document.querySelector('.journey-board-container');
+        const pz = window.panzoomInstance;
+        
+        console.group("Fit Debugger");
+        console.log("Panzoom Instance:", pz);
+        console.log("Viewport:", viewport ? viewport.getBoundingClientRect() : 'null');
+        console.log("Dashboard:", dashboard ? {
+            scrollW: dashboard.scrollWidth,
+            scrollH: dashboard.scrollHeight,
+            offsetW: dashboard.offsetWidth,
+            offsetH: dashboard.offsetHeight,
+            rect: dashboard.getBoundingClientRect()
+        } : 'null');
+        console.log("Container:", container ? {
+            offsetLeft: container.offsetLeft,
+            offsetTop: container.offsetTop,
+            offsetW: container.offsetWidth,
+            offsetH: container.offsetHeight,
+            rect: container.getBoundingClientRect()
+        } : 'null');
+        
+        if (pz) {
+            console.log("Current Scale:", pz.getScale());
+            console.log("Current Pan:", pz.getPan());
+        }
+        console.groupEnd();
+        
+        alert("Check console for debug info");
+    }
+
+    // ===========================================
     // DEBUG: Random Journey Generator
     // ===========================================
     function debugGenerateRandom() {
@@ -2366,7 +2455,7 @@
         const swimlanesPool = ["Doing", "Thinking", "Feeling", "Touchpoints", "Pain Points", "Opportunities", "Data", "Systems"];
         
         // Random Count
-        const phaseCount = Math.floor(Math.random() * 5) + 4; // 4 to 8 phases
+        const phaseCount = Math.floor(Math.random() * 8) + 4; // 4 to 12 phases
         const swimlaneCount = Math.floor(Math.random() * 4) + 3; // 3 to 6 swimlanes
         
         // Select random subset
