@@ -1223,7 +1223,7 @@
     
     <!-- Header -->
     <header class="max-header">
-      <div class="max-logo" onclick="toggleView()" style="cursor: pointer;" title="Toggle View (Map/JSON)">
+      <div class="max-logo">
           <img src="max_header.svg" alt="M.AX" style="height: 32px; width: auto;">
       </div>
       <div class="max-status" id="connectionStatus">
@@ -1581,10 +1581,11 @@
     function performFit() {
         if (!window.panzoomInstance) return;
         const pz = window.panzoomInstance;
-        const viewport = document.getElementById('panzoomViewport');
         const dashboard = document.getElementById('journeyDashboard');
         const container = document.querySelector('.journey-board-container');
         
+        // Re-query viewport to get fresh dimensions (e.g. after chat sidebar hides)
+        const viewport = document.getElementById('panzoomViewport');
         if (!viewport || !dashboard) return;
         
         // Ensure origin is top-left for our math to work
@@ -1616,7 +1617,7 @@
         if (targetW === 0 || targetH === 0 || viewportW === 0 || viewportH === 0) return;
 
         // 3. Calculate Scale
-        const padding = 40; 
+        const padding = 20; // Reduced padding for tighter fit
         const availableW = viewportW - (padding * 2);
         const availableH = viewportH - (padding * 2);
         
@@ -1687,16 +1688,36 @@
 
     let hasAutoFitComplete = false;
 
+    let lastRenderedWidth = 0;
+    let lastRenderedHeight = 0;
+
     // Listen for render events from renderer.js
     window.addEventListener('journeyRendered', (e) => {
-        // Only auto-fit if we just completed
-        if (currentJourney && (currentJourney.stage === 'COMPLETE' || currentJourney.status === 'READY_FOR_REVIEW')) {
-             if (!hasAutoFitComplete) {
-                 setTimeout(performFit, 100);
-                 hasAutoFitComplete = true;
-             }
-        } else {
-             // Reset logic if needed, but generally we don't go backwards from complete
+        const { width, height } = e.detail;
+        
+        // Check if dimensions changed significantly (gate passed/new phase)
+        const hasSizeChanged = Math.abs(width - lastRenderedWidth) > 50 || Math.abs(height - lastRenderedHeight) > 50;
+        
+        // Also check if we just entered complete state
+        const isComplete = currentJourney && (currentJourney.stage === 'COMPLETE' || currentJourney.status === 'READY_FOR_REVIEW' || document.body.classList.contains('journey-complete'));
+        
+        // Update history
+        lastRenderedWidth = width;
+        lastRenderedHeight = height;
+
+        if (hasSizeChanged || (isComplete && !hasAutoFitComplete)) {
+             // Wait for fonts/layout
+             document.fonts.ready.then(() => {
+                 // If completing, give extra time for sidebar animation
+                 const delay = isComplete ? 300 : 100;
+                 setTimeout(performFit, delay);
+                 
+                 // Double tap for safety on complete
+                 if (isComplete) {
+                    setTimeout(performFit, 800);
+                    hasAutoFitComplete = true;
+                 }
+             });
         }
     });
 
@@ -2464,6 +2485,10 @@
         const btn = document.getElementById('mobileToggleBtn');
         if (document.body.classList.contains('show-map')) {
             btn.textContent = 'Chat';
+            // Auto-fit when switching to map
+            setTimeout(() => {
+                if(window.panzoomInstance) performFit();
+            }, 100);
         } else {
             btn.textContent = 'Map';
         }
