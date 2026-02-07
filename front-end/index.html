@@ -1624,6 +1624,9 @@
     async function pollJourneyState() {
       if (!currentJourneyId) return;
 
+      // Skip polling for client-side debug journeys
+      if (currentJourneyId.startsWith('debug-')) return;
+
       try {
         const response = await fetch(`/api/journey-state/${currentJourneyId}`);
         if (!response.ok) return;
