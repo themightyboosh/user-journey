@@ -2368,9 +2368,14 @@
     }
 
     // Export to Image (PNG)
-    function exportToImage() {
+    async function exportToImage() {
         const element = document.querySelector('.journey-board-container');
         if (!element) return;
+
+        // Ensure fonts are embedded
+        if (typeof embedFontsForPdf === 'function') {
+            await embedFontsForPdf();
+        }
 
         // 1. Reset Transform to ensure full capture (on parent)
         const parent = document.getElementById('journeyDashboard');

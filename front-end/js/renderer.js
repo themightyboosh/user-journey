@@ -555,6 +555,12 @@ async function embedFontsForPdf() {
     style.textContent = css;
     document.head.appendChild(style);
     
+    // Wait for fonts to be parsed and ready
+    await document.fonts.ready;
+    
+    // Extra safety buffer for layout/paint
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     areFontsEmbedded = true;
     console.log("Fonts embedded successfully.");
 }
