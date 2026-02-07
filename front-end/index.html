@@ -1535,30 +1535,26 @@
         const dashboard = document.getElementById('journeyDashboard');
         const container = document.querySelector('.journey-board-container');
         
-        if (!viewport || !dashboard) return;
+        if (!viewport || !dashboard || !container) return;
         
-        // 1. Get Viewport Dimensions
+        // 1. Get Dimensions
         const viewportRect = viewport.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect(); // Current screen pos
+        // We need UN-transformed dimensions of the container relative to the dashboard
+        // Since dashboard is the transform target, offsetLeft/Top are reliable 
+        // because they are calculated in the dashboard's internal coordinate system
+        
+        const targetX = container.offsetLeft;
+        const targetY = container.offsetTop;
+        const targetW = container.offsetWidth;
+        const targetH = container.offsetHeight;
+        
         const viewportW = viewportRect.width;
         const viewportH = viewportRect.height;
-        
-        // 2. Determine Target Dimensions & Position (Unscaled)
-        let targetX = 0;
-        let targetY = 0;
-        let targetW = dashboard.scrollWidth;
-        let targetH = dashboard.scrollHeight;
-        
-        if (container) {
-            targetX = container.offsetLeft;
-            targetY = container.offsetTop;
-            targetW = container.offsetWidth;
-            targetH = container.offsetHeight;
-        }
-        
-        // Safety check
+
         if (targetW === 0 || targetH === 0 || viewportW === 0 || viewportH === 0) return;
 
-        // 3. Calculate Scale to Fit
+        // 2. Calculate Scale
         const padding = 40; 
         const availableW = viewportW - (padding * 2);
         const availableH = viewportH - (padding * 2);
@@ -1566,40 +1562,50 @@
         const scaleX = availableW / targetW;
         const scaleY = availableH / targetH;
         
-        // Calculate raw scale
-        let newScale = Math.min(scaleX, scaleY, 0.95);
-        
-        // CRITICAL: Clamp scale to Panzoom limits manually to match what Panzoom will do
-        // Otherwise our pan calculation (which depends on scale) will be wrong
-        const minScale = 0.1; // Must match Panzoom init
-        const maxScale = 5;   // Must match Panzoom init
+        // Clamp scale
+        let newScale = Math.min(scaleX, scaleY);
+        const minScale = 0.1;
+        const maxScale = 5;
         newScale = Math.max(minScale, Math.min(maxScale, newScale));
         
-        // 4. Calculate Pan to Center
-        // transform-origin is 0 0 (top left)
-        // center of viewport should match center of target
-        // ScreenX = PanX + (LocalX * Scale)
-        // PanX = ScreenX - (LocalX * Scale)
+        // 3. Calculate Pan
+        // Goal: Center the container in the viewport
+        // Formula: Pan = (ViewportCenter) - (ContainerCenter * Scale)
         
-        const targetCenterX = targetX + (targetW / 2);
-        const targetCenterY = targetY + (targetH / 2);
+        // Center of container in dashboard coordinates
+        const containerCenterX = targetX + (targetW / 2);
+        const containerCenterY = targetY + (targetH / 2);
         
-        const panX = (viewportW / 2) - (targetCenterX * newScale);
-        const panY = (viewportH / 2) - (targetCenterY * newScale);
-        
-        // 5. Apply (Sequential to ensure state)
-        // Turn off animation for instantaneous snap
-        pz.zoom(newScale, { animate: false });
-        // Use setOptions to force silent update if needed, but pan() is usually fine
-        setTimeout(() => {
-             pz.pan(panX, panY, { animate: false });
-        }, 10);
-        
-        console.log("Performed Fit Safe:", { 
-            vW: viewportW, vH: viewportH, 
-            tX: targetX, tY: targetY, tW: targetW, tH: targetH, 
-            scale: newScale, panX, panY 
+        const panX = (viewportW / 2) - (containerCenterX * newScale);
+        const panY = (viewportH / 2) - (containerCenterY * newScale);
+
+        console.log("Fit Calc:", {
+            vW: viewportW, vH: viewportH,
+            cX: containerCenterX, cY: containerCenterY,
+            scale: newScale,
+            panX, panY
         });
+
+        // 4. Execute
+        // We use setOptions to disable animation during the snap
+        const oldDuration = pz.getOptions().duration;
+        pz.setOptions({ duration: 0, animate: false });
+        
+        // Order matters: Zoom first, then Pan
+        try {
+            pz.zoom(newScale);
+            // Force a microtask wait to ensure zoom settles if engine needs it, 
+            // though synchronous is usually fine with Panzoom
+            setTimeout(() => {
+                pz.pan(panX, panY);
+                // Restore animation defaults
+                setTimeout(() => {
+                    pz.setOptions({ duration: 200, animate: true });
+                }, 50);
+            }, 0);
+        } catch (e) {
+            console.error("Fit Error:", e);
+        }
     }
 
     let hasAutoFitComplete = false;
