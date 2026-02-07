@@ -1,11 +1,36 @@
 // Config
-const VERSION = '2.0';
+const VERSION = '2.1';
 console.log('Journey Mapper Admin v' + VERSION);
 
 const BASE_URL = window.location.origin + '/';
 const LINKS_API_URL = window.location.origin + '/api/admin/links';
 const SETTINGS_API_URL = window.location.origin + '/api/admin/settings';
 const JOURNEYS_API_URL = window.location.origin + '/api/admin/journeys';
+
+// DOM Elements - Navigation & Layout
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+const closeMobileNavBtn = document.getElementById('closeMobileNavBtn');
+const adminSidebar = document.getElementById('adminSidebar');
+const mobileSidebarToggleTemplates = document.getElementById('mobileSidebarToggleTemplates');
+const mobileSidebarToggleJourneys = document.getElementById('mobileSidebarToggleJourneys');
+const sidebarTitle = document.getElementById('sidebarTitle');
+
+const navLinks = {
+    links: document.getElementById('nav-links'),
+    settings: document.getElementById('nav-settings'),
+    journeys: document.getElementById('nav-journeys'),
+    // Mobile links
+    linksMobile: document.getElementById('nav-links-mobile'),
+    settingsMobile: document.getElementById('nav-settings-mobile'),
+    journeysMobile: document.getElementById('nav-journeys-mobile')
+};
+
+const modules = {
+    links: document.getElementById('module-links'),
+    settings: document.getElementById('module-settings'),
+    journeys: document.getElementById('module-journeys')
+};
 
 // DOM Elements - Template Module
 const formInputs = {
@@ -47,18 +72,6 @@ const retakeBtn = document.getElementById('retakeBtn');
 const clearJourneysBtn = document.getElementById('clearJourneysBtn');
 const filterRadios = document.querySelectorAll('input[name="jFilter"]');
 
-// Navigation
-const navLinks = {
-    links: document.getElementById('nav-links'),
-    settings: document.getElementById('nav-settings'),
-    journeys: document.getElementById('nav-journeys')
-};
-const modules = {
-    links: document.getElementById('module-links'),
-    settings: document.getElementById('module-settings'),
-    journeys: document.getElementById('module-journeys')
-};
-
 // Toggle keys (order matches param rows)
 const TOGGLE_KEYS = ['name', 'role', 'journey', 'welcomePrompt', 'journeyPrompt', 'ragContext', 'swimlanes', 'phases'];
 
@@ -75,10 +88,26 @@ TOGGLE_KEYS.forEach(k => toggleStates[k] = false);
 // Initialization
 // ========================================
 function init() {
-    // Navigation
+    // Navigation (Desktop)
     navLinks.links.addEventListener('click', (e) => switchModule(e, 'links'));
     navLinks.settings.addEventListener('click', (e) => switchModule(e, 'settings'));
     navLinks.journeys.addEventListener('click', (e) => switchModule(e, 'journeys'));
+
+    // Navigation (Mobile)
+    if (navLinks.linksMobile) navLinks.linksMobile.addEventListener('click', (e) => switchModule(e, 'links'));
+    if (navLinks.settingsMobile) navLinks.settingsMobile.addEventListener('click', (e) => switchModule(e, 'settings'));
+    if (navLinks.journeysMobile) navLinks.journeysMobile.addEventListener('click', (e) => switchModule(e, 'journeys'));
+
+    // Mobile Menu Toggles
+    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+    if (closeMobileNavBtn) closeMobileNavBtn.addEventListener('click', toggleMobileMenu);
+    if (mobileNavOverlay) mobileNavOverlay.addEventListener('click', (e) => {
+        if (e.target === mobileNavOverlay) toggleMobileMenu();
+    });
+
+    // Mobile Sidebar Toggles
+    if (mobileSidebarToggleTemplates) mobileSidebarToggleTemplates.addEventListener('click', toggleSidebar);
+    if (mobileSidebarToggleJourneys) mobileSidebarToggleJourneys.addEventListener('click', toggleSidebar);
 
     // Text field listeners for URL preview
     Object.values(formInputs).forEach(input => {
@@ -112,11 +141,14 @@ function init() {
     copyBtn.addEventListener('click', copyToClipboard);
     saveBtn.addEventListener('click', saveConfiguration);
     deleteBtn.addEventListener('click', deleteConfiguration);
-    newConfigBtn.addEventListener('click', resetForm);
+    newConfigBtn.addEventListener('click', () => {
+        resetForm();
+        if (window.innerWidth < 1024) toggleSidebar(); // Close sidebar on mobile after new click
+    });
 
     // Journeys Module
-    filterRadios.forEach(radio => radio.addEventListener('change', renderJourneysList));
-    clearJourneysBtn.addEventListener('click', clearAllJourneys);
+    if (filterRadios) filterRadios.forEach(radio => radio.addEventListener('change', renderJourneysList));
+    if (clearJourneysBtn) clearJourneysBtn.addEventListener('click', clearAllJourneys);
 
     // Settings Module
     saveSettingsBtn.addEventListener('click', saveSettings);
@@ -128,6 +160,59 @@ function init() {
     fetchLinks();
     fetchJourneys();
     fetchSettings();
+}
+
+// ========================================
+// Navigation Logic
+// ========================================
+function toggleMobileMenu() {
+    mobileNavOverlay.classList.toggle('active');
+}
+
+function toggleSidebar() {
+    adminSidebar.classList.toggle('active');
+}
+
+function switchModule(e, moduleName) {
+    e.preventDefault();
+    
+    // Update Active State (Desktop & Mobile)
+    document.querySelectorAll('.admin-nav a').forEach(el => el.classList.remove('active'));
+    if (navLinks[moduleName]) navLinks[moduleName].classList.add('active');
+    if (navLinks[moduleName + 'Mobile']) navLinks[moduleName + 'Mobile'].classList.add('active');
+
+    // Show Module
+    Object.values(modules).forEach(el => el.style.display = 'none');
+    modules[moduleName].style.display = 'flex'; // Flex for layout
+
+    // Sidebar Logic
+    const isMobile = window.innerWidth < 1024;
+    
+    // Hide sidebar lists based on module
+    savedLinksList.style.display = 'none';
+    journeyList.style.display = 'none';
+    
+    if (moduleName === 'links') {
+        savedLinksList.style.display = 'block';
+        sidebarTitle.textContent = 'Saved Templates';
+        newConfigBtn.style.display = 'flex';
+        // Ensure sidebar is visible on desktop
+        if (!isMobile) adminSidebar.style.display = 'flex';
+    } else if (moduleName === 'journeys') {
+        journeyList.style.display = 'block';
+        sidebarTitle.textContent = 'Saved Journeys';
+        newConfigBtn.style.display = 'none';
+        if (!isMobile) adminSidebar.style.display = 'flex';
+    } else {
+        // Settings - hide sidebar completely on desktop too usually, or keep empty
+        if (!isMobile) adminSidebar.style.display = 'none';
+    }
+
+    // Close mobile menu if open
+    mobileNavOverlay.classList.remove('active');
+    
+    // Reset sidebar state on mobile
+    if (isMobile) adminSidebar.classList.remove('active');
 }
 
 // ========================================
@@ -200,23 +285,6 @@ function updateRagCharCount() {
 }
 
 // ========================================
-// Navigation
-// ========================================
-function switchModule(e, moduleName) {
-    e.preventDefault();
-    document.querySelectorAll('.admin-nav a').forEach(el => el.classList.remove('active'));
-    navLinks[moduleName].classList.add('active');
-
-    Object.values(modules).forEach(el => el.style.display = 'none');
-    modules[moduleName].style.display = 'block';
-
-    const sidebar = document.querySelector('.admin-sidebar');
-    if (sidebar) {
-        sidebar.style.display = moduleName === 'links' ? 'block' : 'none';
-    }
-}
-
-// ========================================
 // Journeys Logic
 // ========================================
 async function fetchJourneys() {
@@ -247,7 +315,7 @@ function renderJourneysList() {
     if (!journeyList) return;
     journeyList.innerHTML = '';
 
-    const filterVal = document.querySelector('input[name="jFilter"]:checked').value;
+    const filterVal = document.querySelector('input[name="jFilter"]:checked')?.value || 'all';
     let filtered = savedJourneys;
     if (filterVal === 'complete') {
         filtered = savedJourneys.filter(j => j.status === 'READY_FOR_REVIEW' || j.stage === 'COMPLETE');
@@ -261,11 +329,11 @@ function renderJourneysList() {
 
     if (filtered.length === 0) {
         journeyList.innerHTML = `<div class="empty-state">No journeys found.</div>`;
-        clearJourneysBtn.style.display = 'none';
+        if(clearJourneysBtn) clearJourneysBtn.style.display = 'none';
         return;
     }
 
-    clearJourneysBtn.style.display = 'inline-flex';
+    if(clearJourneysBtn) clearJourneysBtn.style.display = 'inline-flex';
 
     filtered.forEach(journey => {
         if (!journey) return;
@@ -290,6 +358,7 @@ function renderJourneysList() {
         div.addEventListener('click', (e) => {
             if (e.target.closest('.delete-journey-btn')) return;
             loadJourney(journey);
+            if (window.innerWidth < 1024) toggleSidebar(); // Close sidebar on mobile select
         });
         const delBtn = div.querySelector('.delete-journey-btn');
         delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteJourney(journey.journeyMapId); });
@@ -306,7 +375,7 @@ async function deleteJourney(id) {
         if (res.ok) {
             if (id === currentJourneyId) {
                 currentJourneyId = null;
-                adminCanvas.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; opacity: 0.5;">Select a journey to preview</div>';
+                adminCanvas.innerHTML = '<div class="empty-placeholder">Select a journey from the sidebar to preview</div>';
                 journeyPreviewTitle.textContent = 'Select a Journey';
                 retakeBtn.style.display = 'none';
             }
@@ -322,7 +391,7 @@ async function clearAllJourneys() {
         const res = await fetch(JOURNEYS_API_URL, { method: 'DELETE' });
         if (res.ok) {
             currentJourneyId = null;
-            adminCanvas.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; opacity: 0.5;">Select a journey to preview</div>';
+            adminCanvas.innerHTML = '<div class="empty-placeholder">Select a journey from the sidebar to preview</div>';
             journeyPreviewTitle.textContent = 'Select a Journey';
             retakeBtn.style.display = 'none';
             fetchJourneys();
@@ -420,7 +489,10 @@ function renderLinksList() {
             <div class="link-name">${escapeHtml(link.configName || 'Untitled')}</div>
             <div class="link-meta">${activeCount} param${activeCount !== 1 ? 's' : ''} defined${globalBadge}</div>
         `;
-        div.onclick = () => loadConfiguration(link);
+        div.onclick = () => {
+            loadConfiguration(link);
+            if (window.innerWidth < 1024) toggleSidebar(); // Close sidebar on mobile select
+        };
         savedLinksList.appendChild(div);
     });
 }
@@ -460,7 +532,7 @@ function loadConfiguration(link) {
     });
 
     deleteBtn.style.display = 'inline-flex';
-    saveBtn.textContent = 'Update Template';
+    saveBtn.textContent = 'Update';
     renderLinksList();
     updateUrl();
 }
@@ -485,7 +557,7 @@ function resetForm() {
     });
 
     deleteBtn.style.display = 'none';
-    saveBtn.textContent = 'Save Template';
+    saveBtn.textContent = 'Save';
     renderLinksList();
     updateUrl();
 }
@@ -549,6 +621,9 @@ async function saveConfiguration() {
         alert("Error saving template.");
     } finally {
         saveBtn.disabled = false;
+        // reset logic sets text to Save, but here we want Update if it was an update or create
+        if (currentLinkId) saveBtn.textContent = 'Update';
+        else saveBtn.textContent = 'Save';
     }
 }
 
@@ -581,7 +656,8 @@ function addSwimlane(name = '', desc = '') {
     removeBtn.addEventListener('click', () => { item.remove(); updateUrl(); });
 
     swimlanesContainer.appendChild(item);
-    if (!name) nameInput.focus();
+    // Only focus if adding interactively (empty params)
+    if (!name && !desc) nameInput.focus();
     updateUrl();
 }
 
@@ -614,7 +690,8 @@ function addPhase(name = '', desc = '') {
     removeBtn.addEventListener('click', () => { item.remove(); updateUrl(); });
 
     phasesContainer.appendChild(item);
-    if (!name) nameInput.focus();
+    // Only focus if adding interactively
+    if (!name && !desc) nameInput.focus();
     updateUrl();
 }
 
