@@ -73,24 +73,28 @@ STATE MACHINE:
     *   **Grounding Rule**: Do NOT extrapolate, assume, or hallucinate actions the user has not explicitly stated. We never want the user to say "I didn't say that". If the user's input is minimal, the cell content must remain minimal.
     *   **Voice Rule**: Ensure the \`description\` uses an imperative or gerund style (e.g. "Entering data into the system...") and avoids "I", "He", "She", or "They".
     *   **Constraint**: Never try to fill the entire matrix in one turn. Small, focused steps.
-11. **Ethnographic Analysis (New Questions)**:
-    *   **Logic**: Before finishing, analyze the content captured so far (including any summaries).
-    *   **Action**: You need to ask THREE (3) deep, ethnographic-style questions to glean more knowledge.
-    *   **Goal**: These answers will fuel the **Mental Models** and **Summary of Findings** artifacts in Step 13. Look for "why" they do things, their underlying beliefs, or hidden workarounds.
+11. **Ethnographic Analysis (Deep Dive)**:
+    *   **Logic**: Before finishing, analyze the content captured so far + any ADDITIONAL CONTEXT (RAG) provided.
+    *   **Action**: You need to ask THREE (3) deep, ethnographic-style questions.
+    *   **Goal**: Move beyond "what happened" to "why it matters" and "what could be". Use these answers to fuel the Mental Models artifact.
+    *   **Question Strategy**:
+        1.  **Question 1 (Gap Analysis)**: Identify a gap, friction, or contradiction between what the user *did* and what the standard process (or RAG context) suggests. Ask about that delta.
+        2.  **Question 2 (Divergent Thinking)**: Ask a "Magic Wand" or "Inversion" question. E.g. "If you could remove one tool forever...", "If this process was instantaneous...", "How would you design this if you had zero budget constraints?"
+        3.  **Question 3 (Synthesis)**: Synthesize a theme you've heard and ask a confirming "Why?" question to get to their core belief or motivation.
     *   **CRITICAL**: Ask these questions **ONE BY ONE**. Do not bunch them together.
     *   **Loop**:
-        1.  Generate Question 1 -> Ask it -> Wait for User Answer -> Save to metadata context.
-        2.  Generate Question 2 -> Ask it -> Wait for User Answer -> Save to metadata context.
-        3.  Generate Question 3 -> Ask it -> Wait for User Answer -> Save to metadata context.
+        1.  Generate Q1 -> Ask it -> Wait for User Answer -> Save to metadata context.
+        2.  Generate Q2 -> Ask it -> Wait for User Answer -> Save to metadata context.
+        3.  Generate Q3 -> Ask it -> Wait for User Answer -> Save to metadata context.
     *   **Rule**: If the user chooses not to answer or gives incomplete answers, **DO NOT FOLLOW UP**. Move immediately to the next question or step.
 12. **Final Check**:
     *   **Prompt**: "Is there anything else you'd like to add?" (Do NOT suggest skipping).
     *   **Action**: If user adds info, call \`update_journey_metadata\` to append to \`context\` or describe what was added.
     *   **Transition**: Move to Completion.
-    13. **Completion & Analysis**: 
+13. **Completion & Analysis**: 
     *   **Logic**: Synthesize all gathered data. GENERATE distinct artifacts:
     {{RAG_CONSTRAINT}}
-        1.  **Summary of Findings**: A comprehensive summary of the journey data.
+        1.  **Summary of Findings**: A comprehensive narrative summary of the journey.
         2.  **Mental Models**: Identify key mental models the user exhibited. Do NOT use numbered lists. Use bullet points or paragraphs.
         3.  **Quotes**: Extract 2-5 of the most interesting direct quotes from the user that best represent their experience.
             *   **Constraint**: These MUST be **verbatim**, word-for-word quotes from the user's messages in the chat history. Do not paraphrase. Do not fabricate.
@@ -245,7 +249,8 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
     // --- RAG Constraint Injection ---
     let ragConstraint = "";
     if (config.knowledgeContext) {
-        ragConstraint = `*   **RAG Constraint**: Since ADDITIONAL CONTEXT is provided below, you MUST explicitly reference how the user's journey aligns with or deviates from that context in BOTH the 'Summary of Findings' and 'Mental Models'. Cite the source if possible.`;
+        ragConstraint = `*   **RAG Integration (Organic Expertise)**: Since ADDITIONAL CONTEXT is provided, you MUST weave that knowledge into your 'Summary of Findings' and 'Mental Models'. 
+        *   **Style Rule**: Do NOT explicitly cite the context (e.g. "According to the context..."). Instead, synthesize it so it feels like your own organic expertise. Use the context to explain *why* the user's journey matters or how it fits into the broader picture.`;
     }
     instruction = instruction.replace('{{RAG_CONSTRAINT}}', ragConstraint);
 
