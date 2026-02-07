@@ -95,7 +95,7 @@ STATE MACHINE:
     *   **Logic**: Synthesize all gathered data. GENERATE distinct artifacts:
     {{RAG_CONSTRAINT}}
         1.  **Summary of Findings**: A comprehensive narrative summary of the journey.
-        2.  **Mental Models**: Identify key mental models the user exhibited. Do NOT use numbered lists. Use bullet points or paragraphs.
+        2.  **Mental Models**: Identify key mental models the user exhibited (as many as relevant, 0-20). Format each model as a distinct paragraph or bullet point, separated by double newlines.
         3.  **Quotes**: Extract 2-5 of the most interesting direct quotes from the user that best represent their experience.
             *   **Constraint**: These MUST be **verbatim**, word-for-word quotes from the user's messages in the chat history. Do not paraphrase. Do not fabricate.
             *   **Formatting**: Ensure there is greater line spacing (double newlines) after each paragraph in the summaries so they look like distinct blocks of text.
