@@ -217,7 +217,7 @@
       width: max-content; /* Allow growth */
       min-width: 100%;
       min-height: 100%;
-      transform-origin: 0 0; /* Critical for Panzoom */
+      /* transform-origin: 0 0 !important; - REMOVED to let Panzoom manage origin */
       position: relative; /* Ensure offsetParent for children */
     }
 
@@ -291,211 +291,211 @@
     }
 
     .journey-header {
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--max-color-border-subtle);
-      padding-bottom: 16px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid var(--max-color-border-subtle);
+        padding-bottom: 16px;
     }
 
     .journey-title {
-      font-size: 48px; /* 2x Bigger */
-      font-weight: 600;
-      color: var(--max-color-accent);
-      margin-bottom: 8px;
+        font-size: 48px; /* 2x Bigger */
+        font-weight: 600;
+        color: var(--max-color-accent);
+        margin-bottom: 8px;
     }
 
     .journey-role {
-      font-family: var(--max-font-family-mono);
-      font-size: 14px;
-      color: var(--max-color-text-primary);
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+        font-family: var(--max-font-family-mono);
+        font-size: 14px;
+        color: var(--max-color-text-primary);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .context-card {
-      background: var(--max-color-surface-secondary);
-      border: 1px solid var(--max-color-border);
-      border-radius: var(--max-radius-medium);
-      padding: 16px;
-      margin-bottom: 24px;
+        background: var(--max-color-surface-secondary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-medium);
+        padding: 16px;
+        margin-bottom: 24px;
     }
 
     .context-card h3 {
-      font-family: var(--max-font-family-mono);
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--max-color-text-secondary);
-      margin-bottom: 8px;
-      text-transform: uppercase;
+        font-family: var(--max-font-family-mono);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--max-color-text-secondary);
+        margin-bottom: 8px;
+        text-transform: uppercase;
     }
 
     .context-content {
-      font-size: 14px;
-      line-height: 1.6;
-      color: var(--max-color-text-primary);
-      white-space: normal;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--max-color-text-primary);
+        white-space: normal;
     }
 
     .context-content ul, .context-content ol {
-      margin-left: 20px;
-      margin-bottom: 12px;
+        margin-left: 20px;
+        margin-bottom: 12px;
     }
     .context-content li {
-      margin-bottom: 4px;
+        margin-bottom: 4px;
     }
     .context-content p {
-      margin-bottom: 12px;
+        margin-bottom: 12px;
     }
     .context-content h3 {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--max-color-text-primary);
-      margin-top: 16px;
-      margin-bottom: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--max-color-text-primary);
+        margin-top: 16px;
+        margin-bottom: 8px;
     }
     .context-content strong {
-      color: var(--max-color-text-primary);
-      font-weight: 600;
+        color: var(--max-color-text-primary);
+        font-weight: 600;
     }
 
     /* Living Table */
     .journey-table {
-      display: grid;
-      gap: 20px; /* Increased gap for better separation */
-      padding: 20px 0;
+        display: grid;
+        gap: 20px; /* Increased gap for better separation */
+        padding: 20px 0;
     }
 
     .phase-header {
-      font-weight: 700;
-      color: var(--max-color-text-primary);
-      text-align: center;
-      padding: 24px 16px;
-      background: var(--max-color-surface-secondary);
-      border-radius: var(--max-radius-medium);
-      border: 1px solid var(--max-color-border);
-      font-size: 30px;
-      /* "Smart" Sticky look (visual hierarchy) */
-      box-shadow: 0 4px 0 var(--max-color-border-subtle);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+        font-weight: 700;
+        color: var(--max-color-text-primary);
+        text-align: center;
+        padding: 24px 16px;
+        background: var(--max-color-surface-secondary);
+        border-radius: var(--max-radius-medium);
+        border: 1px solid var(--max-color-border);
+        font-size: 30px;
+        /* "Smart" Sticky look (visual hierarchy) */
+        box-shadow: 0 4px 0 var(--max-color-border-subtle);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .swimlane-header {
-      font-weight: 600;
-      color: var(--max-color-text-secondary);
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      justify-content: flex-start; /* Align to top of cells */
-      padding-top: 24px; /* Match cell padding */
-      padding-right: 24px;
-      border-right: 2px solid var(--max-color-border); /* Keep the vertical divider */
-      text-align: right;
-      font-size: 28px;
+        font-weight: 600;
+        color: var(--max-color-text-secondary);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: flex-start; /* Align to top of cells */
+        padding-top: 24px; /* Match cell padding */
+        padding-right: 24px;
+        border-right: 2px solid var(--max-color-border); /* Keep the vertical divider */
+        text-align: right;
+        font-size: 28px;
     }
 
     .swimlane-name {
-      color: var(--max-color-text-primary);
-      margin-bottom: 8px;
+        color: var(--max-color-text-primary);
+        margin-bottom: 8px;
     }
 
     .swimlane-desc {
-      font-family: var(--max-font-family-mono);
-      font-size: 16px;
-      color: var(--max-color-text-tertiary);
-      font-weight: 400;
-      max-width: 100%;
-      overflow: visible;
-      text-overflow: clip;
-      white-space: normal;
-      line-height: 1.4;
+        font-family: var(--max-font-family-mono);
+        font-size: 16px;
+        color: var(--max-color-text-tertiary);
+        font-weight: 400;
+        max-width: 100%;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+        line-height: 1.4;
     }
 
     .journey-cell {
-      background: var(--max-color-surface-secondary);
-      border: 1px solid var(--max-color-border);
-      border-radius: var(--max-radius-medium);
-      padding: 24px; /* More padding */
-      min-height: 160px; /* Taller default */
-      height: auto;
-      transition: all 0.2s ease;
-      cursor: default;
-      position: relative;
-      /* Card Look */
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background: var(--max-color-surface-secondary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-medium);
+        padding: 24px; /* More padding */
+        min-height: 160px; /* Taller default */
+        height: auto;
+        transition: all 0.2s ease;
+        cursor: default;
+        position: relative;
+        /* Card Look */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .journey-cell:hover {
-      border-color: var(--max-color-accent);
-      transform: translateY(-2px);
-      box-shadow: var(--max-shadow-soft);
-      z-index: 1; /* Bring to front */
+        border-color: var(--max-color-accent);
+        transform: translateY(-2px);
+        box-shadow: var(--max-shadow-soft);
+        z-index: 1; /* Bring to front */
     }
 
     .journey-cell.empty {
-      background: rgba(255,255,255,0.01);
-      border-style: dashed;
-      border-color: var(--max-color-border-subtle);
-      opacity: 0.6;
-      cursor: default;
-      box-shadow: none;
+        background: rgba(255,255,255,0.01);
+        border-style: dashed;
+        border-color: var(--max-color-border-subtle);
+        opacity: 0.6;
+        cursor: default;
+        box-shadow: none;
     }
 
     .journey-cell.complete {
-      border-left: 4px solid #22c55e;
+        border-left: 4px solid #22c55e;
     }
 
     .cell-action {
-      font-weight: 600;
-      color: var(--max-color-text-primary);
-      margin-bottom: 12px;
-      font-size: 26px;
-      line-height: 1.3;
+        font-weight: 600;
+        color: var(--max-color-text-primary);
+        margin-bottom: 12px;
+        font-size: 26px;
+        line-height: 1.3;
     }
 
     .cell-context {
-      font-family: var(--max-font-family-mono);
-      font-size: 20px;
-      color: var(--max-color-text-secondary);
-      display: block;
-      overflow: visible;
-      white-space: normal;
-      line-height: 1.6;
+        font-family: var(--max-font-family-mono);
+        font-size: 20px;
+        color: var(--max-color-text-secondary);
+        display: block;
+        overflow: visible;
+        white-space: normal;
+        line-height: 1.6;
     }
 
     /* ========================================
        MOBILE VIEW
        ======================================== */
     .journey-mobile-list {
-      display: none;
-      flex-direction: column;
-      gap: 32px;
+        display: none;
+        flex-direction: column;
+        gap: 32px;
     }
 
     .mobile-phase-group {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .mobile-phase-header {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--max-color-accent);
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--max-color-border);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--max-color-accent);
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--max-color-border);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .mobile-card {
-      background: var(--max-color-surface-secondary);
-      border: 1px solid var(--max-color-border);
-      border-radius: var(--max-radius-medium);
-      padding: 16px;
-      cursor: default; /* Changed from pointer */
+        background: var(--max-color-surface-secondary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-medium);
+        padding: 16px;
+        cursor: default; /* Changed from pointer */
     }
     
     .mobile-card-label {
@@ -533,520 +533,520 @@
 
     /* Modal / Detail View */
     .cell-detail-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.8);
-      z-index: 10;
-      display: none;
-      align-items: center;
-      justify-content: center;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 10;
+        display: none;
+        align-items: center;
+        justify-content: center;
     }
 
     .cell-detail-modal {
-      background: var(--max-color-surface-primary);
-      border: 1px solid var(--max-color-border);
-      border-radius: var(--max-radius-medium);
-      padding: 24px;
-      width: 80%;
-      max-width: 500px;
-      box-shadow: var(--max-shadow-glow);
+        background: var(--max-color-surface-primary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-medium);
+        padding: 24px;
+        width: 80%;
+        max-width: 500px;
+        box-shadow: var(--max-shadow-glow);
     }
 
     /* ========================================
        HEADER
        ======================================== */
     .max-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--max-color-border-subtle);
-      flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--max-color-border-subtle);
+        flex-shrink: 0;
     }
 
     .max-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .max-logo-icon {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end));
-      border-radius: var(--max-radius-small);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end));
+        border-radius: var(--max-radius-small);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
     }
 
     .max-logo-icon svg {
-      width: 20px;
-      height: 20px;
+        width: 20px;
+        height: 20px;
     }
 
     .max-logo-text {
-      font-family: var(--max-font-family);
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
+        font-family: var(--max-font-family);
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
     }
 
     .max-logo-text span {
-      color: var(--max-color-accent);
+        color: var(--max-color-accent);
     }
 
     .max-status {
-      font-family: var(--max-font-family-mono);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--max-color-text-tertiary);
+        font-family: var(--max-font-family-mono);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--max-color-text-tertiary);
     }
 
     .max-status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--max-color-text-tertiary);
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--max-color-text-tertiary);
     }
 
     .max-status-dot.connected {
-      background: #22c55e;
+        background: #22c55e;
     }
 
     .max-status-dot.error {
-      background: var(--max-color-error);
+        background: var(--max-color-error);
     }
 
     /* ========================================
        CHAT CONTAINER (RIGHT)
        ======================================== */
     .max-chat-container {
-      flex: 0 0 480px !important;
-      width: 480px !important;
-      max-width: 480px !important;
-      min-width: 480px !important;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--max-color-background);
+        flex: 0 0 480px !important;
+        width: 480px !important;
+        max-width: 480px !important;
+        min-width: 480px !important;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--max-color-background);
     }
 
     /* ========================================
        MESSAGES AREA
        ======================================== */
     .max-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
     }
 
     .max-messages::-webkit-scrollbar {
-      width: 6px;
+        width: 6px;
     }
 
     .max-messages::-webkit-scrollbar-track {
-      background: transparent;
+        background: transparent;
     }
 
     .max-messages::-webkit-scrollbar-thumb {
-      background: var(--max-color-border);
-      border-radius: var(--max-radius-full);
+        background: var(--max-color-border);
+        border-radius: var(--max-radius-full);
     }
 
     /* Welcome State */
     .max-welcome {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 40px 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 20px;
     }
 
     .max-welcome-icon {
-      width: 72px;
-      height: 72px;
-      background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end));
-      border-radius: var(--max-radius-large);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 24px;
-      box-shadow: var(--max-shadow-glow);
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end));
+        border-radius: var(--max-radius-large);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        box-shadow: var(--max-shadow-glow);
     }
 
     .max-welcome-icon svg {
-      width: 36px;
-      height: 36px;
-      color: white;
+        width: 36px;
+        height: 36px;
+        color: white;
     }
 
     .max-welcome h1 {
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      letter-spacing: -0.02em;
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        letter-spacing: -0.02em;
     }
 
     .max-welcome p {
-      font-size: 16px;
-      color: var(--max-color-text-secondary);
-      max-width: 400px;
-      margin-bottom: 32px;
+        font-size: 16px;
+        color: var(--max-color-text-secondary);
+        max-width: 400px;
+        margin-bottom: 32px;
     }
 
     .max-suggestions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
     }
 
     .max-suggestion {
-      padding: 10px 16px;
-      background: var(--max-color-surface-secondary);
-      border: 1px solid var(--max-color-border);
-      border-radius: var(--max-radius-full);
-      color: var(--max-color-text-secondary);
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.15s ease;
+        padding: 10px 16px;
+        background: var(--max-color-surface-secondary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-full);
+        color: var(--max-color-text-secondary);
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.15s ease;
     }
 
     .max-suggestion:hover {
-      background: var(--max-color-surface-hover);
-      color: var(--max-color-text-primary);
-      border-color: var(--max-color-accent);
+        background: var(--max-color-surface-hover);
+        color: var(--max-color-text-primary);
+        border-color: var(--max-color-accent);
     }
 
     /* ========================================
        MESSAGE BUBBLES
        ======================================== */
     .max-message {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      max-width: 100%;
-      animation: messageIn 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-width: 100%;
+        animation: messageIn 0.3s ease;
     }
 
     @keyframes messageIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .max-message--user {
-      align-items: flex-end;
+        align-items: flex-end;
     }
 
     .max-message-header {
-      font-family: var(--max-font-family-mono);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: white;
-      padding: 4px 8px;
-      border-radius: 4px;
-      line-height: 1;
-      width: fit-content;
-      letter-spacing: 0.05em;
+        font-family: var(--max-font-family-mono);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        line-height: 1;
+        width: fit-content;
+        letter-spacing: 0.05em;
     }
 
     .max-message--ai .max-message-header {
-      background: var(--max-color-accent);
+        background: var(--max-color-accent);
     }
 
     .max-message--user .max-message-header {
-      background: var(--max-color-surface-tertiary);
-      color: var(--max-color-text-secondary);
+        background: var(--max-color-surface-tertiary);
+        color: var(--max-color-text-secondary);
     }
 
     /* AI Bubble - Gray */
     .max-message--ai .max-message-bubble {
-      background: var(--max-color-surface-secondary);
-      border: 1px solid var(--max-color-border-subtle);
-      border-radius: var(--max-radius-medium);
-      border-top-left-radius: 4px; /* Align with header */
+        background: var(--max-color-surface-secondary);
+        border: 1px solid var(--max-color-border-subtle);
+        border-radius: var(--max-radius-medium);
+        border-top-left-radius: 4px; /* Align with header */
     }
 
     /* User Bubble - Red */
     .max-message--user .max-message-bubble {
-      background: var(--max-color-accent);
-      color: white;
-      border: 1px solid var(--max-color-accent); /* Match border to bg */
-      border-radius: var(--max-radius-medium);
-      border-top-right-radius: 4px;
-      margin-left: auto;
+        background: var(--max-color-accent);
+        color: white;
+        border: 1px solid var(--max-color-accent); /* Match border to bg */
+        border-radius: var(--max-radius-medium);
+        border-top-right-radius: 4px;
+        margin-left: auto;
     }
 
     .max-message-content {
-      flex: 1;
-      min-width: 0;
-      max-width: 100%;
+        flex: 1;
+        min-width: 0;
+        max-width: 100%;
     }
 
     .max-message-bubble {
-      padding: 14px 18px;
-      line-height: 1.6;
+        padding: 14px 18px;
+        line-height: 1.6;
     }
 
     .max-message--error .max-message-bubble {
-      background: var(--max-color-error-subtle);
-      border-color: var(--max-color-error);
-      color: var(--max-color-error);
+        background: var(--max-color-error-subtle);
+        border-color: var(--max-color-error);
+        color: var(--max-color-error);
     }
 
     .max-message-bubble h3 {
-      font-size: 16px;
-      font-weight: 600;
-      margin-top: 12px;
-      margin-bottom: 8px;
-      color: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 12px;
+        margin-bottom: 8px;
+        color: inherit;
     }
 
     .max-message-bubble p {
-      margin-bottom: 12px;
+        margin-bottom: 12px;
     }
 
     .max-message-bubble p:last-child {
-      margin-bottom: 0;
+        margin-bottom: 0;
     }
 
     .max-message-bubble ul, .max-message-bubble ol {
-      margin: 12px 0;
-      padding-left: 20px;
+        margin: 12px 0;
+        padding-left: 20px;
     }
 
     .max-message-bubble li {
-      margin-bottom: 6px;
+        margin-bottom: 6px;
     }
 
     .max-message-bubble code {
-      background: var(--max-color-surface-tertiary);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 13px;
-      font-family: var(--max-font-family-mono);
+        background: var(--max-color-surface-tertiary);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 13px;
+        font-family: var(--max-font-family-mono);
     }
 
     .max-message-bubble pre {
-      background: var(--max-color-surface-primary);
-      border: 1px solid var(--max-color-border);
-      border-radius: var(--max-radius-small);
-      padding: 12px;
-      margin: 12px 0;
-      overflow-x: auto;
+        background: var(--max-color-surface-primary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-small);
+        padding: 12px;
+        margin: 12px 0;
+        overflow-x: auto;
     }
 
     .max-message-bubble pre code {
-      background: transparent;
-      padding: 0;
+        background: transparent;
+        padding: 0;
     }
 
     /* Streaming cursor */
     .max-message-bubble .streaming-cursor {
-      display: inline-block;
-      width: 2px;
-      height: 1em;
-      background: var(--max-color-accent);
-      margin-left: 2px;
-      animation: cursorBlink 1s step-end infinite;
-      vertical-align: text-bottom;
+        display: inline-block;
+        width: 2px;
+        height: 1em;
+        background: var(--max-color-accent);
+        margin-left: 2px;
+        animation: cursorBlink 1s step-end infinite;
+        vertical-align: text-bottom;
     }
 
     @keyframes cursorBlink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
     }
 
     .max-message-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-      opacity: 0;
-      transition: opacity 0.15s ease;
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        opacity: 0;
+        transition: opacity 0.15s ease;
     }
 
     .max-message:hover .max-message-actions {
-      opacity: 1;
+        opacity: 1;
     }
 
     .max-message-action {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 6px 10px;
-      background: transparent;
-      border: none;
-      border-radius: var(--max-radius-small);
-      color: var(--max-color-text-tertiary);
-      font-size: 11px;
-      font-family: var(--max-font-family-mono);
-      cursor: pointer;
-      transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 10px;
+        background: transparent;
+        border: none;
+        border-radius: var(--max-radius-small);
+        color: var(--max-color-text-tertiary);
+        font-size: 11px;
+        font-family: var(--max-font-family-mono);
+        cursor: pointer;
+        transition: all 0.15s ease;
     }
 
     .max-message-action:hover {
-      background: var(--max-color-surface-tertiary);
-      color: var(--max-color-text-secondary);
+        background: var(--max-color-surface-tertiary);
+        color: var(--max-color-text-secondary);
     }
 
     .max-message-action svg {
-      width: 14px;
-      height: 14px;
+        width: 14px;
+        height: 14px;
     }
 
     /* ========================================
        TYPING INDICATOR
        ======================================== */
     .max-typing {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      align-items: flex-start;
-      margin-bottom: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+        margin-bottom: 24px;
     }
 
     .max-typing-dots {
-      display: flex;
-      gap: 4px;
-      padding: 16px 20px;
-      background: var(--max-color-surface-secondary);
-      border-radius: var(--max-radius-large);
-      border-top-left-radius: 4px;
-      border: 1px solid var(--max-color-border-subtle);
+        display: flex;
+        gap: 4px;
+        padding: 16px 20px;
+        background: var(--max-color-surface-secondary);
+        border-radius: var(--max-radius-large);
+        border-top-left-radius: 4px;
+        border: 1px solid var(--max-color-border-subtle);
     }
 
     .max-typing-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--max-color-text-tertiary);
-      border-radius: 50%;
-      animation: typingBounce 1.4s ease-in-out infinite;
+        width: 8px;
+        height: 8px;
+        background: var(--max-color-text-tertiary);
+        border-radius: 50%;
+        animation: typingBounce 1.4s ease-in-out infinite;
     }
 
     .max-typing-dot:nth-child(2) { animation-delay: 0.15s; }
     .max-typing-dot:nth-child(3) { animation-delay: 0.3s; }
 
     @keyframes typingBounce {
-      0%, 60%, 100% {
-        transform: translateY(0);
-        opacity: 0.4;
-      }
-      30% {
-        transform: translateY(-8px);
-        opacity: 1;
-      }
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.4;
+        }
+        30% {
+            transform: translateY(-8px);
+            opacity: 1;
+        }
     }
 
     /* ========================================
        INPUT AREA
        ======================================== */
     .max-input-area {
-      padding: 16px 24px 24px;
-      border-top: 1px solid var(--max-color-border-subtle);
+        padding: 16px 24px 24px;
+        border-top: 1px solid var(--max-color-border-subtle);
     }
 
     .max-input-wrapper {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      background: var(--max-color-surface-secondary);
-      border: 1px solid var(--max-color-border);
-      border-radius: var(--max-radius-xlarge);
-      padding: 8px 8px 8px 20px;
-      transition: all 0.2s ease;
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+        background: var(--max-color-surface-secondary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-xlarge);
+        padding: 8px 8px 8px 20px;
+        transition: all 0.2s ease;
     }
 
     .max-input-wrapper:focus-within {
-      border-color: var(--max-color-accent);
-      box-shadow: var(--max-shadow-glow);
+        border-color: var(--max-color-accent);
+        box-shadow: var(--max-shadow-glow);
     }
 
     .max-input-wrapper.disabled {
-      opacity: 0.6;
-      pointer-events: none;
+        opacity: 0.6;
+        pointer-events: none;
     }
 
     .max-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      font-family: inherit;
-      font-size: 15px;
-      color: var(--max-color-text-primary);
-      resize: none;
-      max-height: 150px;
-      min-height: 24px;
-      line-height: 1.5;
-      padding: 8px 0;
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-family: inherit;
+        font-size: 15px;
+        color: var(--max-color-text-primary);
+        resize: none;
+        max-height: 150px;
+        min-height: 24px;
+        line-height: 1.5;
+        padding: 8px 0;
     }
 
     .max-input::placeholder {
-      color: var(--max-color-text-tertiary);
+        color: var(--max-color-text-tertiary);
     }
 
     .max-send-button {
-      width: 44px;
-      height: 44px;
-      background: var(--max-color-accent);
-      border: none;
-      border-radius: var(--max-radius-medium);
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s ease;
-      flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        background: var(--max-color-accent);
+        border: none;
+        border-radius: var(--max-radius-medium);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
     }
 
     .max-send-button:hover:not(:disabled) {
-      background: var(--max-color-accent-hover);
-      transform: scale(1.05);
+        background: var(--max-color-accent-hover);
+        transform: scale(1.05);
     }
 
     .max-send-button:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
+        opacity: 0.4;
+        cursor: not-allowed;
     }
 
     .max-send-button svg {
-      width: 20px;
-      height: 20px;
+        width: 20px;
+        height: 20px;
     }
 
     .max-input-hint {
-      font-family: var(--max-font-family-mono);
-      text-align: center;
-      font-size: 11px;
-      color: var(--max-color-text-tertiary);
-      margin-top: 10px;
+        font-family: var(--max-font-family-mono);
+        text-align: center;
+        font-size: 11px;
+        color: var(--max-color-text-tertiary);
+        margin-top: 10px;
     }
 
     .max-input-hint kbd {
-      background: var(--max-color-surface-tertiary);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: inherit;
+        background: var(--max-color-surface-tertiary);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: inherit;
     }
 
     /* ========================================
@@ -1054,15 +1054,15 @@
        ======================================== */
     /* Hide Chat Container */
     body.journey-complete .max-chat-container {
-      display: none !important;
+        display: none !important;
     }
     
     /* Full Width Canvas */
     body.journey-complete .max-chat-canvas {
-      flex: 0 0 100% !important;
-      width: 100% !important;
-      max-width: 100% !important;
-      border-right: none;
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-right: none;
     }
 
     /* Hide Mobile Toggle in Complete State */
@@ -1070,9 +1070,6 @@
         display: none !important;
     }
 
-    /* Also hide the toggle button container/status if desired, but user just said "gone on both mobile and desktop" */
-    /* The header stays, but toggle button specifically: */
-    
     /* Ensure proper reset of Panzoom on transition to complete */
     body.journey-complete .journey-dashboard {
         width: max-content; /* Ensure it can still pan/zoom properly */
@@ -1122,44 +1119,44 @@
         border-color: var(--max-color-border-subtle);
     }
     .mobile-toggle-btn {
-      display: none;
-      padding: 8px 16px;
-      background: var(--max-color-surface-tertiary);
-      border: 1px solid var(--max-color-border);
-      border-radius: var(--max-radius-medium);
-      color: var(--max-color-text-primary);
-      font-size: 13px;
-      font-family: var(--max-font-family-mono);
-      font-weight: 500;
-      cursor: pointer;
-      margin-right: 12px;
+        display: none;
+        padding: 8px 16px;
+        background: var(--max-color-surface-tertiary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-medium);
+        color: var(--max-color-text-primary);
+        font-size: 13px;
+        font-family: var(--max-font-family-mono);
+        font-weight: 500;
+        cursor: pointer;
+        margin-right: 12px;
     }
 
     @media (max-width: 768px) {
-      .max-main-content {
-        flex-direction: column; /* Normal column, we toggle visibility */
-      }
-      .max-chat-canvas, .max-chat-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 100% !important;
-        flex: 1 !important;
-        height: 100%;
-        border: none;
-      }
-      
-      /* Toggle Logic */
-      body:not(.show-map) .max-chat-canvas { display: none !important; }
-      body.show-map .max-chat-container { display: none !important; }
-      
-      .mobile-toggle-btn { display: block; }
-      
-      /* Header adjustments */
-      .max-header { padding: 12px 16px; }
-      .max-logo-text { display: none; } /* Save space */
-      
-      /* Hide Model Name on Mobile */
-      .desktop-only { display: none !important; }
+        .max-main-content {
+            flex-direction: column; /* Normal column, we toggle visibility */
+        }
+        .max-chat-canvas, .max-chat-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 100% !important;
+            flex: 1 !important;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Toggle Logic */
+        body:not(.show-map) .max-chat-canvas { display: none !important; }
+        body.show-map .max-chat-container { display: none !important; }
+        
+        .mobile-toggle-btn { display: block; }
+        
+        /* Header adjustments */
+        .max-header { padding: 12px 16px; }
+        .max-logo-text { display: none; } /* Save space */
+        
+        /* Hide Model Name on Mobile */
+        .desktop-only { display: none !important; }
     }
 
     /* Reset Button Style */
@@ -1187,20 +1184,20 @@
        PDF EXPORT STYLES
        ======================================== */
     .pdf-export-mode {
-      --max-color-background: #ffffff !important;
-      --max-color-surface-primary: #ffffff !important;
-      --max-color-surface-secondary: #ffffff !important;
-      --max-color-surface-tertiary: #f3f4f6 !important;
-      
-      --max-color-text-primary: #111827 !important;
-      --max-color-text-secondary: #4b5563 !important;
-      --max-color-text-tertiary: #6b7280 !important;
-      
-      --max-color-border: #e5e7eb !important;
-      --max-color-border-subtle: #f3f4f6 !important;
-      
-      color: #000000 !important;
-      background: #ffffff !important;
+        --max-color-background: #ffffff !important;
+        --max-color-surface-primary: #ffffff !important;
+        --max-color-surface-secondary: #ffffff !important;
+        --max-color-surface-tertiary: #f3f4f6 !important;
+        
+        --max-color-text-primary: #111827 !important;
+        --max-color-text-secondary: #4b5563 !important;
+        --max-color-text-tertiary: #6b7280 !important;
+        
+        --max-color-border: #e5e7eb !important;
+        --max-color-border-subtle: #f3f4f6 !important;
+        
+        color: #000000 !important;
+        background: #ffffff !important;
     }
 
     /* Force background colors for PDF generation */
@@ -1475,7 +1472,8 @@
             canvas: true, // "Infinite canvas" mode
             contain: false, // Don't constrain to viewport
             cursor: 'grab',
-            startScale: 1
+            startScale: 1,
+            animate: true // Smooth transitions
         });
 
         // Enable Mouse Wheel
@@ -1491,45 +1489,11 @@
             viewport.style.backgroundPosition = `${x}px ${y}px`;
         });
 
+        /* 
+        // Snap-back Logic REMOVED - Causing erratic behavior
         // Constrain Panning (Snap-back / Rubber-band effect)
-        elem.addEventListener('panzoomend', (event) => {
-            const { x, y, scale } = event.detail;
-            const container = document.querySelector('.journey-board-container');
-            if (!container) return;
-            
-            const rect = container.getBoundingClientRect();
-            const viewportRect = viewport.getBoundingClientRect();
-            
-            // Keep at least 100px visible
-            const margin = 100; 
-            
-            let targetX = x;
-            let targetY = y;
-            let correct = false;
-            
-            // Horizontal Correction
-            if (rect.right < viewportRect.left + margin) {
-                targetX += (viewportRect.left + margin) - rect.right;
-                correct = true;
-            } else if (rect.left > viewportRect.right - margin) {
-                targetX -= rect.left - (viewportRect.right - margin);
-                correct = true;
-            }
-            
-            // Vertical Correction
-            if (rect.bottom < viewportRect.top + margin) {
-                targetY += (viewportRect.top + margin) - rect.bottom;
-                correct = true;
-            } else if (rect.top > viewportRect.bottom - margin) {
-                targetY -= rect.top - (viewportRect.bottom - margin);
-                correct = true;
-            }
-            
-            if (correct) {
-                // Snap back into view
-                window.panzoomInstance.pan(targetX, targetY, { animate: true });
-            }
-        });
+        elem.addEventListener('panzoomend', (event) => { ... });
+        */
         
         // Center initial content?
         // Let's do a fit on load if content exists
@@ -1543,41 +1507,52 @@
         if (!window.panzoomInstance) return;
         const pz = window.panzoomInstance;
         const viewport = document.getElementById('panzoomViewport');
-        const dashboard = document.getElementById('journeyDashboard');
-        if (!viewport || !dashboard) return;
+        if (!viewport) return;
+        
+        const rect = viewport.getBoundingClientRect();
+        // Focus on the CENTER of the viewport, not the top-left or mouse position
+        const cx = rect.width / 2;
+        const cy = rect.height / 2;
         
         switch(action) {
-            case 'zoomIn': {
-                // Zoom toward the center of whatever is currently visible (viewport center)
-                const rect = viewport.getBoundingClientRect();
-                pz.zoomIn({ focal: { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 } });
+            case 'zoomIn':
+                // Focal point is relative to the element, but panzoom handles clientX/Y
+                // We use client center of viewport
+                pz.zoomIn({ focal: { clientX: rect.left + cx, clientY: rect.top + cy } });
                 break;
-            }
-            case 'zoomOut': {
-                const rect = viewport.getBoundingClientRect();
-                pz.zoomOut({ focal: { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 } });
+            case 'zoomOut':
+                pz.zoomOut({ focal: { clientX: rect.left + cx, clientY: rect.top + cy } });
                 break;
-            }
-            case 'reset': {
-                // Reset to scale 1 and CENTER the board in the viewport
+            case 'reset':
+                // Reset to scale 1 and CENTER the content
+                const dashboard = document.getElementById('journeyDashboard');
                 const container = document.querySelector('.journey-board-container');
-                if (!container) { pz.reset(); break; }
                 
-                const vW = viewport.clientWidth;
-                const vH = viewport.clientHeight;
-                const bcx = container.offsetLeft + (container.offsetWidth / 2);
-                const bcy = container.offsetTop + (container.offsetHeight / 2);
-                
-                // At scale 1: panX = vW/2 - bcx, panY = vH/2 - bcy
-                // (same formula since vW/(2*1) = vW/2)
-                const panX = (vW / 2) - bcx;
-                const panY = (vH / 2) - bcy;
-                
-                pz.setOptions({ animate: true });
-                pz.zoom(1);
-                pz.pan(panX, panY);
+                if (dashboard && container) {
+                     // 1. Set Scale 1
+                     pz.zoom(1, { animate: true });
+                     
+                     // 2. Calculate Center Pan
+                     const targetW = container.offsetWidth;
+                     const targetH = container.offsetHeight;
+                     const targetX = container.offsetLeft;
+                     const targetY = container.offsetTop;
+                     
+                     const containerCenterX = targetX + (targetW / 2);
+                     const containerCenterY = targetY + (targetH / 2);
+                     
+                     // Center in viewport
+                     const panX = (rect.width / 2) - containerCenterX;
+                     const panY = (rect.height / 2) - containerCenterY;
+                     
+                     setTimeout(() => {
+                        pz.pan(panX, panY, { animate: true });
+                     }, 10);
+                } else {
+                    // Fallback
+                    pz.reset();
+                }
                 break;
-            }
             case 'fit':
                 performFit();
                 break;
@@ -1589,69 +1564,93 @@
         const pz = window.panzoomInstance;
         const dashboard = document.getElementById('journeyDashboard');
         const container = document.querySelector('.journey-board-container');
-        
-        // Re-query viewport to get fresh dimensions (critical after sidebar hides)
         const viewport = document.getElementById('panzoomViewport');
+        
         if (!viewport || !dashboard) return;
         
-        // Ensure origin is top-left for our math
-        dashboard.style.transformOrigin = '0 0';
+        // Disable animation for instant calculation reset
+        pz.setOptions({ duration: 0, animate: false });
         
-        // 1. Get viewport dimensions (the visible area)
-        const viewportW = viewport.clientWidth;
-        const viewportH = viewport.clientHeight;
+        // 1. Reset to Scale 1 and Origin (0,0) to get clean measurements
+        // This is crucial because measurements are affected by current transform
+        pz.reset({ animate: false });
         
-        // 2. Get board dimensions (unscaled - offsetWidth/Height are NOT affected by CSS transforms)
-        let boardX, boardY, boardW, boardH;
+        // Allow DOM to settle (micro-task) before measuring? 
+        // Usually synchronous reset is enough if we don't rely on transitions.
         
+        // 2. Measure Viewport
+        const viewportRect = viewport.getBoundingClientRect();
+        const viewportW = viewportRect.width;
+        const viewportH = viewportRect.height;
+        
+        // 3. Measure Content (relative to document/viewport now that scale is 1)
+        // We want to center the 'container' element.
+        // Get the rect of the container relative to the viewport
+        let contentRect;
         if (container) {
-            // offsetLeft/Top are relative to offsetParent (#journeyDashboard which has position: relative)
-            boardX = container.offsetLeft;
-            boardY = container.offsetTop;
-            boardW = container.offsetWidth;
-            boardH = container.offsetHeight;
+            contentRect = container.getBoundingClientRect();
         } else {
-            // No board yet - nothing to fit
-            return;
+            // Fallback to dashboard (minus padding if possible, but dashboard is wrapper)
+            contentRect = dashboard.getBoundingClientRect();
         }
-
-        if (boardW === 0 || boardH === 0 || viewportW === 0 || viewportH === 0) return;
-
-        // 3. Calculate scale to fit board in viewport with padding
-        const padding = 40;
-        const availableW = viewportW - (padding * 2);
-        const availableH = viewportH - (padding * 2);
         
-        let newScale = Math.min(availableW / boardW, availableH / boardH);
-        newScale = Math.max(0.1, Math.min(5, newScale)); // Clamp to Panzoom limits
-
-        // 4. Calculate pan to CENTER the board
-        //
-        // Panzoom transform: scale(S) translate(X, Y)
-        // CSS applies right-to-left: translate first, then scale from origin
-        // So a local point (lx, ly) appears on screen at: ((lx + X) * S, (ly + Y) * S)
-        //
-        // We want the board center to appear at the viewport center:
-        //   (boardCenterX + X) * S = viewportW / 2
-        //   X = viewportW / (2 * S) - boardCenterX
-        //
-        const boardCenterX = boardX + (boardW / 2);
-        const boardCenterY = boardY + (boardH / 2);
+        const contentW = contentRect.width;
+        const contentH = contentRect.height;
         
-        const panX = (viewportW / (2 * newScale)) - boardCenterX;
-        const panY = (viewportH / (2 * newScale)) - boardCenterY;
+        if (contentW === 0 || contentH === 0 || viewportW === 0 || viewportH === 0) return;
 
-        // 5. Apply atomically (no animation, no setTimeout between zoom and pan)
-        pz.setOptions({ animate: false });
+        // 4. Calculate Scale
+        const padding = 40; 
+        const availableW = viewportW - padding;
+        const availableH = viewportH - padding;
+        
+        const scaleX = availableW / contentW;
+        const scaleY = availableH / contentH;
+        
+        let newScale = Math.min(scaleX, scaleY);
+        const minScale = 0.1;
+        const maxScale = 5;
+        newScale = Math.max(minScale, Math.min(maxScale, newScale));
+        
+        // 5. Calculate Center Pan
+        // We want the center of the CONTENT to align with the center of the VIEWPORT.
+        // Current Center of Content (at Scale 1):
+        const currentCx = contentRect.left + (contentRect.width / 2); // Relative to viewport
+        const currentCy = contentRect.top + (contentRect.height / 2);
+        
+        // Desired Center (Viewport Center):
+        const targetCx = viewportRect.left + (viewportRect.width / 2);
+        const targetCy = viewportRect.top + (viewportRect.height / 2);
+        
+        // Delta required to move Center to Center (at Scale 1):
+        const panDx = targetCx - currentCx;
+        const panDy = targetCy - currentCy;
+        
+        // Apply Pan first (to center it at Scale 1), then Zoom (which happens around center by default)
+        // Wait... Panzoom applies transform: scale() translate().
+        // If origin is center, zooming doesn't change center.
+        // So we just need to pan to center, then zoom.
+        
+        // Note: Panzoom's pan(x, y) sets the translation values.
+        // It does NOT add to current. But we just reset(), so current is 0,0 (or close).
+        // Actually reset() puts it back to start options.
+        // Let's explicitly pan.
+        
+        // Apply
+        pz.pan(panDx, panDy);
         pz.zoom(newScale);
-        pz.pan(panX, panY);
         
-        // Re-enable animation after a frame
-        requestAnimationFrame(() => {
-            pz.setOptions({ animate: true });
+        // Re-enable animation for future user interactions
+        setTimeout(() => {
+            pz.setOptions({ duration: 200, animate: true });
+        }, 10);
+        
+        console.log("Fit Calc (Rev 3):", {
+            vW: viewportW, vH: viewportH,
+            cW: contentW, cH: contentH,
+            scale: newScale,
+            panDx, panDy
         });
-        
-        console.log("Fit:", { viewportW, viewportH, boardX, boardY, boardW, boardH, newScale, panX, panY });
     }
 
     let hasAutoFitComplete = false;
@@ -1663,29 +1662,27 @@
     window.addEventListener('journeyRendered', (e) => {
         const { width, height } = e.detail;
         
-        // Check if dimensions changed significantly (new phase/gate passed)
+        // Check if dimensions changed significantly (gate passed/new phase)
         const hasSizeChanged = Math.abs(width - lastRenderedWidth) > 50 || Math.abs(height - lastRenderedHeight) > 50;
         
+        // Also check if we just entered complete state
         const isComplete = currentJourney && (currentJourney.stage === 'COMPLETE' || currentJourney.status === 'READY_FOR_REVIEW' || document.body.classList.contains('journey-complete'));
         
+        // Update history
         lastRenderedWidth = width;
         lastRenderedHeight = height;
 
         if (hasSizeChanged || (isComplete && !hasAutoFitComplete)) {
-             // Wait for fonts to load (affects text layout/size)
+             // Wait for fonts/layout
              document.fonts.ready.then(() => {
+                 // If completing, give extra time for sidebar animation
+                 const delay = isComplete ? 300 : 100;
+                 setTimeout(performFit, delay);
+                 
+                 // Double tap for safety on complete
                  if (isComplete) {
-                    // When completing, the chat sidebar hides via display:none which is instant,
-                    // but flexbox reflow needs a frame. Use rAF to ensure layout is settled.
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            performFit();
-                            hasAutoFitComplete = true;
-                        });
-                    });
-                 } else {
-                    // During active journey, fit after a brief layout settle
-                    requestAnimationFrame(() => performFit());
+                    setTimeout(performFit, 800);
+                    hasAutoFitComplete = true;
                  }
              });
         }
@@ -2455,12 +2452,10 @@
         const btn = document.getElementById('mobileToggleBtn');
         if (document.body.classList.contains('show-map')) {
             btn.textContent = 'Chat';
-            // Auto-fit when switching to map - wait for layout reflow
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    if(window.panzoomInstance) performFit();
-                });
-            });
+            // Auto-fit when switching to map
+            setTimeout(() => {
+                if(window.panzoomInstance) performFit();
+            }, 100);
         } else {
             btn.textContent = 'Map';
         }
@@ -2583,12 +2578,12 @@
         // Ensure buttons show
         document.body.classList.add('journey-complete');
         
-        // Fit after layout settles
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                if(window.panzoomInstance) performFit();
-            });
-        });
+        // Fit
+        setTimeout(() => {
+            if(window.panzoomInstance) {
+                performFit();
+            }
+        }, 100);
         
         console.log("Generated Journey:", journey);
     }
