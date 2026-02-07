@@ -1490,6 +1490,46 @@
             viewport.style.backgroundSize = `${gridSize}px ${gridSize}px`;
             viewport.style.backgroundPosition = `${x}px ${y}px`;
         });
+
+        // Constrain Panning (Snap-back / Rubber-band effect)
+        elem.addEventListener('panzoomend', (event) => {
+            const { x, y, scale } = event.detail;
+            const container = document.querySelector('.journey-board-container');
+            if (!container) return;
+            
+            const rect = container.getBoundingClientRect();
+            const viewportRect = viewport.getBoundingClientRect();
+            
+            // Keep at least 100px visible
+            const margin = 100; 
+            
+            let targetX = x;
+            let targetY = y;
+            let correct = false;
+            
+            // Horizontal Correction
+            if (rect.right < viewportRect.left + margin) {
+                targetX += (viewportRect.left + margin) - rect.right;
+                correct = true;
+            } else if (rect.left > viewportRect.right - margin) {
+                targetX -= rect.left - (viewportRect.right - margin);
+                correct = true;
+            }
+            
+            // Vertical Correction
+            if (rect.bottom < viewportRect.top + margin) {
+                targetY += (viewportRect.top + margin) - rect.bottom;
+                correct = true;
+            } else if (rect.top > viewportRect.bottom - margin) {
+                targetY -= rect.top - (viewportRect.bottom - margin);
+                correct = true;
+            }
+            
+            if (correct) {
+                // Snap back into view
+                window.panzoomInstance.pan(targetX, targetY, { animate: true });
+            }
+        });
         
         // Center initial content?
         // Let's do a fit on load if content exists
