@@ -407,6 +407,17 @@ body {
     animation: slideDown 0.2s ease;
 }
 
+.param-content textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.param-content input,
+.param-content textarea {
+    width: 100%;
+    max-width: 100%;
+}
+
 .param-row.active .param-content {
     display: block;
 }

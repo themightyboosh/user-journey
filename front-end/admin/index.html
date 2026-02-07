@@ -184,7 +184,7 @@
                             </label>
                         </div>
                         <div class="param-content">
-                            <textarea id="welcome-prompt" rows="3" placeholder="e.g. Greet them like a pirate..."></textarea>
+                            <textarea id="welcome-prompt" rows="6" placeholder="e.g. Greet them like a pirate..."></textarea>
                             <div class="help-text">Custom instruction for the initial greeting (Step 1).</div>
                         </div>
                     </div>
@@ -202,7 +202,7 @@
                             </label>
                         </div>
                         <div class="param-content">
-                            <textarea id="journey-prompt" rows="3" placeholder="e.g. Ask specifically about risk factors..."></textarea>
+                            <textarea id="journey-prompt" rows="6" placeholder="e.g. Ask specifically about risk factors..."></textarea>
                             <div class="help-text">Custom instruction for inquiring about the journey description (Step 3).</div>
                         </div>
                     </div>
@@ -220,7 +220,7 @@
                             </label>
                         </div>
                         <div class="param-content">
-                            <textarea id="ragContext" rows="6" placeholder="Paste or type additional context for the AI to reference during this journey session. E.g. product documentation, terminology, research briefs..." maxlength="4000"></textarea>
+                            <textarea id="ragContext" rows="10" placeholder="Paste or type additional context for the AI to reference during this journey session. E.g. product documentation, terminology, research briefs..." maxlength="4000"></textarea>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div class="help-text" style="margin: 0;">Injected into the AI system prompt. Keep concise for best results.</div>
                                 <div class="help-text" style="margin: 0; font-variant-numeric: tabular-nums;"><span id="ragCharCount">0</span> / 4,000</div>
@@ -373,6 +373,6 @@
     </template>
 
     <script src="../js/renderer.js?v=1014"></script>
-    <script src="script.js?v=2.0"></script>
+    <script src="script.js?v=2.1"></script>
 </body>
 </html>
