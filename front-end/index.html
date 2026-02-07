@@ -1559,11 +1559,17 @@
 
         switch(action) {
             case 'zoomIn':
-                // Try zooming without focal first to ensure it works, or fallback to center
-                pz.zoomIn({ step: ZOOM_STEP }); 
+                // Zoom from screen center
+                pz.zoomIn({ 
+                    step: ZOOM_STEP, 
+                    focal: { clientX: rect.left + cx, clientY: rect.top + cy } 
+                }); 
                 break;
             case 'zoomOut':
-                pz.zoomOut({ step: ZOOM_STEP });
+                pz.zoomOut({ 
+                    step: ZOOM_STEP, 
+                    focal: { clientX: rect.left + cx, clientY: rect.top + cy } 
+                });
                 break;
             case 'reset':
                 // ... logic ...
