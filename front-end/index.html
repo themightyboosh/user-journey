@@ -1564,93 +1564,69 @@
         const pz = window.panzoomInstance;
         const dashboard = document.getElementById('journeyDashboard');
         const container = document.querySelector('.journey-board-container');
-        const viewport = document.getElementById('panzoomViewport');
-        
-        if (!viewport || !dashboard) return;
-        
-        // Disable animation for instant calculation reset
-        pz.setOptions({ duration: 0, animate: false });
-        
-        // 1. Reset to Scale 1 and Origin (0,0) to get clean measurements
-        // This is crucial because measurements are affected by current transform
-        pz.reset({ animate: false });
-        
-        // Allow DOM to settle (micro-task) before measuring? 
-        // Usually synchronous reset is enough if we don't rely on transitions.
-        
-        // 2. Measure Viewport
-        const viewportRect = viewport.getBoundingClientRect();
-        const viewportW = viewportRect.width;
-        const viewportH = viewportRect.height;
-        
-        // 3. Measure Content (relative to document/viewport now that scale is 1)
-        // We want to center the 'container' element.
-        // Get the rect of the container relative to the viewport
-        let contentRect;
-        if (container) {
-            contentRect = container.getBoundingClientRect();
-        } else {
-            // Fallback to dashboard (minus padding if possible, but dashboard is wrapper)
-            contentRect = dashboard.getBoundingClientRect();
-        }
-        
-        const contentW = contentRect.width;
-        const contentH = contentRect.height;
-        
-        if (contentW === 0 || contentH === 0 || viewportW === 0 || viewportH === 0) return;
 
-        // 4. Calculate Scale
-        const padding = 40; 
-        const availableW = viewportW - padding;
-        const availableH = viewportH - padding;
-        
-        const scaleX = availableW / contentW;
-        const scaleY = availableH / contentH;
-        
-        let newScale = Math.min(scaleX, scaleY);
-        const minScale = 0.1;
-        const maxScale = 5;
-        newScale = Math.max(minScale, Math.min(maxScale, newScale));
-        
-        // 5. Calculate Center Pan
-        // We want the center of the CONTENT to align with the center of the VIEWPORT.
-        // Current Center of Content (at Scale 1):
-        const currentCx = contentRect.left + (contentRect.width / 2); // Relative to viewport
-        const currentCy = contentRect.top + (contentRect.height / 2);
-        
-        // Desired Center (Viewport Center):
-        const targetCx = viewportRect.left + (viewportRect.width / 2);
-        const targetCy = viewportRect.top + (viewportRect.height / 2);
-        
-        // Delta required to move Center to Center (at Scale 1):
-        const panDx = targetCx - currentCx;
-        const panDy = targetCy - currentCy;
-        
-        // Apply Pan first (to center it at Scale 1), then Zoom (which happens around center by default)
-        // Wait... Panzoom applies transform: scale() translate().
-        // If origin is center, zooming doesn't change center.
-        // So we just need to pan to center, then zoom.
-        
-        // Note: Panzoom's pan(x, y) sets the translation values.
-        // It does NOT add to current. But we just reset(), so current is 0,0 (or close).
-        // Actually reset() puts it back to start options.
-        // Let's explicitly pan.
-        
-        // Apply
-        pz.pan(panDx, panDy);
+        // Re-query viewport to get fresh dimensions (critical after sidebar hides)
+        const viewport = document.getElementById('panzoomViewport');
+        if (!viewport || !dashboard) return;
+
+        // Ensure origin is top-left for our math
+        dashboard.style.transformOrigin = '0 0';
+
+        // 1. Get viewport dimensions (the visible area)
+        const viewportW = viewport.clientWidth;
+        const viewportH = viewport.clientHeight;
+
+        // 2. Get board dimensions (unscaled - offsetWidth/Height are NOT affected by CSS transforms)
+        let boardX, boardY, boardW, boardH;
+
+        if (container) {
+            // offsetLeft/Top are relative to offsetParent (#journeyDashboard which has position: relative)
+            boardX = container.offsetLeft;
+            boardY = container.offsetTop;
+            boardW = container.offsetWidth;
+            boardH = container.offsetHeight;
+        } else {
+            // No board yet - nothing to fit
+            return;
+        }
+
+        if (boardW === 0 || boardH === 0 || viewportW === 0 || viewportH === 0) return;
+
+        // 3. Calculate scale to fit board in viewport with padding
+        const padding = 40;
+        const availableW = viewportW - (padding * 2);
+        const availableH = viewportH - (padding * 2);
+
+        let newScale = Math.min(availableW / boardW, availableH / boardH);
+        newScale = Math.max(0.1, Math.min(5, newScale)); // Clamp to Panzoom limits
+
+        // 4. Calculate pan to CENTER the board
+        //
+        // Panzoom transform: scale(S) translate(X, Y)
+        // CSS applies right-to-left: translate first, then scale from origin
+        // So a local point (lx, ly) appears on screen at: ((lx + X) * S, (ly + Y) * S)
+        //
+        // We want the board center to appear at the viewport center:
+        //   (boardCenterX + X) * S = viewportW / 2
+        //   X = viewportW / (2 * S) - boardCenterX
+        //
+        const boardCenterX = boardX + (boardW / 2);
+        const boardCenterY = boardY + (boardH / 2);
+
+        const panX = (viewportW / (2 * newScale)) - boardCenterX;
+        const panY = (viewportH / (2 * newScale)) - boardCenterY;
+
+        // 5. Apply atomically (no animation, no setTimeout between zoom and pan)
+        pz.setOptions({ animate: false });
         pz.zoom(newScale);
-        
-        // Re-enable animation for future user interactions
-        setTimeout(() => {
-            pz.setOptions({ duration: 200, animate: true });
-        }, 10);
-        
-        console.log("Fit Calc (Rev 3):", {
-            vW: viewportW, vH: viewportH,
-            cW: contentW, cH: contentH,
-            scale: newScale,
-            panDx, panDy
+        pz.pan(panX, panY);
+
+        // Re-enable animation after a frame
+        requestAnimationFrame(() => {
+            pz.setOptions({ animate: true });
         });
+
+        console.log("Fit:", { viewportW, viewportH, boardX, boardY, boardW, boardH, newScale, panX, panY });
     }
 
     let hasAutoFitComplete = false;
@@ -1661,30 +1637,32 @@
     // Listen for render events from renderer.js
     window.addEventListener('journeyRendered', (e) => {
         const { width, height } = e.detail;
-        
-        // Check if dimensions changed significantly (gate passed/new phase)
-        const hasSizeChanged = Math.abs(width - lastRenderedWidth) > 50 || Math.abs(height - lastRenderedHeight) > 50;
-        
-        // Also check if we just entered complete state
-        const isComplete = currentJourney && (currentJourney.stage === 'COMPLETE' || currentJourney.status === 'READY_FOR_REVIEW' || document.body.classList.contains('journey-complete'));
-        
-        // Update history
+
+        const hasSizeChanged = Math.abs(width - lastRenderedWidth) > 50 ||
+                              Math.abs(height - lastRenderedHeight) > 50;
+        const isComplete = currentJourney &&
+                          (currentJourney.stage === 'COMPLETE' ||
+                           currentJourney.status === 'READY_FOR_REVIEW' ||
+                           document.body.classList.contains('journey-complete'));
+
         lastRenderedWidth = width;
         lastRenderedHeight = height;
 
         if (hasSizeChanged || (isComplete && !hasAutoFitComplete)) {
-             // Wait for fonts/layout
-             document.fonts.ready.then(() => {
-                 // If completing, give extra time for sidebar animation
-                 const delay = isComplete ? 300 : 100;
-                 setTimeout(performFit, delay);
-                 
-                 // Double tap for safety on complete
-                 if (isComplete) {
-                    setTimeout(performFit, 800);
-                    hasAutoFitComplete = true;
-                 }
-             });
+            document.fonts.ready.then(() => {
+                if (isComplete) {
+                    // Wait for sidebar hide and flexbox reflow (2 animation frames)
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            performFit();
+                            hasAutoFitComplete = true;
+                        });
+                    });
+                } else {
+                    // During journey building, fit after layout settles (1 frame)
+                    requestAnimationFrame(() => performFit());
+                }
+            });
         }
     });
 
