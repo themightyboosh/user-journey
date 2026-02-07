@@ -1535,26 +1535,37 @@
         const dashboard = document.getElementById('journeyDashboard');
         const container = document.querySelector('.journey-board-container');
         
-        if (!viewport || !dashboard || !container) return;
+        if (!viewport || !dashboard) return;
+        
+        // Ensure origin is top-left for our math to work
+        dashboard.style.transformOrigin = '0 0';
         
         // 1. Get Dimensions
         const viewportRect = viewport.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect(); // Current screen pos
-        // We need UN-transformed dimensions of the container relative to the dashboard
-        // Since dashboard is the transform target, offsetLeft/Top are reliable 
-        // because they are calculated in the dashboard's internal coordinate system
-        
-        const targetX = container.offsetLeft;
-        const targetY = container.offsetTop;
-        const targetW = container.offsetWidth;
-        const targetH = container.offsetHeight;
-        
         const viewportW = viewportRect.width;
         const viewportH = viewportRect.height;
+        
+        // 2. Determine Target Dimensions & Position (Unscaled)
+        let targetX = 0;
+        let targetY = 0;
+        let targetW = dashboard.scrollWidth;
+        let targetH = dashboard.scrollHeight;
+        
+        if (container) {
+            targetX = container.offsetLeft;
+            targetY = container.offsetTop;
+            targetW = container.offsetWidth;
+            targetH = container.offsetHeight;
+        } else {
+            // If no container (e.g. empty state), center the dashboard content roughly
+            // Dashboard padding is 80px
+            targetX = 0;
+            targetY = 0;
+        }
 
         if (targetW === 0 || targetH === 0 || viewportW === 0 || viewportH === 0) return;
 
-        // 2. Calculate Scale
+        // 3. Calculate Scale
         const padding = 40; 
         const availableW = viewportW - (padding * 2);
         const availableH = viewportH - (padding * 2);
@@ -1568,44 +1579,60 @@
         const maxScale = 5;
         newScale = Math.max(minScale, Math.min(maxScale, newScale));
         
-        // 3. Calculate Pan
-        // Goal: Center the container in the viewport
-        // Formula: Pan = (ViewportCenter) - (ContainerCenter * Scale)
-        
+        // 4. Calculate Pan
         // Center of container in dashboard coordinates
         const containerCenterX = targetX + (targetW / 2);
         const containerCenterY = targetY + (targetH / 2);
         
+        // We want containerCenter to be at viewportCenter
+        // P_x + C_x * S = V_x
+        // P_x = V_x - C_x * S
         const panX = (viewportW / 2) - (containerCenterX * newScale);
         const panY = (viewportH / 2) - (containerCenterY * newScale);
 
+        // 5. Execute
+        pz.setOptions({ duration: 0, animate: false });
+        
+        // Force reset then apply to avoid accumulation errors
+        // Note: Panzoom doesn't have a 'setTransform' method exposed directly on the instance usually, 
+        // but zoom() and pan() work. 
+        // We set scale first, then pan.
+        pz.zoom(newScale);
+        setTimeout(() => {
+            pz.pan(panX, panY);
+            
+            // Re-enable animation
+            setTimeout(() => {
+                pz.setOptions({ duration: 200, animate: true });
+            }, 50);
+        }, 0);
+        
+        // DEBUG VISUALIZATION
+        // Draw a red box around the target area to verify we have the right coordinates
+        // remove old debug box
+        const oldBox = document.getElementById('debug-fit-box');
+        if (oldBox) oldBox.remove();
+        
+        /* Uncomment to see debug box
+        const box = document.createElement('div');
+        box.id = 'debug-fit-box';
+        box.style.position = 'absolute';
+        box.style.left = targetX + 'px';
+        box.style.top = targetY + 'px';
+        box.style.width = targetW + 'px';
+        box.style.height = targetH + 'px';
+        box.style.border = '4px solid red';
+        box.style.pointerEvents = 'none';
+        box.style.zIndex = '9999';
+        dashboard.appendChild(box);
+        */
+        
         console.log("Fit Calc:", {
             vW: viewportW, vH: viewportH,
-            cX: containerCenterX, cY: containerCenterY,
+            tX: targetX, tY: targetY, tW: targetW, tH: targetH,
             scale: newScale,
             panX, panY
         });
-
-        // 4. Execute
-        // We use setOptions to disable animation during the snap
-        const oldDuration = pz.getOptions().duration;
-        pz.setOptions({ duration: 0, animate: false });
-        
-        // Order matters: Zoom first, then Pan
-        try {
-            pz.zoom(newScale);
-            // Force a microtask wait to ensure zoom settles if engine needs it, 
-            // though synchronous is usually fine with Panzoom
-            setTimeout(() => {
-                pz.pan(panX, panY);
-                // Restore animation defaults
-                setTimeout(() => {
-                    pz.setOptions({ duration: 200, animate: true });
-                }, 50);
-            }, 0);
-        } catch (e) {
-            console.error("Fit Error:", e);
-        }
     }
 
     let hasAutoFitComplete = false;
