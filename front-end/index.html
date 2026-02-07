@@ -1481,6 +1481,16 @@
         // Enable Mouse Wheel
         viewport.addEventListener('wheel', window.panzoomInstance.zoomWithWheel);
         
+        // Sync Background Grid (Infinite Canvas Effect)
+        elem.addEventListener('panzoomchange', (event) => {
+            const { x, y, scale } = event.detail;
+            // Update grid size and position to match the board transform
+            // This creates the illusion that the grid is part of the canvas surface
+            const gridSize = 20 * scale; 
+            viewport.style.backgroundSize = `${gridSize}px ${gridSize}px`;
+            viewport.style.backgroundPosition = `${x}px ${y}px`;
+        });
+        
         // Center initial content?
         // Let's do a fit on load if content exists
         setTimeout(() => {
