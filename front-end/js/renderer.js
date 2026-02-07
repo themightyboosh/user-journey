@@ -411,17 +411,17 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     html += `</div>`; // End Row 1
 
 
-    // --- ROW 2: Phases & Lanes (Distributed Grid) ---
+    // --- ROW 2: Phases & Lanes (Flexbox Wrap) ---
     html += `<div style="margin-top: 60px;">`;
-    // Single grid container for all summaries - use auto-fit to stretch items to full width
-    html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; width: 100%;">`;
+    // Single container for all summaries - use Flexbox to wrap cards
+    html += `<div style="display: flex; flex-wrap: wrap; gap: 24px; width: 100%;">`;
 
     // 1. Phase Summaries
     if (journey.phases.some(p => p.summary)) {
         journey.phases.forEach(p => {
             if (p.summary) {
                 html += `
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column; height: 100%;">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column; flex: 1 1 400px; max-width: 100%;">
                         <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Phase</div>
                         <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(p.name)}</h4>
                         <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary); flex-grow: 1;">${formatMessage(p.summary)}</div>
@@ -436,7 +436,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         journey.swimlanes.forEach(s => {
             if (s.summary) {
                 html += `
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column; height: 100%;">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column; flex: 1 1 400px; max-width: 100%;">
                         <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Lane</div>
                         <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(s.name)}</h4>
                         <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary); flex-grow: 1;">${formatMessage(s.summary)}</div>
@@ -446,7 +446,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         });
     }
 
-    html += `</div></div>`; // End Grid and Section Container
+    html += `</div></div>`; // End Flex Container and Section
     
     // Additional Context (Full Width)
     if (journey.anythingElse) {
