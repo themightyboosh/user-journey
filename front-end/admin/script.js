@@ -1,5 +1,5 @@
 // Config
-const VERSION = '1.3';
+const VERSION = '2.0';
 console.log('Journey Mapper Admin v' + VERSION);
 
 const BASE_URL = window.location.origin + '/';
@@ -7,7 +7,7 @@ const LINKS_API_URL = window.location.origin + '/api/admin/links';
 const SETTINGS_API_URL = window.location.origin + '/api/admin/settings';
 const JOURNEYS_API_URL = window.location.origin + '/api/admin/journeys';
 
-// DOM Elements - Links Module
+// DOM Elements - Template Module
 const formInputs = {
     name: document.getElementById('name'),
     role: document.getElementById('role'),
@@ -18,13 +18,17 @@ const formInputs = {
 };
 const configNameInput = document.getElementById('configName');
 const ragCharCount = document.getElementById('ragCharCount');
+const globalToggle = document.getElementById('globalToggle');
 
 const swimlanesContainer = document.getElementById('swimlanesContainer');
+const phasesContainer = document.getElementById('phasesContainer');
 const addSwimlaneBtn = document.getElementById('addSwimlaneBtn');
+const addPhaseBtn = document.getElementById('addPhaseBtn');
 const generatedUrlCode = document.getElementById('generatedUrl');
 const copyBtn = document.getElementById('copyBtn');
 const testLinkBtn = document.getElementById('testLinkBtn');
 const swimlaneTemplate = document.getElementById('swimlaneTemplate');
+const phaseTemplate = document.getElementById('phaseTemplate');
 const savedLinksList = document.getElementById('savedLinksList');
 const saveBtn = document.getElementById('saveBtn');
 const deleteBtn = document.getElementById('deleteBtn');
@@ -55,62 +59,137 @@ const modules = {
     journeys: document.getElementById('module-journeys')
 };
 
+// Toggle keys (order matches param rows)
+const TOGGLE_KEYS = ['name', 'role', 'journey', 'welcomePrompt', 'journeyPrompt', 'ragContext', 'swimlanes', 'phases'];
+
 // State
 let currentLinkId = null;
 let savedLinks = [];
 let savedJourneys = [];
 let currentJourneyId = null;
+// Toggle states: false = "Provided by User" (default), true = admin-defined
+let toggleStates = {};
+TOGGLE_KEYS.forEach(k => toggleStates[k] = false);
 
+// ========================================
 // Initialization
+// ========================================
 function init() {
-    // Navigation Logic
+    // Navigation
     navLinks.links.addEventListener('click', (e) => switchModule(e, 'links'));
     navLinks.settings.addEventListener('click', (e) => switchModule(e, 'settings'));
     navLinks.journeys.addEventListener('click', (e) => switchModule(e, 'journeys'));
 
-    // Links Module Init
+    // Text field listeners for URL preview
     Object.values(formInputs).forEach(input => {
-        if(input) {
+        if (input) {
             input.addEventListener('input', updateUrl);
             input.addEventListener('change', updateUrl);
         }
     });
-    configNameInput.addEventListener('input', () => {}); 
 
     // RAG Character Counter
     if (formInputs.ragContext) {
         formInputs.ragContext.addEventListener('input', updateRagCharCount);
-        updateRagCharCount(); // Initialize count
+        updateRagCharCount();
     }
 
+    // Toggle switches
+    document.querySelectorAll('[data-toggle]').forEach(toggle => {
+        toggle.addEventListener('change', (e) => {
+            const key = e.target.getAttribute('data-toggle');
+            toggleStates[key] = e.target.checked;
+            applyToggleUI(key);
+            updateUrl();
+        });
+    });
+
+    // Swimlane & Phase buttons
     addSwimlaneBtn.addEventListener('click', () => addSwimlane());
+    addPhaseBtn.addEventListener('click', () => addPhase());
+
+    // Actions
     copyBtn.addEventListener('click', copyToClipboard);
     saveBtn.addEventListener('click', saveConfiguration);
     deleteBtn.addEventListener('click', deleteConfiguration);
     newConfigBtn.addEventListener('click', resetForm);
 
-    // Journeys Module Init
+    // Journeys Module
     filterRadios.forEach(radio => radio.addEventListener('change', renderJourneysList));
     clearJourneysBtn.addEventListener('click', clearAllJourneys);
 
+    // Settings Module
+    saveSettingsBtn.addEventListener('click', saveSettings);
+
+    // Apply initial toggle UI (all off)
+    TOGGLE_KEYS.forEach(applyToggleUI);
+
     updateUrl();
     fetchLinks();
-
-    // Fetch Journeys
     fetchJourneys();
-
-    // Settings Module Init
-    saveSettingsBtn.addEventListener('click', saveSettings);
     fetchSettings();
 }
 
+// ========================================
+// Toggle Logic
+// ========================================
+function applyToggleUI(key) {
+    const row = document.querySelector(`.param-row[data-param="${key}"]`);
+    if (!row) return;
+
+    const isOn = toggleStates[key];
+    const toggle = row.querySelector(`[data-toggle="${key}"]`);
+    if (toggle) toggle.checked = isOn;
+
+    if (isOn) {
+        row.classList.add('active');
+    } else {
+        row.classList.remove('active');
+    }
+}
+
+function getActiveConfig() {
+    // Returns only the fields that have their toggles ON
+    const config = {};
+
+    if (toggleStates.name && formInputs.name.value.trim()) {
+        config.name = formInputs.name.value.trim();
+    }
+    if (toggleStates.role && formInputs.role.value.trim()) {
+        config.role = formInputs.role.value.trim();
+    }
+    if (toggleStates.journey && formInputs.journey.value.trim()) {
+        config.journey = formInputs.journey.value.trim();
+    }
+    if (toggleStates.welcomePrompt && formInputs.welcomePrompt.value.trim()) {
+        config.welcomePrompt = formInputs.welcomePrompt.value.trim();
+    }
+    if (toggleStates.journeyPrompt && formInputs.journeyPrompt.value.trim()) {
+        config.journeyPrompt = formInputs.journeyPrompt.value.trim();
+    }
+    if (toggleStates.ragContext && formInputs.ragContext.value.trim()) {
+        config.ragContext = formInputs.ragContext.value.trim();
+    }
+    if (toggleStates.swimlanes) {
+        const sw = getSwimlanesFromDOM();
+        if (sw.length > 0) config.swimlanes = sw;
+    }
+    if (toggleStates.phases) {
+        const ph = getPhasesFromDOM();
+        if (ph.length > 0) config.phases = ph;
+    }
+
+    return config;
+}
+
+// ========================================
 // RAG Character Count
+// ========================================
 function updateRagCharCount() {
     if (!formInputs.ragContext || !ragCharCount) return;
     const len = formInputs.ragContext.value.length;
     ragCharCount.textContent = len.toLocaleString();
-    
-    // Visual feedback when approaching limit
+
     if (len > 3600) {
         ragCharCount.style.color = '#ed2224';
     } else if (len > 3000) {
@@ -120,58 +199,47 @@ function updateRagCharCount() {
     }
 }
 
-// Logic: Navigation
+// ========================================
+// Navigation
+// ========================================
 function switchModule(e, moduleName) {
     e.preventDefault();
-    
-    // Update Nav
     document.querySelectorAll('.admin-nav a').forEach(el => el.classList.remove('active'));
     navLinks[moduleName].classList.add('active');
 
-    // Update Content
     Object.values(modules).forEach(el => el.style.display = 'none');
     modules[moduleName].style.display = 'block';
 
-    // Show/Hide Sidebar (Only for Links Module)
     const sidebar = document.querySelector('.admin-sidebar');
     if (sidebar) {
         sidebar.style.display = moduleName === 'links' ? 'block' : 'none';
     }
 }
 
-// --- Journeys Logic ---
-
+// ========================================
+// Journeys Logic
+// ========================================
 async function fetchJourneys() {
     try {
         const urlWithCache = `${JOURNEYS_API_URL}?_t=${Date.now()}`;
-        console.log('Fetching journeys from:', urlWithCache);
         let res = await fetch(urlWithCache);
-
-        // Fallback for rewrite issues
         if (res.status === 404) {
-            console.warn('Primary endpoint 404, trying fallback /admin/journeys');
             res = await fetch(`/admin/journeys?_t=${Date.now()}`);
         }
-
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        
+
         const data = await res.json();
-        console.log('Journeys fetched:', data);
-        
-        // Ensure data is an array
         if (Array.isArray(data)) {
             savedJourneys = data;
         } else if (typeof data === 'object' && data !== null) {
             savedJourneys = Object.values(data);
         } else {
-            console.error('Unexpected data format:', data);
             savedJourneys = [];
         }
-        
         renderJourneysList();
     } catch (e) {
         console.error("Failed to fetch journeys", e);
-        if(journeyList) journeyList.innerHTML = `<div class="empty-state">Failed to load journeys: ${e.message}</div>`;
+        if (journeyList) journeyList.innerHTML = `<div class="empty-state">Failed to load journeys: ${e.message}</div>`;
     }
 }
 
@@ -180,13 +248,11 @@ function renderJourneysList() {
     journeyList.innerHTML = '';
 
     const filterVal = document.querySelector('input[name="jFilter"]:checked').value;
-    
     let filtered = savedJourneys;
     if (filterVal === 'complete') {
         filtered = savedJourneys.filter(j => j.status === 'READY_FOR_REVIEW' || j.stage === 'COMPLETE');
     }
 
-    // Sort by updated desc
     filtered.sort((a, b) => {
         const dateA = new Date(a.updatedAt || a.createdAt || 0);
         const dateB = new Date(b.updatedAt || b.createdAt || 0);
@@ -203,25 +269,11 @@ function renderJourneysList() {
 
     filtered.forEach(journey => {
         if (!journey) return;
-
         const div = document.createElement('div');
         div.className = `saved-link-item ${journey.journeyMapId === currentJourneyId ? 'active' : ''}`;
-        
         let statusIcon = journey.stage === 'COMPLETE' ? '✅' : '📝';
-        
         let date = 'Unknown Date';
-        if (journey.updatedAt) {
-            try {
-                date = new Date(journey.updatedAt).toLocaleDateString();
-            } catch (e) {
-                console.error('Invalid date for journey:', journey.journeyMapId);
-            }
-        } else if (journey.createdAt) {
-             try {
-                date = new Date(journey.createdAt).toLocaleDateString();
-            } catch (e) {}
-        }
-
+        try { date = new Date(journey.updatedAt || journey.createdAt).toLocaleDateString(); } catch (e) {}
         let name = journey.userName ? `${journey.userName} (${journey.role})` : (journey.role || 'Unknown User');
 
         div.innerHTML = `
@@ -231,33 +283,24 @@ function renderJourneysList() {
             </div>
             <button class="delete-journey-btn icon-btn small danger" title="Delete" style="opacity: 0.5; margin-left: 8px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                    <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </button>
         `;
-        
         div.addEventListener('click', (e) => {
             if (e.target.closest('.delete-journey-btn')) return;
             loadJourney(journey);
         });
-
         const delBtn = div.querySelector('.delete-journey-btn');
-        delBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteJourney(journey.journeyMapId);
-        });
-
+        delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteJourney(journey.journeyMapId); });
         div.addEventListener('mouseenter', () => { delBtn.style.opacity = '1'; });
         div.addEventListener('mouseleave', () => { delBtn.style.opacity = '0.5'; });
-
         journeyList.appendChild(div);
     });
 }
 
 async function deleteJourney(id) {
     if (!confirm("Are you sure you want to delete this journey? This cannot be undone.")) return;
-
     try {
         const res = await fetch(`${JOURNEYS_API_URL}/${id}`, { method: 'DELETE' });
         if (res.ok) {
@@ -268,19 +311,13 @@ async function deleteJourney(id) {
                 retakeBtn.style.display = 'none';
             }
             fetchJourneys();
-        } else {
-            alert("Failed to delete journey.");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Error deleting journey.");
-    }
+        } else { alert("Failed to delete journey."); }
+    } catch (e) { console.error(e); alert("Error deleting journey."); }
 }
 
 async function clearAllJourneys() {
     if (!confirm("WARNING: Are you sure you want to DELETE ALL journeys? This is irreversible.")) return;
     if (!confirm("Really delete EVERYTHING?")) return;
-
     try {
         const res = await fetch(JOURNEYS_API_URL, { method: 'DELETE' });
         if (res.ok) {
@@ -289,106 +326,79 @@ async function clearAllJourneys() {
             journeyPreviewTitle.textContent = 'Select a Journey';
             retakeBtn.style.display = 'none';
             fetchJourneys();
-        } else {
-            alert("Failed to clear journeys.");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Error clearing journeys.");
-    }
+        } else { alert("Failed to clear journeys."); }
+    } catch (e) { console.error(e); alert("Error clearing journeys."); }
 }
 
 function loadJourney(journey) {
     currentJourneyId = journey.journeyMapId;
     renderJourneysList();
-
     journeyPreviewTitle.textContent = journey.name || 'Untitled Journey';
-
     if (typeof renderMap === 'function') {
         renderMap(journey, 'adminCanvas');
     } else {
-        console.error("Renderer not loaded");
         adminCanvas.innerHTML = "Error: Renderer not loaded.";
     }
-
     const params = new URLSearchParams();
     if (journey.userName) params.set('name', journey.userName);
     if (journey.role) params.set('role', journey.role);
     if (journey.name) params.set('journey', journey.name);
-    
     if (journey.swimlanes && journey.swimlanes.length > 0) {
-        const swimlanes = journey.swimlanes.map(s => ({ name: s.name, description: s.description }));
-        params.set('swimlanes', JSON.stringify(swimlanes));
+        params.set('swimlanes', JSON.stringify(journey.swimlanes.map(s => ({ name: s.name, description: s.description }))));
     }
-
     retakeBtn.href = `${BASE_URL}?${params.toString()}`;
     retakeBtn.style.display = 'inline-flex';
 }
 
-// --- Settings Logic ---
-
+// ========================================
+// Settings Logic
+// ========================================
 async function fetchSettings() {
     try {
-        const urlWithCache = `${SETTINGS_API_URL}?_t=${Date.now()}`;
-        const res = await fetch(urlWithCache);
+        const res = await fetch(`${SETTINGS_API_URL}?_t=${Date.now()}`);
         const settings = await res.json();
-        if (settings.agentName) {
-            agentNameInput.value = settings.agentName;
-        }
-        if (settings.activeModel) {
-            activeModelInput.value = settings.activeModel;
-        }
-    } catch (e) {
-        console.error("Failed to fetch settings", e);
-    }
+        if (settings.agentName) agentNameInput.value = settings.agentName;
+        if (settings.activeModel) activeModelInput.value = settings.activeModel;
+    } catch (e) { console.error("Failed to fetch settings", e); }
 }
 
 async function saveSettings() {
     const agentName = agentNameInput.value.trim() || 'Max';
     const activeModel = activeModelInput.value;
-    
     try {
         saveSettingsBtn.textContent = 'Saving...';
         saveSettingsBtn.disabled = true;
-
         const res = await fetch(SETTINGS_API_URL, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ agentName, activeModel })
         });
-
-        if (res.ok) {
-            alert('Settings saved!');
-        } else {
-            alert('Failed to save settings.');
-        }
-    } catch(e) {
-        alert('Error saving settings.');
-    } finally {
+        if (res.ok) { alert('Settings saved!'); } else { alert('Failed to save settings.'); }
+    } catch (e) { alert('Error saving settings.'); }
+    finally {
         saveSettingsBtn.textContent = 'Save Settings';
         saveSettingsBtn.disabled = false;
     }
 }
 
-// --- Links Logic ---
-
+// ========================================
+// Templates (Links) Logic
+// ========================================
 async function fetchLinks() {
     try {
-        const urlWithCache = `${LINKS_API_URL}?_t=${Date.now()}`;
-        const res = await fetch(urlWithCache);
+        const res = await fetch(`${LINKS_API_URL}?_t=${Date.now()}`);
         savedLinks = await res.json();
         renderLinksList();
     } catch (e) {
         console.error("Failed to fetch links", e);
-        savedLinksList.innerHTML = `<div class="empty-state">Failed to load links. Ensure backend is running.</div>`;
+        savedLinksList.innerHTML = `<div class="empty-state">Failed to load templates. Ensure backend is running.</div>`;
     }
 }
 
 function renderLinksList() {
     savedLinksList.innerHTML = '';
-    
     if (savedLinks.length === 0) {
-        savedLinksList.innerHTML = `<div class="empty-state">No saved links yet.</div>`;
+        savedLinksList.innerHTML = `<div class="empty-state">No saved templates yet.</div>`;
         return;
     }
 
@@ -399,16 +409,16 @@ function renderLinksList() {
     });
 
     sorted.forEach(link => {
-        let ragInfo = '';
-        if (link.ragContext && link.ragContext.trim().length > 0) {
-            ragInfo = ` • 📄 RAG (${link.ragContext.length} chars)`;
-        }
+        // Count active toggles
+        const toggles = link.toggles || {};
+        const activeCount = TOGGLE_KEYS.filter(k => toggles[k]).length;
+        const globalBadge = link.global ? ' • 🌐' : '';
 
         const div = document.createElement('div');
         div.className = `saved-link-item ${link.id === currentLinkId ? 'active' : ''}`;
         div.innerHTML = `
             <div class="link-name">${escapeHtml(link.configName || 'Untitled')}</div>
-            <div class="link-meta">${link.journey || 'No journey specified'}${escapeHtml(ragInfo)}</div>
+            <div class="link-meta">${activeCount} param${activeCount !== 1 ? 's' : ''} defined${globalBadge}</div>
         `;
         div.onclick = () => loadConfiguration(link);
         savedLinksList.appendChild(div);
@@ -417,26 +427,40 @@ function renderLinksList() {
 
 function loadConfiguration(link) {
     currentLinkId = link.id;
-    
+
     configNameInput.value = link.configName || '';
+    globalToggle.checked = !!link.global;
+
+    // Load field values (always load, regardless of toggle state)
     formInputs.name.value = link.name || '';
     formInputs.role.value = link.role || '';
     formInputs.journey.value = link.journey || '';
     formInputs.welcomePrompt.value = link.welcomePrompt || '';
     formInputs.journeyPrompt.value = link.journeyPrompt || '';
     formInputs.ragContext.value = link.ragContext || '';
-
-    // Update char count
     updateRagCharCount();
 
-    // Populate Swimlanes
+    // Load swimlanes
     swimlanesContainer.innerHTML = '';
     if (link.swimlanes && Array.isArray(link.swimlanes)) {
         link.swimlanes.forEach(sl => addSwimlane(sl.name, sl.description));
     }
 
+    // Load phases
+    phasesContainer.innerHTML = '';
+    if (link.phases && Array.isArray(link.phases)) {
+        link.phases.forEach(ph => addPhase(ph.name, ph.description));
+    }
+
+    // Load toggle states
+    const savedToggles = link.toggles || {};
+    TOGGLE_KEYS.forEach(k => {
+        toggleStates[k] = !!savedToggles[k];
+        applyToggleUI(k);
+    });
+
     deleteBtn.style.display = 'inline-flex';
-    saveBtn.textContent = 'Update Configuration';
+    saveBtn.textContent = 'Update Template';
     renderLinksList();
     updateUrl();
 }
@@ -444,18 +468,24 @@ function loadConfiguration(link) {
 function resetForm() {
     currentLinkId = null;
     configNameInput.value = '';
-    
+    globalToggle.checked = false;
+
     Object.values(formInputs).forEach(input => {
-        if(input && input.value !== undefined) input.value = '';
+        if (input && input.value !== undefined) input.value = '';
     });
 
     swimlanesContainer.innerHTML = '';
-    
-    // Reset char count
+    phasesContainer.innerHTML = '';
     updateRagCharCount();
 
+    // Reset all toggles to off
+    TOGGLE_KEYS.forEach(k => {
+        toggleStates[k] = false;
+        applyToggleUI(k);
+    });
+
     deleteBtn.style.display = 'none';
-    saveBtn.textContent = 'Save Configuration';
+    saveBtn.textContent = 'Save Template';
     renderLinksList();
     updateUrl();
 }
@@ -463,20 +493,24 @@ function resetForm() {
 async function saveConfiguration() {
     const configName = configNameInput.value.trim();
     if (!configName) {
-        alert("Please enter a Configuration Name.");
+        alert("Please enter a Template Name.");
         configNameInput.focus();
         return;
     }
 
+    // Save ALL values (even if toggle is off) so they persist for toggling
     const payload = {
         configName,
+        global: globalToggle.checked,
         name: formInputs.name.value.trim(),
         role: formInputs.role.value.trim(),
         journey: formInputs.journey.value.trim(),
         welcomePrompt: formInputs.welcomePrompt.value.trim(),
         journeyPrompt: formInputs.journeyPrompt.value.trim(),
         ragContext: formInputs.ragContext.value.trim(),
-        swimlanes: getSwimlanesFromDOM()
+        swimlanes: getSwimlanesFromDOM(),
+        phases: getPhasesFromDOM(),
+        toggles: { ...toggleStates }
     };
 
     if (!currentLinkId) {
@@ -512,38 +546,29 @@ async function saveConfiguration() {
         }
     } catch (e) {
         console.error(e);
-        alert("Error saving configuration.");
+        alert("Error saving template.");
     } finally {
         saveBtn.disabled = false;
     }
 }
 
 async function deleteConfiguration() {
-    if (!currentLinkId || !confirm("Are you sure you want to delete this configuration?")) return;
-
+    if (!currentLinkId || !confirm("Are you sure you want to delete this template?")) return;
     try {
-        const res = await fetch(`${LINKS_API_URL}/${currentLinkId}`, {
-            method: 'DELETE'
-        });
-
-        if (res.ok) {
-            resetForm();
-            fetchLinks();
-        } else {
-            alert("Failed to delete.");
-        }
-    } catch(e) {
-        alert("Error deleting.");
-    }
+        const res = await fetch(`${LINKS_API_URL}/${currentLinkId}`, { method: 'DELETE' });
+        if (res.ok) { resetForm(); fetchLinks(); } else { alert("Failed to delete."); }
+    } catch (e) { alert("Error deleting."); }
 }
 
-// Logic: Add Swimlane
+// ========================================
+// Swimlane CRUD
+// ========================================
 function addSwimlane(name = '', desc = '') {
     const clone = swimlaneTemplate.content.cloneNode(true);
     const container = document.createElement('div');
     container.appendChild(clone);
-    const item = container.firstElementChild; 
-    
+    const item = container.firstElementChild;
+
     const nameInput = item.querySelector('.sw-name');
     const descInput = item.querySelector('.sw-desc');
     const removeBtn = item.querySelector('.remove-btn');
@@ -553,51 +578,75 @@ function addSwimlane(name = '', desc = '') {
 
     nameInput.addEventListener('input', updateUrl);
     descInput.addEventListener('input', updateUrl);
-    removeBtn.addEventListener('click', () => {
-        item.remove();
-        updateUrl();
-    });
+    removeBtn.addEventListener('click', () => { item.remove(); updateUrl(); });
 
     swimlanesContainer.appendChild(item);
     if (!name) nameInput.focus();
     updateUrl();
 }
 
-// Helper
 function getSwimlanesFromDOM() {
-    const swimlaneItems = Array.from(document.querySelectorAll('.swimlane-item'));
-    return swimlaneItems.map(item => {
+    return Array.from(document.querySelectorAll('#swimlanesContainer .swimlane-item')).map(item => {
         const name = item.querySelector('.sw-name').value.trim();
         const description = item.querySelector('.sw-desc').value.trim();
-        if (name) {
-            return { name, description };
-        }
-        return null;
+        return name ? { name, description } : null;
     }).filter(Boolean);
 }
 
-// Logic: Generate URL
+// ========================================
+// Phase CRUD
+// ========================================
+function addPhase(name = '', desc = '') {
+    const clone = phaseTemplate.content.cloneNode(true);
+    const container = document.createElement('div');
+    container.appendChild(clone);
+    const item = container.firstElementChild;
+
+    const nameInput = item.querySelector('.ph-name');
+    const descInput = item.querySelector('.ph-desc');
+    const removeBtn = item.querySelector('.remove-btn');
+
+    nameInput.value = name;
+    descInput.value = desc;
+
+    nameInput.addEventListener('input', updateUrl);
+    descInput.addEventListener('input', updateUrl);
+    removeBtn.addEventListener('click', () => { item.remove(); updateUrl(); });
+
+    phasesContainer.appendChild(item);
+    if (!name) nameInput.focus();
+    updateUrl();
+}
+
+function getPhasesFromDOM() {
+    return Array.from(document.querySelectorAll('#phasesContainer .phase-item')).map(item => {
+        const name = item.querySelector('.ph-name').value.trim();
+        const description = item.querySelector('.ph-desc').value.trim();
+        return name ? { name, description } : null;
+    }).filter(Boolean);
+}
+
+// ========================================
+// URL Generation
+// ========================================
 function updateUrl() {
-    const params = new URLSearchParams();
-
-    if (formInputs.name.value.trim()) params.set('name', formInputs.name.value.trim());
-    if (formInputs.role.value.trim()) params.set('role', formInputs.role.value.trim());
-    if (formInputs.journey.value.trim()) params.set('journey', formInputs.journey.value.trim());
-    if (formInputs.welcomePrompt.value.trim()) params.set('welcome-prompt', formInputs.welcomePrompt.value.trim());
-    if (formInputs.journeyPrompt.value.trim()) params.set('journey-prompt', formInputs.journeyPrompt.value.trim());
-    
-    // RAG context is stored on the link config, not in the URL (too large for query params)
-    // It's passed to the AI via the link's saved config when loaded via ?id=
-
-    const validSwimlanes = getSwimlanesFromDOM();
-    if (validSwimlanes.length > 0) {
-        params.set('swimlanes', JSON.stringify(validSwimlanes));
-    }
-
     let finalUrl = '';
     if (currentLinkId) {
         finalUrl = `${BASE_URL}?id=${currentLinkId}`;
     } else {
+        // Build URL from active (toggled-on) params only
+        const params = new URLSearchParams();
+        const active = getActiveConfig();
+
+        if (active.name) params.set('name', active.name);
+        if (active.role) params.set('role', active.role);
+        if (active.journey) params.set('journey', active.journey);
+        if (active.welcomePrompt) params.set('welcome-prompt', active.welcomePrompt);
+        if (active.journeyPrompt) params.set('journey-prompt', active.journeyPrompt);
+        // RAG & phases too large for URL; only available via ?id= link
+        if (active.swimlanes) params.set('swimlanes', JSON.stringify(active.swimlanes));
+        if (active.phases) params.set('phases', JSON.stringify(active.phases));
+
         const queryString = params.toString();
         finalUrl = queryString ? `${BASE_URL}?${queryString}` : BASE_URL;
     }
@@ -606,6 +655,9 @@ function updateUrl() {
     testLinkBtn.href = finalUrl;
 }
 
+// ========================================
+// Helpers
+// ========================================
 function slugify(text) {
     return text.toString().toLowerCase()
         .replace(/\s+/g, '_')
@@ -626,9 +678,7 @@ function copyToClipboard() {
     navigator.clipboard.writeText(url).then(() => {
         const originalHtml = copyBtn.innerHTML;
         copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #22c55e;"><polyline points="20 6 9 17 4 12"/></svg>`;
-        setTimeout(() => {
-            copyBtn.innerHTML = originalHtml;
-        }, 2000);
+        setTimeout(() => { copyBtn.innerHTML = originalHtml; }, 2000);
     });
 }
 

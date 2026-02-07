@@ -166,6 +166,10 @@ export function buildSystemInstruction(config: any = {}, journeyState: any = nul
     if (config.role) contextInjection += `- User Role: ${config.role}\n`;
     if (config.journeyName) contextInjection += `- Journey Name: ${config.journeyName}\n`;
     
+    if (config.phases && Array.isArray(config.phases) && config.phases.length > 0) {
+        contextInjection += `- PHASES (PRE-DEFINED): ${JSON.stringify(config.phases)}\n`;
+    }
+
     if (config.swimlanes && Array.isArray(config.swimlanes)) {
         contextInjection += `- SWIMLANES (PRE-DEFINED): ${JSON.stringify(config.swimlanes)}\n`;
     }

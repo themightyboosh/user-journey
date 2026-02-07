@@ -268,32 +268,167 @@ body {
     opacity: 0.7;
 }
 
-/* Swimlanes */
-.section-header {
+/* ========================================
+   Toggle Switch
+   ======================================== */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--surface-3);
+    border: 1px solid var(--border-color);
+    border-radius: 22px;
+    transition: all 0.25s ease;
+}
+
+.toggle-slider::before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    transition: all 0.25s ease;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(18px);
+    background: white;
+}
+
+/* ========================================
+   Global Toggle Row
+   ======================================== */
+.global-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    margin-bottom: 24px;
+}
+
+.global-toggle-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.global-label-text {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.global-label-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* ========================================
+   Parameter List
+   ======================================== */
+.params-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 40px;
+}
+
+.param-row {
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.param-row.active {
+    border-color: var(--accent);
+}
+
+.param-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    cursor: default;
+}
+
+.param-label-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.param-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.param-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+    transition: opacity 0.2s;
+}
+
+.param-row.active .param-status {
+    opacity: 0;
+}
+
+.param-content {
+    display: none;
+    padding: 0 20px 20px 20px;
+    animation: slideDown 0.2s ease;
+}
+
+.param-row.active .param-content {
+    display: block;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* List headers (Swimlanes / Phases) */
+.list-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px; /* override h2 margin */
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 12px;
+    margin-bottom: 12px;
 }
 
-.config-section .section-header h2 {
-    border-bottom: none;
-    padding-bottom: 0;
-    margin-bottom: 0;
-}
-
-.section-desc {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-bottom: 20px;
-}
-
+/* Swimlanes & Phases */
 .swimlanes-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
 .swimlane-item {
@@ -331,6 +466,28 @@ body {
 }
 
 .remove-btn svg { width: 16px; height: 16px; }
+
+/* Legacy section styles (for settings) */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+}
+
+.config-section .section-header h2 {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.section-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
 
 /* Buttons */
 .primary-btn, .secondary-btn {

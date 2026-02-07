@@ -1788,14 +1788,17 @@
               const res = await fetch(`/api/admin/links/${configId}?_t=${Date.now()}`);
               if (res.ok) {
                   const linkData = await res.json();
+                  // Only include fields whose toggles are ON
+                  const t = linkData.toggles || {};
                   remoteConfig = {
-                      name: linkData.name,
-                      role: linkData.role,
-                      journeyName: linkData.journey,
-                      welcomePrompt: linkData.welcomePrompt,
-                      journeyPrompt: linkData.journeyPrompt,
-                      ragContext: linkData.ragContext || null,
-                      swimlanes: linkData.swimlanes
+                      name: t.name ? linkData.name : undefined,
+                      role: t.role ? linkData.role : undefined,
+                      journeyName: t.journey ? linkData.journey : undefined,
+                      welcomePrompt: t.welcomePrompt ? linkData.welcomePrompt : undefined,
+                      journeyPrompt: t.journeyPrompt ? linkData.journeyPrompt : undefined,
+                      ragContext: t.ragContext ? (linkData.ragContext || null) : null,
+                      swimlanes: t.swimlanes ? linkData.swimlanes : undefined,
+                      phases: t.phases ? linkData.phases : undefined
                   };
               }
           } catch (e) {
@@ -1823,6 +1826,14 @@
         } catch (e) { console.error('Failed to parse swimlanes', e); return null; }
       })();
 
+      // Parse URL phases if present
+      const urlPhases = (() => {
+        try {
+            const p = params.get('phases');
+            return p ? JSON.parse(decodeURIComponent(p)) : null;
+        } catch (e) { console.error('Failed to parse phases', e); return null; }
+      })();
+
       state.sessionConfig = {
           name: params.get('name') || remoteConfig.name,
           role: params.get('role') || remoteConfig.role,
@@ -1831,6 +1842,7 @@
           journeyPrompt: params.get('journey-prompt') || remoteConfig.journeyPrompt,
           ragContext: remoteConfig.ragContext || null,
           swimlanes: urlSwimlanes || remoteConfig.swimlanes,
+          phases: urlPhases || remoteConfig.phases,
           journeyId: journeyId
       };
 
