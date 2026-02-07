@@ -99,6 +99,10 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     const container = document.getElementById(targetElementId);
     if (!container || !journey) return;
 
+    // Hide default placeholder logo when content arrives
+    const placeholder = document.getElementById('canvasPlaceholder');
+    if (placeholder) placeholder.style.display = 'none';
+
     // Update global state for modals
     currentRenderedJourney = journey;
 
@@ -451,6 +455,12 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     window.dispatchEvent(new CustomEvent('journeyRendered', { 
         detail: { width: container.scrollWidth, height: container.scrollHeight } 
     }));
+
+    // Signal MAP button if user is in chat view (mobile)
+    if (!document.body.classList.contains('show-map')) {
+        const mapBtn = document.getElementById('mobileToggleBtn');
+        if (mapBtn) mapBtn.classList.add('map-updated');
+    }
 }
 
 // ===========================================

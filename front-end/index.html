@@ -1079,6 +1079,17 @@
         font-weight: 500;
         cursor: pointer;
         margin-right: 12px;
+        transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* MAP button pulse when journey updates while user is in chat view */
+    @keyframes mapPulse {
+        0%, 100% { box-shadow: 0 0 4px var(--max-color-accent); }
+        50% { box-shadow: 0 0 14px var(--max-color-accent); }
+    }
+    .mobile-toggle-btn.map-updated {
+        border-color: var(--max-color-accent);
+        animation: mapPulse 1.5s ease-in-out infinite;
     }
 
     @media (max-width: 768px) {
@@ -1220,17 +1231,11 @@
         <div id="panzoomViewport" class="panzoom-viewport">
             <!-- Canvas Content -->
             <div class="journey-dashboard" id="journeyDashboard">
-               <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0.5; gap: 24px;">
-                  <div style="width: 300px; height: 300px; background: linear-gradient(135deg, var(--max-color-ai-gradient-start), var(--max-color-ai-gradient-end)); border-radius: 72px; display: flex; align-items: center; justify-content: center; box-shadow: var(--max-shadow-glow);">
-                      <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128.5 42.6" style="width: 180px; height: auto;">
-                          <path d="M5.9,42.6c-1.5,0-2.7-.3-3.6-.9-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3V9.1C0,6.2.7,3.9,2.2,2.5,3.7,1,5.9.3,9,.3s3.7.2,4.8.7c1.2.5,2.1,1.3,2.8,2.3.7,1.1,1.2,2.4,1.7,4.1l.3,1.2c.7,2.2,1.2,4,1.6,5.6.4,1.6.7,3,1,4.4.3,1.3.5,2.6.6,3.9.2,1.3.3,2.6.4,4.1.1-1.5.3-2.9.4-4.1s.4-2.6.6-3.9c.3-1.3.6-2.8,1-4.4.4-1.6,1-3.5,1.6-5.6l.3-1.2c.5-1.7,1.1-3,1.8-4.1.7-1.1,1.6-1.8,2.8-2.3,1.2-.5,2.8-.7,4.8-.7,3.1,0,5.4.7,6.8,2.2,1.4,1.5,2.2,3.7,2.2,6.6v27.2c0,1-.2,2-.5,3s-.9,1.7-1.8,2.3-2.1.9-3.6.9-2.7-.3-3.6-.9c-.9-.6-1.5-1.4-1.8-2.3s-.5-1.9-.5-3v-4.9c0-2.7.2-5.7.4-9,.2-3.3.4-7.2.5-11.5l-5.2,19.4c-.4,1.3-.8,2.4-1.3,3.2-.4.8-1,1.4-1.8,1.8-.4-.8-.9-1.9-1.3-3.2l-5.2-19.4c.1,4.3.3,8.2.5,11.5s.3,6.4.4,9v4.9c0,1-.1,2-.4,3s-.9,1.7-1.8,2.3c-.9.6-2.1.9-3.6.9h0l.2.1Z" style="fill: #ffffff;"/>
-                          <path d="M54.1,42.6c-.9,0-1.8-.2-2.8-.7s-1.7-1.2-2.4-2.1c-.6-.9-1-2-1-3.4s0-1.3.2-2.1c.1-.8.4-1.6.8-2.4l9.6-22.9c.6-1.5,1.2-2.9,1.7-4s1.1-2,1.7-2.8c.6-.7,1.4-1.3,2.4-1.6,1-.4,2.2-.5,3.8-.5s2.8.2,3.8.5c1,.4,1.8.9,2.4,1.6s1.2,1.7,1.7,2.8,1.1,2.4,1.7,4l9.6,22.9c.4.8.6,1.6.8,2.4.1.8.2,1.5.2,2.1,0,1.3-.3,2.5-1,3.4-.6.9-1.4,1.6-2.3,2.1s-1.9.7-2.8.7c-1.6,0-2.8-.3-3.7-1-.9-.7-1.6-1.6-2.1-2.7-.5-1.1-1-2.3-1.4-3.5l-1.3-4.2v-3.3c.1,0-3.8-10.1-3.8-10.1-.3-.8-.6-1.8-1-3s-.6-2.3-.9-3.2c-.2.9-.5,1.9-.9,3.2-.4,1.2-.7,2.2-1,3l-3.9,10.1v3.3c.1,0-1.2,4.2-1.2,4.2-.4,1.2-.8,2.4-1.3,3.5s-1.2,2-2.1,2.7-2.1,1-3.7,1h.2ZM59.2,33.1v-7.6h17.7v7.6h-17.7Z" style="fill: #ffffff;"/>
-                          <path d="M97.8,42.6c-1.1,0-2.2-.3-3.2-.8s-1.9-1.3-2.5-2.3c-.7-1-1-2.2-1-3.7,0-1.9.5-3.5,1.6-4.7,1-1.2,2.4-2.5,4.1-3.9,1.2-.9,2.4-1.7,3.5-2.6,1.2-.9,2.3-1.8,3.5-2.7-.8-.7-1.9-1.6-3.2-2.7s-2.6-2.2-3.9-3.3c-1.7-1.4-3.1-2.8-4.1-4.1s-1.5-2.9-1.5-5c0-1.4.4-2.6,1-3.7.7-1,1.5-1.8,2.5-2.3,1-.5,2.1-.8,3.2-.8s2.5.3,3.4.8c.9.6,1.7,1.3,2.4,2.2s1.4,2,2,3.2c1,1.9,1.8,3.7,2.5,5.3s1.3,2.8,1.6,3.7c.3-.9.9-2.1,1.6-3.7.7-1.6,1.6-3.4,2.5-5.3.6-1.2,1.3-2.3,2-3.2.7-.9,1.5-1.7,2.4-2.2,1.1-.5,2.2-.8,3.5-.8s2.2.3,3.3.8c1,.5,1.9,1.3,2.5,2.4.7,1,1,2.2,1,3.7,0,2.1-.5,3.7-1.5,5-1,1.3-2.4,2.7-4.1,4.1-1.2,1-2.3,2-3.5,3s-2.3,2-3.5,2.9c.8.6,1.9,1.4,3.1,2.3,1.2,1,2.5,2,3.7,3,1.7,1.4,3.1,2.7,4.1,3.9,1,1.2,1.6,2.8,1.6,4.7s-.3,2.6-1,3.7c-.7,1-1.5,1.8-2.5,2.3s-2.1.8-3.3.8c-1.3,0-2.5-.3-3.4-.9-.9-.5-1.7-1.3-2.4-2.2-.7-1-1.4-2-2-3.2-.9-1.7-1.7-3.3-2.4-4.7-.8-1.4-1.3-2.7-1.7-3.7-.3,1-.9,2.3-1.7,3.7-.8,1.5-1.6,3-2.4,4.6-1,1.8-2,3.3-3.1,4.5s-2.7,1.8-4.7,1.8h0v.1Z" style="fill: #ffffff;"/>
-                      </svg>
-                  </div>
-                  <h1 style="font-family: var(--max-font-family-mono); font-weight: 700; letter-spacing: 0.1em; color: var(--max-color-text-tertiary); margin-top: 16px; font-size: 14px;">JOURNEY MAP</h1>
-               </div>
             </div>
+        </div>
+        <!-- Default logo placeholder (centered in viewport, outside Panzoom transform) -->
+        <div id="canvasPlaceholder" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; padding: 25%; pointer-events: none; z-index: 0;">
+            <img src="/max_icon.svg" alt="M.AX" style="max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0.25;">
         </div>
         
         <!-- Controls -->
@@ -1244,10 +1249,6 @@
             <button class="panzoom-btn" onclick="panzoomAction('fit')" title="Fit to Screen">
                 FIT
             </button>
-            <button class="panzoom-btn" onclick="panzoomAction('reset')" title="Reset View">
-                RST
-            </button>
-            
             <!-- Actions (Added via JS when complete) -->
             <button id="btnCopyConv" class="panzoom-btn" onclick="downloadTranscript()" style="display: none;" title="Download Transcript">
                 TRANSCRIPT
@@ -1258,11 +1259,8 @@
             <button id="btnExportImg" class="panzoom-btn" onclick="exportToImage()" style="display: none;" title="Export Image">
                 IMG
             </button>
-            <button class="panzoom-btn" onclick="debugGenerateRandom()" title="Debug Gen" style="color: var(--max-color-accent);">
-                TEST GEN
-            </button>
-            <button class="panzoom-btn" onclick="debugFit()" title="Debug Fit" style="color: var(--max-color-text-tertiary);">
-                ?
+            <button class="panzoom-btn" onclick="debugGenerateRandom()" title="Generate Random Journey" style="color: var(--max-color-accent);">
+                GEN
             </button>
         </div>
       </div>
@@ -1426,36 +1424,34 @@
             animate: true // Smooth transitions
         });
 
-        // Enable Mouse Wheel with custom focal point zooming for '0 0' origin
+        // Mouse wheel zooms at cursor position
         viewport.addEventListener('wheel', (event) => {
-            if (event.ctrlKey || event.metaKey) {
-                event.preventDefault();
+            event.preventDefault();
 
-                const pz = window.panzoomInstance;
-                const currentScale = pz.getScale();
-                const currentPan = pz.getPan();
+            const pz = window.panzoomInstance;
+            const currentScale = pz.getScale();
+            const currentPan = pz.getPan();
 
-                // Calculate zoom delta
-                const delta = event.deltaY > 0 ? -0.1 : 0.1;
-                const newScale = Math.max(0.1, Math.min(5, currentScale + delta));
+            // Calculate zoom delta
+            const delta = event.deltaY > 0 ? -0.1 : 0.1;
+            const newScale = Math.max(0.1, Math.min(5, currentScale + delta));
 
-                // Get mouse position relative to viewport
-                const rect = viewport.getBoundingClientRect();
-                const mouseX = event.clientX - rect.left;
-                const mouseY = event.clientY - rect.top;
+            // Get mouse position relative to viewport
+            const rect = viewport.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
 
-                // Calculate the point in local coordinates
-                const localX = (mouseX / currentScale) - currentPan.x;
-                const localY = (mouseY / currentScale) - currentPan.y;
+            // Calculate the point in local coordinates
+            const localX = (mouseX / currentScale) - currentPan.x;
+            const localY = (mouseY / currentScale) - currentPan.y;
 
-                // Calculate new pan to keep the local point under the mouse
-                const newPanX = (mouseX / newScale) - localX;
-                const newPanY = (mouseY / newScale) - localY;
+            // Calculate new pan to keep the local point under the mouse
+            const newPanX = (mouseX / newScale) - localX;
+            const newPanY = (mouseY / newScale) - localY;
 
-                pz.zoom(newScale, { animate: false });
-                pz.pan(newPanX, newPanY, { animate: false });
-            }
-        });
+            pz.zoom(newScale, { animate: false });
+            pz.pan(newPanX, newPanY, { animate: false });
+        }, { passive: false });
         
         // Sync Background Grid (Infinite Canvas Effect)
         elem.addEventListener('panzoomchange', (event) => {
@@ -1512,37 +1508,6 @@
                     step: ZOOM_STEP, 
                     focal: { clientX: rect.left + cx, clientY: rect.top + cy } 
                 });
-                break;
-            case 'reset':
-                // ... logic ...
-
-                const dashboard = document.getElementById('journeyDashboard');
-                const container = document.querySelector('.journey-board-container');
-                
-                if (dashboard && container) {
-                     // 1. Set Scale 1
-                     pz.zoom(1, { animate: true });
-                     
-                     // 2. Calculate Center Pan
-                     const targetW = container.offsetWidth;
-                     const targetH = container.offsetHeight;
-                     const targetX = container.offsetLeft;
-                     const targetY = container.offsetTop;
-                     
-                     const containerCenterX = targetX + (targetW / 2);
-                     const containerCenterY = targetY + (targetH / 2);
-                     
-                     // Center in viewport
-                     const panX = (rect.width / 2) - containerCenterX;
-                     const panY = (rect.height / 2) - containerCenterY;
-                     
-                     setTimeout(() => {
-                        pz.pan(panX, panY, { animate: true });
-                     }, 10);
-                } else {
-                    // Fallback
-                    pz.reset();
-                }
                 break;
             case 'fit':
                 performFit();
@@ -2462,6 +2427,7 @@ async function exportToPdf() {
         const btn = document.getElementById('mobileToggleBtn');
         if (document.body.classList.contains('show-map')) {
             btn.textContent = 'Chat';
+            btn.classList.remove('map-updated'); // Clear glow when viewing map
             // Auto-fit when switching to map
             setTimeout(() => {
                 if(window.panzoomInstance) performFit();
