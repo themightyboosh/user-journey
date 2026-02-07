@@ -276,46 +276,9 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
 
         html += `</div>`; // End table
 
-        // --- MOBILE VIEW (List by Phase) ---
-        html += `<div class="journey-mobile-list">`;
-        
-        if (journey.phases.length > 0) {
-            journey.phases.forEach(phase => {
-                html += `<div class="mobile-phase-group">`;
-                html += `<div class="mobile-phase-header">${escapeHtml(phase.name)}</div>`;
-                
-                if (journey.swimlanes.length > 0) {
-                    journey.swimlanes.forEach(swimlane => {
-                        const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
-                        
-                        if (cell) {
-                            let contentHtml = '';
-                            if (cell.headline) {
-                                contentHtml = `
-                                    <div class="cell-action">${escapeHtml(cell.headline)}</div>
-                                    <div class="cell-context">${escapeHtml(cell.description)}</div>
-                                `;
-                            } else {
-                                contentHtml = `<div style="font-style: italic; opacity: 0.5;">Pending...</div>`;
-                            }
-
-                            html += `
-                                <div class="mobile-card">
-                                    <div class="mobile-card-label">${escapeHtml(swimlane.name)}</div>
-                                    ${contentHtml}
-                                </div>
-                            `;
-                        }
-                    });
-                } else {
-                     html += `<div style="padding: 16px; opacity: 0.5;">No swimlanes yet.</div>`;
-                }
-                html += `</div>`; // End group
-            });
-        } else {
-             html += `<div style="padding: 16px; opacity: 0.5;">Phases pending...</div>`;
-        }
-        html += `</div>`;
+        /* --- MOBILE VIEW REMOVED ---
+           We now rely on the main table + Panzoom for all devices to ensure parity.
+        */
     }
 
     // --- ARTIFACTS SECTION (Consolidated 50/50 Split) ---

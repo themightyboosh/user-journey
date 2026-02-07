@@ -208,6 +208,7 @@
       overflow: hidden;
       cursor: grab;
       position: relative;
+      touch-action: none; /* Enable native pinch gestures handling by Panzoom */
       /* Grid Background on Viewport */
       background-color: var(--max-color-background);
       background-image: 
@@ -472,55 +473,13 @@
     }
 
     /* ========================================
-       MOBILE VIEW
+       MOBILE VIEW (Unified Canvas)
        ======================================== */
-    .journey-mobile-list {
-        display: none;
-        flex-direction: column;
-        gap: 32px;
-    }
-
-    .mobile-phase-group {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .mobile-phase-header {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--max-color-accent);
-        padding-bottom: 8px;
-        border-bottom: 1px solid var(--max-color-border);
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .mobile-card {
-        background: var(--max-color-surface-secondary);
-        border: 1px solid var(--max-color-border);
-        border-radius: var(--max-radius-medium);
-        padding: 16px;
-        cursor: default; /* Changed from pointer */
-    }
-    
-    .mobile-card-label {
-        font-family: var(--max-font-family-mono);
-        font-size: 11px;
-        color: var(--max-color-text-tertiary);
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        font-weight: 700;
-    }
+    /* Mobile-specific list view removed to ensure parity with desktop canvas */
 
     /* Mobile Responsive Logic */
     @media (max-width: 768px) {
-        .journey-table { display: none !important; }
-        .journey-mobile-list { display: flex !important; }
-        
-        /* Hide logo in journey title on mobile */
-        .journey-title svg { display: none !important; }
+        /* On mobile, we rely on Panzoom to view the full table */
         
         /* Adjust layout */
         .max-chat-canvas {
