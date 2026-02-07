@@ -342,9 +342,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
         html += `
             <div class="artifact-section overview-section" style="width: 100%;">
                 <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Overview</h3>
-                <div class="context-card" style="width: 100%;">
-                    <div class="context-content" style="font-size: 18px;">${formatMessage(journey.summaryOfFindings)}</div>
-                </div>
+                <div style="font-size: 18px; line-height: 1.6; color: var(--max-color-text-primary);">${formatMessage(journey.summaryOfFindings)}</div>
             </div>`;
     } else {
         html += `<div style="opacity: 0.5; font-style: italic;">Overview pending...</div>`;
