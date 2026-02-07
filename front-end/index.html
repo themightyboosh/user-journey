@@ -1395,7 +1395,7 @@
         };
     })();
   </script>
-  <script src="js/renderer.js?v=1008"></script>
+  <script src="js/renderer.js?v=1010"></script>
   <script src="js/json-renderer.js"></script>
   <script>
     // ===========================================
@@ -1537,19 +1537,12 @@
         
         if (!viewport || !dashboard) return;
         
-        // Use container if available, else dashboard
-        // Ensure we are targeting the actual board element for layout
-        const content = container || dashboard;
-        
         // 1. Get Viewport Dimensions
         const viewportRect = viewport.getBoundingClientRect();
         const viewportW = viewportRect.width;
         const viewportH = viewportRect.height;
         
         // 2. Determine Target Dimensions & Position (Unscaled)
-        // Since container is inline-block inside a transformed parent, 
-        // offsetLeft/Top/Width/Height are the most reliable unscaled metrics relative to the parent origin.
-        
         let targetX = 0;
         let targetY = 0;
         let targetW = dashboard.scrollWidth;
@@ -1563,28 +1556,30 @@
         }
         
         // Safety check
-        if (targetW === 0 || targetH === 0) return;
+        if (targetW === 0 || targetH === 0 || viewportW === 0 || viewportH === 0) return;
 
         // 3. Calculate Scale to Fit
-        const padding = 40; // Margin around the board in the viewport
+        const padding = 40; 
         const availableW = viewportW - (padding * 2);
         const availableH = viewportH - (padding * 2);
         
         const scaleX = availableW / targetW;
         const scaleY = availableH / targetH;
         
-        // Fit completely, cap at 0.95 to look nice, ensure we don't zoom in too much on small boards
-        const newScale = Math.min(scaleX, scaleY, 0.95);
+        // Calculate raw scale
+        let newScale = Math.min(scaleX, scaleY, 0.95);
+        
+        // CRITICAL: Clamp scale to Panzoom limits manually to match what Panzoom will do
+        // Otherwise our pan calculation (which depends on scale) will be wrong
+        const minScale = 0.1; // Must match Panzoom init
+        const maxScale = 5;   // Must match Panzoom init
+        newScale = Math.max(minScale, Math.min(maxScale, newScale));
         
         // 4. Calculate Pan to Center
-        // We want the center of the board (target) to be at the center of the viewport
-        // targetCenterX (relative to parent origin) = targetX + targetW / 2
-        // viewportCenter (relative to viewport) = viewportW / 2
-        
-        // Panzoom Transform: matrix(scale, 0, 0, scale, panX, panY)
-        // ScreenPos = pan + LocalPos * scale
-        // viewportCenter = pan + targetCenter * scale
-        // pan = viewportCenter - targetCenter * scale
+        // transform-origin is 0 0 (top left)
+        // center of viewport should match center of target
+        // ScreenX = PanX + (LocalX * Scale)
+        // PanX = ScreenX - (LocalX * Scale)
         
         const targetCenterX = targetX + (targetW / 2);
         const targetCenterY = targetY + (targetH / 2);
@@ -1592,16 +1587,18 @@
         const panX = (viewportW / 2) - (targetCenterX * newScale);
         const panY = (viewportH / 2) - (targetCenterY * newScale);
         
-        // 5. Apply
-        pz.zoom(newScale);
-        pz.pan(panX, panY);
+        // 5. Apply (Sequential to ensure state)
+        // Turn off animation for instantaneous snap
+        pz.zoom(newScale, { animate: false });
+        // Use setOptions to force silent update if needed, but pan() is usually fine
+        setTimeout(() => {
+             pz.pan(panX, panY, { animate: false });
+        }, 10);
         
-        // Debug Log
-        console.log("Fit Debug:", { 
-            viewport: { w: viewportW, h: viewportH },
-            target: { x: targetX, y: targetY, w: targetW, h: targetH },
-            scale: newScale,
-            pan: { x: panX, y: panY }
+        console.log("Performed Fit Safe:", { 
+            vW: viewportW, vH: viewportH, 
+            tX: targetX, tY: targetY, tW: targetW, tH: targetH, 
+            scale: newScale, panX, panY 
         });
     }
 

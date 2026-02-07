@@ -179,11 +179,10 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     // Construct Main HTML
     
     // Calculate strict width based on phases
-    // 150px (Header) + N * 300px (Phases) + 120px (Padding left/right)
+    // 150px (Header) + N * 300px (Phases) + 300px (Lane Labels Correction) + 120px (Padding)
     const minBoardWidth = 1200;
-    const calculatedWidth = 150 + (journey.phases.length * 300); 
-    // We don't add padding to the width style itself because box-sizing is border-box, 
-    // but the grid inside needs to fit. 
+    const calculatedWidth = 150 + (journey.phases.length * 300) + 300; 
+    
     // Let's set the width to the larger of minBoardWidth or calculatedWidth + padding
     const finalWidth = Math.max(minBoardWidth, calculatedWidth + 120); // 120px buffer for container padding
 
@@ -412,45 +411,54 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     html += `</div>`; // End Row 1
 
 
-    // --- ROW 2: Phases | Lanes (50/50) ---
-    // Explicitly 2 columns, occupying full available width of the container
-    html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; width: 100%;">`;
+    // --- ROW 2: Phases | Lanes (Distributed Masonry-ish) ---
+    // Instead of two strict columns, we'll make a responsive grid that fills the width
+    // This allows cards to distribute across available columns
+    html += `<div style="margin-top: 60px;">`;
+    html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; width: 100%;">`;
 
-    // Column 1: Phase Summaries
-    html += `<div>`;
+    // Combine all summary items into one list for distribution
+    const summaryItems = [];
+    
+    // Add Phases
     if (journey.phases.some(p => p.summary)) {
-        html += `
-            <div>
-                <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Phases</h3>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    ${journey.phases.map(p => p.summary ? `
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 20px; border-radius: 8px;">
-                            <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--max-color-text-primary);">${escapeHtml(p.name)}</h4>
-                            <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(p.summary)}</div>
-                        </div>
-                    ` : '').join('')}
-                </div>
-            </div>`;
+        journey.phases.forEach(p => {
+            if (p.summary) {
+                summaryItems.push({
+                    type: 'Phase',
+                    title: p.name,
+                    content: p.summary
+                });
+            }
+        });
     }
-    html += `</div>`;
-
-    // Column 2: Lane Summaries
-    html += `<div>`;
+    
+    // Add Lanes
     if (journey.swimlanes.some(s => s.summary)) {
-        html += `
-            <div>
-                <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Lanes</h3>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    ${journey.swimlanes.map(s => s.summary ? `
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 20px; border-radius: 8px;">
-                            <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--max-color-text-primary);">${escapeHtml(s.name)}</h4>
-                            <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(s.summary)}</div>
-                        </div>
-                    ` : '').join('')}
-                </div>
-            </div>`;
+        journey.swimlanes.forEach(s => {
+            if (s.summary) {
+                summaryItems.push({
+                    type: 'Lane',
+                    title: s.name,
+                    content: s.summary
+                });
+            }
+        });
     }
-    html += `</div>`; // End Row 2
+    
+    // Render Cards
+    summaryItems.forEach(item => {
+        html += `
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column;">
+                <div style="font-family: var(--max-font-family-mono); font-size: 11px; color: var(--max-color-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">${item.type}</div>
+                <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(item.title)}</h4>
+                <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary);">${formatMessage(item.content)}</div>
+            </div>
+        `;
+    });
+
+    html += `</div>`; // End Grid
+    html += `</div>`; // End Row 2 Container
     
     // Additional Context (Full Width)
     if (journey.anythingElse) {
