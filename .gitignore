@@ -12,6 +12,7 @@ test-results/
 # Firebase
 firebase-debug.log
 firebase-debug.*.log
+.firebase/
 
 # Design files
 *.ai
