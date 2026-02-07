@@ -177,8 +177,18 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     }
 
     // Construct Main HTML
+    
+    // Calculate strict width based on phases
+    // 150px (Header) + N * 300px (Phases) + 120px (Padding left/right)
+    const minBoardWidth = 1200;
+    const calculatedWidth = 150 + (journey.phases.length * 300); 
+    // We don't add padding to the width style itself because box-sizing is border-box, 
+    // but the grid inside needs to fit. 
+    // Let's set the width to the larger of minBoardWidth or calculatedWidth + padding
+    const finalWidth = Math.max(minBoardWidth, calculatedWidth + 120); // 120px buffer for container padding
+
     let html = `
-        <div class="journey-board-container">
+        <div class="journey-board-container" style="width: ${finalWidth}px; max-width: none;">
         <div class="journey-header" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-bottom: 60px; padding-bottom: 40px; border-bottom: 1px solid var(--max-color-border);">
             
             <!-- Left Column: Identity -->

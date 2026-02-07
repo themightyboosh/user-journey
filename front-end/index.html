@@ -230,8 +230,8 @@
         border-radius: var(--max-radius-large);
         /* Ensure it wraps content tightly around the widest child (the table) */
         display: inline-block; 
-        width: max-content; /* Ensure container expands to fit table width fully */
-        min-width: 750px; /* Keep a sane minimum */
+        /* width is now set via JS style attribute based on phase count */
+        box-sizing: border-box;
     }
 
     /* JSON View Override - Reset to standard scroll */
@@ -1395,7 +1395,7 @@
         };
     })();
   </script>
-  <script src="js/renderer.js?v=1007"></script>
+  <script src="js/renderer.js?v=1008"></script>
   <script src="js/json-renderer.js"></script>
   <script>
     // ===========================================
