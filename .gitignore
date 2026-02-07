@@ -4,3 +4,14 @@ node_modules/
 dist/
 coverage/
 .cursor/
+
+# Playwright test artifacts
+playwright-report/
+test-results/
+
+# Firebase
+firebase-debug.log
+firebase-debug.*.log
+
+# Design files
+*.ai
