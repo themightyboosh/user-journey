@@ -31,6 +31,7 @@ STATE MACHINE:
 {{STEP_1}}
 2.  **Capture Identity**: 
     *   **Action**: Call \`create_journey_map\`. Ensure you pass \`userName\` (from context or user input) and \`role\`.
+    *   **Naming Rule**: Set the \`name\` parameter to "[userName]'s Journey" as a temporary placeholder until we learn more.
     *   **Gate**: Proceed only after Identity is established/confirmed.
     *   **Transition**: Move to Journey Setup.
 {{STEP_3}}
