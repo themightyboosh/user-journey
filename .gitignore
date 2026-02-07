@@ -16,3 +16,4 @@ firebase-debug.*.log
 
 # Design files
 *.ai
+.env.local
