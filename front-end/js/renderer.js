@@ -85,6 +85,10 @@ function formatMessage(text, highlightQuotes = false) {
         return formatted;
     }
 
+// Make globally available (explicit for safety)
+window.formatMessage = formatMessage;
+window.manualFormat = manualFormat;
+
 // Global state for modal
 let currentRenderedJourney = null;
 
