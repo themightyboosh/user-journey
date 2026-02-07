@@ -1329,7 +1329,8 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
   <script>
     // Global Error Reporting to Winston Backend
@@ -2354,18 +2355,55 @@
     }
 
     // Export to PDF
-    function _legacy_exportToPdf(targetElementId = 'journeyDashboard') {
-        const element = document.getElementById('journeyDashboard');
-        const opt = {
-          margin:       0.2, // Small margin
-          filename:     `journey-map-${new Date().toISOString().split('T')[0]}.pdf`,
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true },
-          jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
-        };
+async function exportToPdf() {
+    if (!currentRenderedJourney) return;
 
-        html2pdf().set(opt).from(element).save();
+    const element = document.querySelector('.journey-board-container');
+    if (!element) return;
+    
+    // Ensure fonts are embedded
+    if (typeof embedFontsForPdf === 'function') {
+        await embedFontsForPdf();
     }
+
+    const parent = document.getElementById('journeyDashboard');
+    const originalTransform = parent.style.transform;
+    parent.style.transform = 'none'; 
+    
+    try {
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#0a0c10',
+            logging: false,
+            windowWidth: element.scrollWidth,
+            windowHeight: element.scrollHeight
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+        const { jsPDF } = window.jspdf;
+        
+        // Calculate dimensions to fit on one page (landscape)
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        
+        // Create PDF with custom page size matching the canvas
+        const pdf = new jsPDF({
+            orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+            unit: 'px',
+            format: [imgWidth, imgHeight]
+        });
+
+        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+        pdf.save(`journey-map-${new Date().toISOString().split('T')[0]}.pdf`);
+
+    } catch (err) {
+        console.error("PDF export failed:", err);
+        alert("Export failed. See console for details.");
+    } finally {
+        parent.style.transform = originalTransform;
+    }
+}
 
     // Export to Image (PNG)
     async function exportToImage() {
@@ -2382,50 +2420,29 @@
         const originalTransform = parent.style.transform;
         parent.style.transform = 'none'; 
         
-        // 2. Calculate Full Dimensions
-        // We need the scroll dimensions to capture everything
-        const width = element.scrollWidth;
-        const height = element.scrollHeight;
-        
-        // 3. Configure html2pdf to use html2canvas with full dimensions
-        // We set windowWidth/windowHeight to ensure it renders at full size
-        const opt = {
-            margin: 0,
-            filename: `journey-map-${new Date().toISOString().split('T')[0]}.png`,
-            image: { type: 'png', quality: 1.0 },
-            html2canvas: { 
-                scale: 2, // High res
+        try {
+            const canvas = await html2canvas(element, {
+                scale: 2,
                 useCORS: true,
-                backgroundColor: '#0a0c10', // Match background
-                windowWidth: width,
-                windowHeight: height,
-                width: width,
-                height: height,
-                scrollX: 0,
-                scrollY: 0,
-                x: 0,
-                y: 0
-            },
-            jsPDF: { unit: 'px', format: [width, height], orientation: 'landscape' } // Not used for img output but good practice
-        };
-        
-        // 4. Capture
-        html2pdf().set(opt).from(element).outputImg('img').then((img) => {
-            // Create a link to download
+                backgroundColor: '#0a0c10',
+                logging: false,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight
+            });
+
             const link = document.createElement('a');
-            link.href = img.src;
+            link.href = canvas.toDataURL('image/png');
             link.download = `journey-map-${new Date().toISOString().split('T')[0]}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             
-            // Restore transform
-            parent.style.transform = originalTransform;
-        }).catch(err => {
+        } catch (err) {
             console.error("Image export failed:", err);
-            // Restore on error too
+            alert("Export failed. See console for details.");
+        } finally {
             parent.style.transform = originalTransform;
-        });
+        }
     }
 
     // Reset / New Journey
