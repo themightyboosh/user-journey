@@ -413,8 +413,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
 
     // --- ROW 2: Phases & Lanes (Distributed Grid) ---
     html += `<div style="margin-top: 60px;">`;
-    // Single grid container for all summaries
-    html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; width: 100%;">`;
+    // Single grid container for all summaries - use auto-fit to stretch items to full width
+    html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; width: 100%;">`;
 
     // 1. Phase Summaries
     if (journey.phases.some(p => p.summary)) {
