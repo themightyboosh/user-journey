@@ -331,9 +331,25 @@
         color: var(--max-color-accent);
     }
 
+    .header-template-icon:empty {
+        display: none;
+    }
+
     .header-template-icon svg {
         height: 32px;
         width: 32px;
+    }
+
+    .header-template-name {
+        font-family: var(--max-font-family-mono);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--max-color-accent);
+        letter-spacing: 0.02em;
+    }
+
+    .header-template-name:empty {
+        display: none;
     }
 
     .max-logo-icon {
@@ -974,6 +990,20 @@
         overflow: hidden;
     }
 
+    @media (max-width: 768px) {
+        .template-picker-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            max-height: 100%;
+            border-radius: 0;
+            z-index: 10000;
+        }
+    }
+
     .template-picker-header {
         display: flex;
         justify-content: space-between;
@@ -1455,7 +1485,8 @@
     <header class="max-header">
       <div class="max-logo">
           <span id="headerTemplateIcon" class="header-template-icon"></span>
-          <img src="max_header.svg" alt="M.AX" style="height: 32px; width: auto;">
+          <img id="headerLogoImg" src="max_header.svg" alt="M.AX" style="height: 32px; width: auto;">
+          <span id="headerTemplateName" class="header-template-name"></span>
       </div>
       <div class="max-header-right">
         <button id="mobileToggleBtn" class="mobile-toggle-btn" onclick="toggleMobileView()">Map</button>
@@ -1464,24 +1495,26 @@
         <nav class="header-nav desktop-only">
             <div class="template-picker-wrapper">
                 <button id="templatePickerBtn" class="nav-btn" title="Choose a journey template">CHOOSE</button>
-                <div id="templatePickerPanel" class="template-picker-panel" style="display: none;">
-                    <div class="template-picker-header">
-                        <span>Choose a Journey</span>
-                        <button class="template-picker-close" onclick="closeTemplatePicker()">&times;</button>
-                    </div>
-                    <div id="templatePickerList" class="template-picker-list">
-                        <div class="template-picker-loading">Loading...</div>
-                    </div>
-                    <button class="template-picker-blank" onclick="startBlankJourney()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Blank Journey
-                    </button>
-                </div>
             </div>
             <button class="nav-btn" onclick="window.location.href='/admin'">CREATE</button>
             <button class="nav-btn" onclick="openAboutModal()">ABOUT</button>
             <button class="nav-btn" id="feedbackNavBtn" onclick="openFeedbackPanel()">FEEDBACK</button>
         </nav>
+
+        <!-- Template Picker (shared mobile/desktop) -->
+        <div id="templatePickerPanel" class="template-picker-panel" style="display: none;">
+            <div class="template-picker-header">
+                <span>Choose a Journey</span>
+                <button class="template-picker-close" onclick="closeTemplatePicker()">&times;</button>
+            </div>
+            <div id="templatePickerList" class="template-picker-list">
+                <div class="template-picker-loading">Loading...</div>
+            </div>
+            <button class="template-picker-blank" onclick="startBlankJourney()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Blank Journey
+            </button>
+        </div>
 
         <!-- Hamburger (Mobile) -->
         <button id="hamburgerBtn" class="hamburger-btn mobile-only-flex" aria-label="Menu">
@@ -1512,6 +1545,7 @@
     <!-- Feedback Panel Overlay -->
     <div id="feedbackPanel" class="feedback-overlay" style="display: none;">
         <div class="feedback-card">
+            <img src="max_header.svg" alt="M.AX" style="height: 32px; margin-bottom: 20px;">
             <div class="feedback-header">
                 <h3>Please give us feedback</h3>
                 <button class="feedback-close" onclick="closeFeedbackPanel()">&times;</button>
@@ -1701,7 +1735,7 @@
     })();
   </script>
   <script src="js/lucide-icons.js?v=1"></script>
-  <script src="js/renderer.js?v=1020"></script>
+  <script src="js/renderer.js?v=1021"></script>
   <script src="js/json-renderer.js"></script>
   <script>
     // ===========================================
@@ -1782,7 +1816,8 @@
             contain: false, // Don't constrain to viewport
             cursor: 'grab',
             startScale: 1,
-            animate: true // Smooth transitions
+            animate: true, // Smooth transitions
+            pinchAndPan: true // Enables pinch zoom at touch center
         });
 
         // Mouse wheel zooms at cursor position
@@ -2167,9 +2202,16 @@
                       templateId: linkData.id
                   };
 
-                  // Set header template icon
+                  // Set header template icon and name
                   const headerIcon = document.getElementById('headerTemplateIcon');
                   if (headerIcon) headerIcon.innerHTML = getPickerIconSvg(linkData.icon || 'file-text', 32);
+                  const headerName = document.getElementById('headerTemplateName');
+                  if (headerName && linkData.name) {
+                      headerName.textContent = linkData.name;
+                      // Hide logo when template name is shown
+                      const logoImg = document.getElementById('headerLogoImg');
+                      if (logoImg) logoImg.style.display = 'none';
+                  }
               }
           } catch (e) {
               console.error("Error fetching config:", e);

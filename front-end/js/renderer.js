@@ -218,11 +218,8 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     let titleRowHtml = '<div style="display: flex; align-items: flex-start;">'
         + iconHtml
         + '<div><span style="font-size: 64px; line-height: 1.1; font-weight: 600; color: var(--max-color-accent);">'
-        + (escapeHtml(journey.name) || 'Untitled Journey') + '</span>';
-    if (journey.quotes && journey.quotes.length > 0) {
-        titleRowHtml += '<span style="font-size: 64px; line-height: 1.1; color: var(--max-color-text-secondary); margin: 0 16px;">::</span><span style="font-family: \'Sorts Mill Goudy\', serif; font-weight: 400; font-style: italic; font-size: 64px; line-height: 1.1; color: #ffffff;">&ldquo;' + escapeHtml(journey.quotes[0]) + '&rdquo;</span>';
-    }
-    titleRowHtml += '</div></div>';
+        + (escapeHtml(journey.name) || 'Untitled Journey') + '</span>'
+        + '</div></div>';
 
     let html = `
         <div class="journey-board-container" style="width: ${finalWidth}px; max-width: none;">
@@ -495,6 +492,17 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
     html += `</div>`; // End artifacts container 
     }
  
+    // --- USER QUOTE (Very Bottom) ---
+    if (journey.quotes && journey.quotes.length > 0) {
+        html += `
+            <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border); display: flex; align-items: flex-start; gap: 16px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ed2224" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+                <div style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 128px; line-height: 1.2; color: #ffffff;">
+                    ${escapeHtml(journey.quotes[0])}
+                </div>
+            </div>`;
+    }
+
     html += `</div>`; // End board container
 
     container.innerHTML = html;

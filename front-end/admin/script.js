@@ -117,8 +117,8 @@ const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 const journeyList = document.getElementById('journeyList');
 const adminCanvas = document.getElementById('adminCanvas');
 const journeyPreviewTitle = document.getElementById('journeyPreviewTitle');
-const retakeBtn = document.getElementById('retakeBtn');
 const clearJourneysBtn = document.getElementById('clearJourneysBtn');
+let currentConversationHistory = null;
 
 // DOM Elements - Users Module
 const usersTableBody = document.getElementById('usersTableBody');
@@ -557,7 +557,8 @@ function renderJourneysList() {
 
     // Show/hide Clear All button (clears ALL journeys including partial)
     const hasAnyJourneys = savedJourneys.length > 0;
-    if (clearJourneysBtn) clearJourneysBtn.style.display = hasAnyJourneys ? 'inline-flex' : 'none';
+    const isSuperAdmin = currentAppUser && currentAppUser.role === 'super_admin';
+    if (clearJourneysBtn) clearJourneysBtn.style.display = (hasAnyJourneys && isSuperAdmin) ? 'inline-flex' : 'none';
 
     if (completed.length === 0) {
         const partialCount = savedJourneys.length - completed.length;
@@ -576,26 +577,35 @@ function renderJourneysList() {
         try { date = new Date(journey.updatedAt || journey.createdAt).toLocaleDateString(); } catch (e) {}
         let name = journey.userName ? `${journey.userName} (${journey.role})` : (journey.role || 'Unknown User');
 
+        // Permission: only creator or super admin can delete journeys
+        const journeyCreator = journey.userEmail || journey.createdBy || null;
+        const canDelete = currentAppUser && (
+            currentAppUser.role === 'super_admin' || 
+            (journeyCreator && currentAppUser.email === journeyCreator)
+        );
+
         div.innerHTML = `
             <div class="link-content" style="flex: 1;">
                 <div class="link-name">${escapeHtml(journey.name || 'Untitled')}</div>
-                <div class="link-meta">${escapeHtml(name)} • ${date}</div>
+                <div class="link-meta">${escapeHtml(name)} • ${date}${journeyCreator ? ' | ' + escapeHtml(journeyCreator) : ''}</div>
             </div>
-            <button class="delete-journey-btn icon-btn small danger" title="Delete" style="opacity: 0.5; margin-left: 8px;">
+            ${canDelete ? `<button class="delete-journey-btn icon-btn small danger" title="Delete" style="opacity: 0.5; margin-left: 8px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
                     <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
-            </button>
+            </button>` : ''}
         `;
         div.addEventListener('click', (e) => {
             if (e.target.closest('.delete-journey-btn')) return;
             loadJourney(journey);
             if (window.innerWidth < 1024) toggleSidebar(); // Close sidebar on mobile select
         });
-        const delBtn = div.querySelector('.delete-journey-btn');
-        delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteJourney(journey.journeyMapId); });
-        div.addEventListener('mouseenter', () => { delBtn.style.opacity = '1'; });
-        div.addEventListener('mouseleave', () => { delBtn.style.opacity = '0.5'; });
+        if (canDelete) {
+            const delBtn = div.querySelector('.delete-journey-btn');
+            delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteJourney(journey.journeyMapId); });
+            div.addEventListener('mouseenter', () => { delBtn.style.opacity = '1'; });
+            div.addEventListener('mouseleave', () => { delBtn.style.opacity = '0.5'; });
+        }
         journeyList.appendChild(div);
     });
 }
@@ -610,7 +620,6 @@ async function deleteJourney(id) {
                 currentJourneyId = null;
                 adminCanvas.innerHTML = '<div class="empty-placeholder">Select a completed journey to preview</div>';
                 journeyPreviewTitle.textContent = 'Select a Journey';
-                retakeBtn.style.display = 'none';
             }
             fetchJourneys();
         } else { alert("Failed to delete journey."); }
@@ -630,7 +639,6 @@ async function clearAllJourneys() {
             currentJourneyId = null;
             adminCanvas.innerHTML = '<div class="empty-placeholder">Select a completed journey to preview</div>';
             journeyPreviewTitle.textContent = 'Select a Journey';
-            retakeBtn.style.display = 'none';
             fetchJourneys();
         } else { alert("Failed to clear journeys."); }
     } catch (e) { console.error(e); alert("Error clearing journeys."); }
@@ -645,15 +653,118 @@ function loadJourney(journey) {
     } else {
         adminCanvas.innerHTML = "Error: Renderer not loaded.";
     }
-    const params = new URLSearchParams();
-    if (journey.userName) params.set('name', journey.userName);
-    if (journey.role) params.set('role', journey.role);
-    if (journey.name) params.set('journey', journey.name);
-    if (journey.swimlanes && journey.swimlanes.length > 0) {
-        params.set('swimlanes', JSON.stringify(journey.swimlanes.map(s => ({ name: s.name, description: s.description }))));
+
+    // Show chat history button if conversation data exists
+    const chatHistoryBtn = document.getElementById('chatHistoryBtn');
+    const chatHistoryPanel = document.getElementById('chatHistoryPanel');
+    if (chatHistoryBtn) {
+        if (journey.conversationHistory && journey.conversationHistory.length > 0) {
+            chatHistoryBtn.style.display = 'inline-flex';
+            currentConversationHistory = journey.conversationHistory;
+        } else {
+            chatHistoryBtn.style.display = 'none';
+            currentConversationHistory = null;
+            if (chatHistoryPanel) chatHistoryPanel.style.display = 'none';
+        }
     }
-    retakeBtn.href = `${BASE_URL}?${params.toString()}`;
-    retakeBtn.style.display = 'inline-flex';
+
+    // Initialize admin Panzoom after render
+    setTimeout(() => initAdminPanzoom(), 100);
+}
+
+// ========================================
+// Admin Panzoom
+// ========================================
+let adminPanzoomInstance = null;
+
+function initAdminPanzoom() {
+    const elem = document.getElementById('adminCanvas');
+    const viewport = document.getElementById('adminCanvasContainer');
+    if (!elem || !viewport || typeof Panzoom === 'undefined') return;
+
+    // Destroy previous instance
+    if (adminPanzoomInstance) {
+        adminPanzoomInstance.destroy();
+        adminPanzoomInstance = null;
+    }
+
+    adminPanzoomInstance = Panzoom(elem, {
+        maxScale: 5,
+        minScale: 0.1,
+        canvas: true,
+        contain: false,
+        cursor: 'grab',
+        startScale: 1,
+        animate: true,
+        pinchAndPan: true
+    });
+
+    // Mouse wheel zooms at cursor position
+    viewport.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        const pz = adminPanzoomInstance;
+        if (!pz) return;
+        const currentScale = pz.getScale();
+        const currentPan = pz.getPan();
+        const delta = event.deltaY > 0 ? -0.1 : 0.1;
+        const newScale = Math.max(0.1, Math.min(5, currentScale + delta));
+        const rect = viewport.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+        const localX = (mouseX / currentScale) - currentPan.x;
+        const localY = (mouseY / currentScale) - currentPan.y;
+        const newPanX = (mouseX / newScale) - localX;
+        const newPanY = (mouseY / newScale) - localY;
+        pz.zoom(newScale, { animate: false });
+        pz.pan(newPanX, newPanY, { animate: false });
+    }, { passive: false });
+
+    // Fit to view
+    setTimeout(() => fitAdminCanvas(), 200);
+}
+
+function fitAdminCanvas() {
+    if (!adminPanzoomInstance) return;
+    const elem = document.getElementById('adminCanvas');
+    const viewport = document.getElementById('adminCanvasContainer');
+    if (!elem || !viewport) return;
+    const vw = viewport.clientWidth;
+    const vh = viewport.clientHeight;
+    const cw = elem.scrollWidth;
+    const ch = elem.scrollHeight;
+    if (cw === 0 || ch === 0) return;
+    const scale = Math.min(vw / cw, vh / ch, 1) * 0.95;
+    const panX = (vw - cw * scale) / (2 * scale);
+    const panY = (vh - ch * scale) / (2 * scale);
+    adminPanzoomInstance.zoom(scale, { animate: true });
+    adminPanzoomInstance.pan(panX, panY, { animate: true });
+}
+
+// ========================================
+// Chat History Viewer
+// ========================================
+function toggleChatHistory() {
+    const panel = document.getElementById('chatHistoryPanel');
+    if (!panel) return;
+    const isVisible = panel.style.display !== 'none';
+    if (isVisible) {
+        panel.style.display = 'none';
+        return;
+    }
+    if (!currentConversationHistory || currentConversationHistory.length === 0) return;
+    const messagesEl = document.getElementById('chatHistoryMessages');
+    messagesEl.innerHTML = '';
+    currentConversationHistory.forEach(msg => {
+        const role = msg.role || 'unknown';
+        const div = document.createElement('div');
+        div.className = `chat-msg chat-msg-${role === 'user' ? 'user' : 'assistant'}`;
+        const label = role === 'user' ? 'User' : 'M.AX';
+        const content = (msg.parts || []).map(p => p.text || '').join('');
+        div.innerHTML = `<div class="chat-msg-role">${escapeHtml(label)}</div><div class="chat-msg-text">${escapeHtml(content)}</div>`;
+        messagesEl.appendChild(div);
+    });
+    panel.style.display = 'flex';
+    messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
 // ========================================
@@ -667,12 +778,16 @@ async function fetchSettings() {
         const settings = await res.json();
         if (settings.agentName) agentNameInput.value = settings.agentName;
         if (settings.activeModel) activeModelInput.value = settings.activeModel;
+        const autoToggle = document.getElementById('autoActivateToggle');
+        if (autoToggle) autoToggle.checked = !!settings.autoActivate;
     } catch (e) { console.error("Failed to fetch settings", e); }
 }
 
 async function saveSettings() {
     const agentName = agentNameInput.value.trim() || 'Max';
     const activeModel = activeModelInput.value;
+    const autoToggle = document.getElementById('autoActivateToggle');
+    const autoActivate = autoToggle ? autoToggle.checked : false;
     try {
         saveSettingsBtn.textContent = 'Saving...';
         saveSettingsBtn.disabled = true;
@@ -680,7 +795,7 @@ async function saveSettings() {
         const res = await fetch(SETTINGS_API_URL, {
             method: 'PUT',
             headers: authHeaders(),
-            body: JSON.stringify({ agentName, activeModel })
+            body: JSON.stringify({ agentName, activeModel, autoActivate })
         });
         if (res.ok) { alert('Settings saved!'); } else { alert('Failed to save settings.'); }
     } catch (e) { alert('Error saving settings.'); }
@@ -723,17 +838,23 @@ function renderLinksList() {
         // Count active toggles
         const toggles = link.toggles || {};
         const activeCount = TOGGLE_KEYS.filter(k => toggles[k]).length;
-        const globalBadge = link.global ? ' • 🌐' : '';
+        const globalTag = link.global ? '<span class="global-tag">GLOBAL</span>' : '';
 
         const createdByText = link.createdBy ? ` | ${link.createdBy}` : '';
+        const descriptionText = link.description 
+            ? `<div class="link-description">${escapeHtml(link.description.length > 80 ? link.description.substring(0, 80) + '...' : link.description)}</div>` 
+            : '';
         const div = document.createElement('div');
         div.className = `saved-link-item ${link.id === currentLinkId ? 'active' : ''}`;
+        div.style.position = 'relative';
         const iconHtml = getIconSvg(link.icon || 'file-text', 18);
         div.innerHTML = `
-            <div class="link-icon">${iconHtml}</div>
+            ${globalTag}
+            <div class="link-icon" style="color: var(--max-color-accent);">${iconHtml}</div>
             <div class="link-info">
                 <div class="link-name">${escapeHtml(link.configName || 'Untitled')}</div>
-                <div class="link-meta">${activeCount} param${activeCount !== 1 ? 's' : ''} defined${globalBadge}${escapeHtml(createdByText)}</div>
+                ${descriptionText}
+                <div class="link-meta">${activeCount} param${activeCount !== 1 ? 's' : ''} defined${escapeHtml(createdByText)}</div>
             </div>
         `;
         div.onclick = () => {
@@ -1098,4 +1219,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (googleSignInBtn) googleSignInBtn.addEventListener('click', handleSignIn);
     if (logoutBtn) logoutBtn.addEventListener('click', handleSignOut);
     if (headerLogoutBtn) headerLogoutBtn.addEventListener('click', handleSignOut);
+
+    // Auto-activate toggle saves immediately
+    const autoActivateToggle = document.getElementById('autoActivateToggle');
+    if (autoActivateToggle) {
+        autoActivateToggle.addEventListener('change', async () => {
+            try {
+                await refreshToken();
+                await fetch(SETTINGS_API_URL, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ autoActivate: autoActivateToggle.checked })
+                });
+            } catch (e) { console.error('Failed to save auto-activate setting', e); }
+        });
+    }
 });
