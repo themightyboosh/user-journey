@@ -147,6 +147,14 @@ window.JourneyViewer = (function () {
             var board = canvas.querySelector('.journey-board-container');
             if (!board) return;
 
+            // Reset transform first so offset measurements are accurate
+            pz.setOptions({ animate: false });
+            pz.zoom(1);
+            pz.pan(0, 0);
+
+            // Force reflow so measurements reflect the reset
+            void canvas.offsetHeight;
+
             canvas.style.transformOrigin = '0 0';
 
             var vw = viewport.clientWidth;
@@ -155,6 +163,9 @@ window.JourneyViewer = (function () {
             var by = board.offsetTop;
             var bw = board.offsetWidth;
             var bh = board.offsetHeight;
+
+            console.log('JourneyViewer.fit:', { vw: vw, vh: vh, bx: bx, by: by, bw: bw, bh: bh });
+
             if (!bw || !bh || !vw || !vh) return;
 
             var pad = 40;
@@ -166,7 +177,8 @@ window.JourneyViewer = (function () {
             var px = (vw / (2 * s)) - cx;
             var py = (vh / (2 * s)) - cy;
 
-            pz.setOptions({ animate: false });
+            console.log('JourneyViewer.fit result:', { scale: s, panX: px, panY: py });
+
             pz.zoom(s);
             pz.pan(px, py);
             requestAnimationFrame(function () { pz.setOptions({ animate: true }); });
