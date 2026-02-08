@@ -1478,8 +1478,8 @@
                     </button>
                 </div>
             </div>
-            <button class="nav-btn" onclick="showPlaceholder('Create')">CREATE</button>
-            <button class="nav-btn" onclick="showPlaceholder('About')">ABOUT</button>
+            <button class="nav-btn" onclick="window.location.href='/admin'">CREATE</button>
+            <button class="nav-btn" onclick="openAboutModal()">ABOUT</button>
             <button class="nav-btn" id="feedbackNavBtn" onclick="openFeedbackPanel()">FEEDBACK</button>
         </nav>
 
@@ -1499,8 +1499,8 @@
             </div>
             <nav class="mobile-menu-nav">
                 <button class="mobile-menu-item" onclick="openTemplatePicker(); closeMobileMenu();">CHOOSE</button>
-                <button class="mobile-menu-item" onclick="showPlaceholder('Create'); closeMobileMenu();">CREATE</button>
-                <button class="mobile-menu-item" onclick="showPlaceholder('About'); closeMobileMenu();">ABOUT</button>
+                <button class="mobile-menu-item" onclick="window.location.href='/admin'; closeMobileMenu();">CREATE</button>
+                <button class="mobile-menu-item" onclick="openAboutModal(); closeMobileMenu();">ABOUT</button>
                 <button class="mobile-menu-item" onclick="openFeedbackPanel(); closeMobileMenu();">FEEDBACK</button>
             </nav>
             <div class="mobile-menu-footer">
@@ -1521,6 +1521,23 @@
                 <button class="feedback-submit-btn" id="feedbackSubmitBtn" onclick="submitFeedback()">Submit Feedback</button>
             </div>
             <div id="feedbackStatus" class="feedback-status" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="aboutModal" class="feedback-overlay" style="display: none;">
+        <div class="feedback-card" style="max-width: 520px;">
+            <div class="feedback-header">
+                <h3>About</h3>
+                <button class="feedback-close" onclick="closeAboutModal()">&times;</button>
+            </div>
+            <img src="max_header.svg" alt="M.AX" style="height: 32px; margin-bottom: 20px;">
+            <div style="color: var(--max-color-text-primary); font-size: 14px; line-height: 1.7;">
+                <p style="margin-bottom: 16px;"><strong style="font-size: 16px;">About this App</strong></p>
+                <p style="margin-bottom: 16px;">M.AX Journey is an AI-powered journey mapping tool that helps teams understand their customers through structured, conversational research. It guides users through an expert-level UX interview, automatically building a visual journey map in real time.</p>
+                <p style="margin-bottom: 16px;"><strong style="font-size: 16px;">Craft Intelligence</strong></p>
+                <p>Built by Monumental, M.AX Journey combines ethnographic research methodology with generative AI to deliver actionable insights. Every journey map captures not just what users do, but what they think, feel, and need &mdash; turning conversations into strategy.</p>
+            </div>
         </div>
     </div>
 
@@ -2993,6 +3010,22 @@ async function exportToPdf() {
     // Close feedback on backdrop click
     document.getElementById('feedbackPanel').addEventListener('click', (e) => {
         if (e.target === document.getElementById('feedbackPanel')) closeFeedbackPanel();
+    });
+
+    // ===========================================
+    // ABOUT MODAL
+    // ===========================================
+    function openAboutModal() {
+        document.getElementById('aboutModal').style.display = 'flex';
+    }
+
+    function closeAboutModal() {
+        document.getElementById('aboutModal').style.display = 'none';
+    }
+
+    // Close about on backdrop click
+    document.getElementById('aboutModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('aboutModal')) closeAboutModal();
     });
 
     // ========================================
