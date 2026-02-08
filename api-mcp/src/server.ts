@@ -1,11 +1,15 @@
-import Fastify, { FastifyInstance } from 'fastify';
+import Fastify, { FastifyInstance, FastifyRequest } from 'fastify';
 import cors from '@fastify/cors';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import * as admin from 'firebase-admin';
 import { JourneyService } from './services/journey.service';
 import { AdminService } from './services/admin.service';
 import { AIService } from './services/ai.service';
+import { UserService } from './services/user.service';
+import { Store } from './store';
 import { SessionConfig } from './ai/prompts';
+import { SUPER_ADMIN_EMAIL, AppUser } from './types';
 import logger from './logger';
 
 export const server: FastifyInstance = Fastify({ 
@@ -17,6 +21,7 @@ export const server: FastifyInstance = Fastify({
 const journeyService = JourneyService.getInstance();
 const adminService = AdminService.getInstance();
 const aiService = AIService.getInstance();
+const userService = UserService.getInstance();
 
 // Initialize AI
 aiService.initialize().catch(err => logger.error("AI Init Failed", { error: err }));
@@ -472,6 +477,9 @@ server.post('/v1/journey-maps/:id/generate-artifacts', async (request, reply) =>
 // --- Admin Links ---
 
 server.get('/api/admin/links', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!user.active) return reply.status(403).send({ error: 'Account is inactive' });
     return await adminService.getLinks();
 });
 
@@ -487,11 +495,23 @@ server.get('/api/templates', async (request, reply) => {
             configName: l.configName,
             description: l.description || '',
             icon: l.icon || 'file-text',
+            requireAuth: !!l.requireAuth,
+            createdBy: l.createdBy || null,
         }));
     return globalTemplates;
 });
 
+// Public endpoint: get a single link config (used by frontend to load template params)
+server.get('/api/links/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const link = await adminService.getLink(id);
+    if (!link) return reply.status(404).send({ message: 'Link configuration not found' });
+    return link;
+});
+
 server.get('/api/admin/links/:id', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
     const { id } = request.params as { id: string };
     const link = await adminService.getLink(id);
     if (!link) return reply.status(404).send({ message: 'Link configuration not found' });
@@ -499,28 +519,66 @@ server.get('/api/admin/links/:id', async (request, reply) => {
 });
 
 server.post('/api/admin/links', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!user.active) return reply.status(403).send({ error: 'Account is inactive' });
     const body = request.body as any;
+    // Add creator attribution
+    body.createdBy = user.email;
+    body.createdByName = user.displayName;
     return await adminService.createLink(body);
 });
 
 server.put('/api/admin/links/:id', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!user.active) return reply.status(403).send({ error: 'Account is inactive' });
     const { id } = request.params as { id: string };
+    
+    // Check permissions: creator or super_admin
+    const existing = await adminService.getLink(id);
+    if (existing && existing.createdBy && existing.createdBy !== user.email && user.role !== 'super_admin') {
+        return reply.status(403).send({ error: 'Only the template creator or super admin can edit this template' });
+    }
+    
     const body = request.body as any;
     return await adminService.updateLink(id, body);
 });
 
 server.delete('/api/admin/links/:id', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
     const { id } = request.params as { id: string };
+    
+    // Check permissions: creator or super_admin
+    const existing = await adminService.getLink(id);
+    if (existing && existing.createdBy && existing.createdBy !== user.email && user.role !== 'super_admin') {
+        return reply.status(403).send({ error: 'Only the template creator or super admin can delete this template' });
+    }
+    
     return await adminService.deleteLink(id);
 });
 
-// --- Admin Settings ---
+// Public settings (for frontend)
+server.get('/api/settings', async (request, reply) => {
+    const settings = await adminService.getSettings();
+    // Return only public-safe fields
+    return { agentName: settings.agentName || 'Max' };
+});
+
+// --- Admin Settings (Super Admin Only) ---
 
 server.get('/api/admin/settings', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!requireSuperAdmin(user, reply)) return;
     return await adminService.getSettings();
 });
 
 server.put('/api/admin/settings', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!requireSuperAdmin(user, reply)) return;
     const body = request.body as any;
     return await adminService.saveSettings(body);
 });
@@ -528,16 +586,25 @@ server.put('/api/admin/settings', async (request, reply) => {
 // --- Admin Journeys ---
 
 server.get('/api/admin/journeys', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!user.active) return reply.status(403).send({ error: 'Account is inactive' });
     return await journeyService.getAllJourneys();
 });
 
 server.delete('/api/admin/journeys/:id', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!user.active) return reply.status(403).send({ error: 'Account is inactive' });
     const { id } = request.params as { id: string };
     await journeyService.deleteJourney(id);
     return { success: true };
 });
 
 server.delete('/api/admin/journeys', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!requireSuperAdmin(user, reply)) return;
     await journeyService.clearAllJourneys();
     return { success: true };
 });
@@ -572,6 +639,106 @@ server.post('/api/logs', async (request, reply) => {
     }
 
     return { status: 'logged' };
+});
+
+// --- Auth Middleware Helper ---
+async function authenticateRequest(request: FastifyRequest): Promise<AppUser | null> {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+    
+    const token = authHeader.split('Bearer ')[1];
+    if (!token) return null;
+    
+    try {
+        // Verify Firebase ID token
+        const decoded = await admin.auth().verifyIdToken(token);
+        const user = await userService.getOrCreateUser({
+            uid: decoded.uid,
+            email: decoded.email,
+            name: decoded.name || decoded.email
+        });
+        return user;
+    } catch (err: any) {
+        logger.warn('Auth token verification failed', { error: err.message });
+        return null;
+    }
+}
+
+function requireAuth(reply: any): null {
+    reply.status(401).send({ error: 'Authentication required' });
+    return null;
+}
+
+function requireSuperAdmin(user: AppUser, reply: any): boolean {
+    if (user.role !== 'super_admin') {
+        reply.status(403).send({ error: 'Super admin access required' });
+        return false;
+    }
+    return true;
+}
+
+// --- Auth Endpoints ---
+
+server.get('/api/admin/me', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!user.active) return reply.status(403).send({ error: 'Account is inactive. Contact administrator.' });
+    return user;
+});
+
+// --- User Management (Super Admin Only) ---
+
+server.get('/api/admin/users', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!requireSuperAdmin(user, reply)) return;
+    return await userService.listUsers();
+});
+
+server.put('/api/admin/users/:uid/active', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!requireSuperAdmin(user, reply)) return;
+    
+    const { uid } = request.params as { uid: string };
+    const updated = await userService.toggleUserActive(uid);
+    if (!updated) return reply.status(404).send({ error: 'User not found' });
+    return updated;
+});
+
+// --- Feedback Endpoint (Public) ---
+
+server.post('/api/feedback', async (request, reply) => {
+    const body = request.body as any;
+    const { text, messages, journeyId, email, templateId } = body || {};
+    
+    if (!text || !text.trim()) {
+        return reply.status(400).send({ error: 'Feedback text is required' });
+    }
+
+    const feedback = {
+        id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+        text: text.trim(),
+        messages: messages || [],
+        journeyId: journeyId || null,
+        templateId: templateId || null,
+        email: email || null,
+        userAgent: request.headers['user-agent'] || null,
+        createdAt: new Date().toISOString()
+    };
+
+    await Store.saveFeedback(feedback);
+    logger.info('Feedback received', { id: feedback.id, hasMessages: (messages || []).length > 0 });
+    return { success: true, id: feedback.id };
+});
+
+// --- Admin Feedback (Super Admin) ---
+
+server.get('/api/admin/feedback', async (request, reply) => {
+    const user = await authenticateRequest(request);
+    if (!user) return requireAuth(reply);
+    if (!requireSuperAdmin(user, reply)) return;
+    return await Store.getFeedback();
 });
 
 server.get('/', async (request, reply) => {

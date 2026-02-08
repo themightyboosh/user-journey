@@ -46,6 +46,17 @@ interface StorageAdapter {
     getKnowledge(): Promise<any[]>;
     saveKnowledge(item: any): Promise<void>;
     deleteKnowledge(id: string): Promise<void>;
+
+    // Users
+    getUsers(): Promise<any[]>;
+    getUser(uid: string): Promise<any | null>;
+    saveUser(user: any): Promise<void>;
+    deleteUser(uid: string): Promise<void>;
+
+    // Feedback
+    getFeedback(): Promise<any[]>;
+    saveFeedback(item: any): Promise<void>;
+    deleteFeedback(id: string): Promise<void>;
 }
 
 // --- File Adapter (Local Dev) ---
@@ -55,7 +66,9 @@ class FileStorageAdapter implements StorageAdapter {
         JOURNEYS: path.join(this.DATA_DIR, 'journey-maps.json'),
         LINKS: path.join(this.DATA_DIR, 'admin-links.json'),
         SETTINGS: path.join(this.DATA_DIR, 'settings.json'),
-        KNOWLEDGE: path.join(this.DATA_DIR, 'context.json')
+        KNOWLEDGE: path.join(this.DATA_DIR, 'context.json'),
+        USERS: path.join(this.DATA_DIR, 'users.json'),
+        FEEDBACK: path.join(this.DATA_DIR, 'feedback.json')
     };
 
     constructor() {
@@ -69,6 +82,8 @@ class FileStorageAdapter implements StorageAdapter {
                 { path: this.FILES.JOURNEYS, content: {} },
                 { path: this.FILES.LINKS, content: {} },
                 { path: this.FILES.SETTINGS, content: { agentName: "Max" } },
+                { path: this.FILES.USERS, content: {} },
+                { path: this.FILES.FEEDBACK, content: {} },
                 { 
                     path: this.FILES.KNOWLEDGE, 
                     content: {
@@ -126,6 +141,17 @@ class FileStorageAdapter implements StorageAdapter {
     async getKnowledge() { return Object.values(await this.read(this.FILES.KNOWLEDGE)); }
     async saveKnowledge(k: any) { const all = await this.read(this.FILES.KNOWLEDGE); all[k.id] = k; await this.write(this.FILES.KNOWLEDGE, all); }
     async deleteKnowledge(id: string) { const all = await this.read(this.FILES.KNOWLEDGE); delete all[id]; await this.write(this.FILES.KNOWLEDGE, all); }
+
+    // Users
+    async getUsers() { return Object.values(await this.read(this.FILES.USERS)); }
+    async getUser(uid: string) { const all = await this.read(this.FILES.USERS); return all[uid] || null; }
+    async saveUser(u: any) { const all = await this.read(this.FILES.USERS); all[u.uid] = u; await this.write(this.FILES.USERS, all); }
+    async deleteUser(uid: string) { const all = await this.read(this.FILES.USERS); delete all[uid]; await this.write(this.FILES.USERS, all); }
+
+    // Feedback
+    async getFeedback() { return Object.values(await this.read(this.FILES.FEEDBACK)); }
+    async saveFeedback(f: any) { const all = await this.read(this.FILES.FEEDBACK); all[f.id] = f; await this.write(this.FILES.FEEDBACK, all); }
+    async deleteFeedback(id: string) { const all = await this.read(this.FILES.FEEDBACK); delete all[id]; await this.write(this.FILES.FEEDBACK, all); }
 }
 
 // --- Firestore Adapter (Production) ---
@@ -135,7 +161,9 @@ class FirestoreAdapter implements StorageAdapter {
         JOURNEYS: 'journey_maps',
         LINKS: 'admin_links',
         SETTINGS: 'app_settings',
-        KNOWLEDGE: 'knowledge_base'
+        KNOWLEDGE: 'knowledge_base',
+        USERS: 'users',
+        FEEDBACK: 'feedback'
     };
 
     // Journey
@@ -240,6 +268,34 @@ class FirestoreAdapter implements StorageAdapter {
     async deleteKnowledge(id: string): Promise<void> {
         await this.db.collection(this.COLLS.KNOWLEDGE).doc(id).delete();
     }
+
+    // Users
+    async getUsers(): Promise<any[]> {
+        const snap = await this.db.collection(this.COLLS.USERS).get();
+        return snap.docs.map(d => d.data());
+    }
+    async getUser(uid: string): Promise<any | null> {
+        const doc = await this.db.collection(this.COLLS.USERS).doc(uid).get();
+        return doc.exists ? doc.data() : null;
+    }
+    async saveUser(u: any): Promise<void> {
+        await this.db.collection(this.COLLS.USERS).doc(u.uid).set(u);
+    }
+    async deleteUser(uid: string): Promise<void> {
+        await this.db.collection(this.COLLS.USERS).doc(uid).delete();
+    }
+
+    // Feedback
+    async getFeedback(): Promise<any[]> {
+        const snap = await this.db.collection(this.COLLS.FEEDBACK).get();
+        return snap.docs.map(d => d.data());
+    }
+    async saveFeedback(f: any): Promise<void> {
+        await this.db.collection(this.COLLS.FEEDBACK).doc(f.id).set(f);
+    }
+    async deleteFeedback(id: string): Promise<void> {
+        await this.db.collection(this.COLLS.FEEDBACK).doc(id).delete();
+    }
 }
 
 // Select Adapter
@@ -266,5 +322,16 @@ export const Store = {
   // Knowledge Methods
   async getKnowledge() { return adapter.getKnowledge(); },
   async saveKnowledge(item: any) { return adapter.saveKnowledge(item); },
-  async deleteKnowledge(id: string) { return adapter.deleteKnowledge(id); }
+  async deleteKnowledge(id: string) { return adapter.deleteKnowledge(id); },
+
+  // User Methods
+  async getUsers() { return adapter.getUsers(); },
+  async getUser(uid: string) { return adapter.getUser(uid); },
+  async saveUser(user: any) { return adapter.saveUser(user); },
+  async deleteUser(uid: string) { return adapter.deleteUser(uid); },
+
+  // Feedback Methods
+  async getFeedback() { return adapter.getFeedback(); },
+  async saveFeedback(item: any) { return adapter.saveFeedback(item); },
+  async deleteFeedback(id: string) { return adapter.deleteFeedback(id); }
 };

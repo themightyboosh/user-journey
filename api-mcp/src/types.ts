@@ -104,3 +104,28 @@ export type SwimlaneObject = z.infer<typeof SwimlaneObjectSchema>;
 export type CellObject = z.infer<typeof CellObjectSchema>;
 export type CompletionStatusObject = z.infer<typeof CompletionStatusObjectSchema>;
 export type DerivedMetricsObject = z.infer<typeof DerivedMetricsObjectSchema>;
+
+// --- Auth & User Types ---
+
+export interface AppUser {
+    uid: string;
+    email: string;
+    displayName: string;
+    role: 'super_admin' | 'admin';
+    active: boolean;
+    createdAt: string;
+    lastLoginAt: string;
+}
+
+export interface Feedback {
+    id: string;
+    text: string;
+    messages?: any[];
+    journeyId?: string;
+    templateId?: string;
+    email?: string;
+    userAgent?: string;
+    createdAt: string;
+}
+
+export const SUPER_ADMIN_EMAIL = 'daniel@monumental-i.com';

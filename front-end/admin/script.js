@@ -1,11 +1,43 @@
 // Config
-const VERSION = '2.5';
+const VERSION = '3.0';
 console.log('Journey Mapper Admin v' + VERSION);
 
 const BASE_URL = window.location.origin + '/';
 const LINKS_API_URL = window.location.origin + '/api/admin/links';
 const SETTINGS_API_URL = window.location.origin + '/api/admin/settings';
 const JOURNEYS_API_URL = window.location.origin + '/api/admin/journeys';
+const USERS_API_URL = window.location.origin + '/api/admin/users';
+const ME_API_URL = window.location.origin + '/api/admin/me';
+
+// Firebase Config
+const firebaseConfig = {
+    apiKey: "AIzaSyA4kA1WHUfHAqznL-Us-d8-whjpkr_D4a0",
+    authDomain: "journey-mapper-ai-8822.firebaseapp.com",
+    projectId: "journey-mapper-ai-8822",
+    storageBucket: "journey-mapper-ai-8822.firebasestorage.app",
+    messagingSenderId: "98598658832",
+    appId: "1:98598658832:web:a7199d2b48d46914167b95"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// Auth State
+let currentUser = null; // Firebase user
+let currentAppUser = null; // Our app user record (from /api/admin/me)
+let authToken = null; // Firebase ID token
+
+// DOM Elements - Auth
+const loginOverlay = document.getElementById('loginOverlay');
+const adminApp = document.getElementById('adminApp');
+const googleSignInBtn = document.getElementById('googleSignInBtn');
+const loginError = document.getElementById('loginError');
+const loginPending = document.getElementById('loginPending');
+const logoutBtn = document.getElementById('logoutBtn');
+const headerLogoutBtn = document.getElementById('headerLogoutBtn');
+const adminUserEmail = document.getElementById('adminUserEmail');
 
 // DOM Elements - Navigation & Layout
 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -20,16 +52,19 @@ const navLinks = {
     links: document.getElementById('nav-links'),
     settings: document.getElementById('nav-settings'),
     journeys: document.getElementById('nav-journeys'),
+    users: document.getElementById('nav-users'),
     // Mobile links
     linksMobile: document.getElementById('nav-links-mobile'),
     settingsMobile: document.getElementById('nav-settings-mobile'),
-    journeysMobile: document.getElementById('nav-journeys-mobile')
+    journeysMobile: document.getElementById('nav-journeys-mobile'),
+    usersMobile: document.getElementById('nav-users-mobile')
 };
 
 const modules = {
     links: document.getElementById('module-links'),
     settings: document.getElementById('module-settings'),
-    journeys: document.getElementById('module-journeys')
+    journeys: document.getElementById('module-journeys'),
+    users: document.getElementById('module-users')
 };
 
 // DOM Elements - Template Module
@@ -45,6 +80,7 @@ const configNameInput = document.getElementById('configName');
 const templateDescriptionInput = document.getElementById('templateDescription');
 const ragCharCount = document.getElementById('ragCharCount');
 const globalToggle = document.getElementById('globalToggle');
+const requireAuthToggle = document.getElementById('requireAuthToggle');
 
 // Icon Picker
 const iconPickerBtn = document.getElementById('iconPickerBtn');
@@ -84,6 +120,9 @@ const journeyPreviewTitle = document.getElementById('journeyPreviewTitle');
 const retakeBtn = document.getElementById('retakeBtn');
 const clearJourneysBtn = document.getElementById('clearJourneysBtn');
 
+// DOM Elements - Users Module
+const usersTableBody = document.getElementById('usersTableBody');
+
 // Toggle keys (order matches param rows)
 const TOGGLE_KEYS = ['name', 'role', 'journey', 'welcomePrompt', 'journeyPrompt', 'ragContext', 'swimlanes', 'phases'];
 
@@ -97,18 +136,127 @@ let toggleStates = {};
 TOGGLE_KEYS.forEach(k => toggleStates[k] = false);
 
 // ========================================
+// Auth Helpers
+// ========================================
+function authHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    return headers;
+}
+
+async function refreshToken() {
+    if (currentUser) {
+        try {
+            authToken = await currentUser.getIdToken(true);
+        } catch (e) {
+            console.warn('Token refresh failed', e);
+        }
+    }
+}
+
+// ========================================
+// Firebase Auth Flow
+// ========================================
+async function handleSignIn() {
+    try {
+        loginError.style.display = 'none';
+        googleSignInBtn.disabled = true;
+        googleSignInBtn.textContent = 'Signing in...';
+        
+        const result = await auth.signInWithPopup(googleProvider);
+        // Auth state observer will handle the rest
+    } catch (err) {
+        console.error('Sign-in error', err);
+        loginError.textContent = err.message || 'Sign-in failed. Please try again.';
+        loginError.style.display = 'block';
+        googleSignInBtn.disabled = false;
+        googleSignInBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Sign in with Google`;
+    }
+}
+
+async function handleSignOut() {
+    await auth.signOut();
+    currentUser = null;
+    currentAppUser = null;
+    authToken = null;
+    loginOverlay.style.display = 'flex';
+    adminApp.style.display = 'none';
+    loginPending.style.display = 'none';
+    loginError.style.display = 'none';
+    googleSignInBtn.style.display = 'flex';
+    googleSignInBtn.disabled = false;
+    googleSignInBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Sign in with Google`;
+}
+
+function showAdminApp() {
+    loginOverlay.style.display = 'none';
+    adminApp.style.display = 'flex';
+    
+    // Show user email in header
+    if (adminUserEmail && currentAppUser) {
+        adminUserEmail.textContent = currentAppUser.email;
+    }
+    
+    // Role-based visibility
+    const isSuperAdmin = currentAppUser && currentAppUser.role === 'super_admin';
+    document.querySelectorAll('.super-admin-only').forEach(el => {
+        el.style.display = isSuperAdmin ? '' : 'none';
+    });
+    
+    // Initialize app
+    initApp();
+}
+
+// Firebase auth state observer
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        currentUser = user;
+        authToken = await user.getIdToken();
+        
+        try {
+            const res = await fetch(ME_API_URL, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            
+            if (res.status === 403) {
+                // Account inactive
+                googleSignInBtn.style.display = 'none';
+                loginPending.style.display = 'block';
+                return;
+            }
+            
+            if (!res.ok) throw new Error('Auth verification failed');
+            
+            currentAppUser = await res.json();
+            showAdminApp();
+        } catch (err) {
+            console.error('Auth verification error', err);
+            loginError.textContent = 'Authentication failed. Please try again.';
+            loginError.style.display = 'block';
+            await auth.signOut();
+        }
+    } else {
+        // Not signed in - show login
+        loginOverlay.style.display = 'flex';
+        adminApp.style.display = 'none';
+    }
+});
+
+// ========================================
 // Initialization
 // ========================================
-function init() {
+function initApp() {
     // Navigation (Desktop)
     navLinks.links.addEventListener('click', (e) => switchModule(e, 'links'));
-    navLinks.settings.addEventListener('click', (e) => switchModule(e, 'settings'));
+    if (navLinks.settings) navLinks.settings.addEventListener('click', (e) => switchModule(e, 'settings'));
     navLinks.journeys.addEventListener('click', (e) => switchModule(e, 'journeys'));
+    if (navLinks.users) navLinks.users.addEventListener('click', (e) => switchModule(e, 'users'));
 
     // Navigation (Mobile)
     if (navLinks.linksMobile) navLinks.linksMobile.addEventListener('click', (e) => switchModule(e, 'links'));
     if (navLinks.settingsMobile) navLinks.settingsMobile.addEventListener('click', (e) => switchModule(e, 'settings'));
     if (navLinks.journeysMobile) navLinks.journeysMobile.addEventListener('click', (e) => switchModule(e, 'journeys'));
+    if (navLinks.usersMobile) navLinks.usersMobile.addEventListener('click', (e) => switchModule(e, 'users'));
 
     // Mobile Menu Toggles
     if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleMobileMenu);
@@ -217,8 +365,11 @@ function switchModule(e, moduleName) {
         sidebarTitle.textContent = 'Completed Journeys';
         newConfigBtn.style.display = 'none';
         if (!isMobile) adminSidebar.style.display = 'flex';
+    } else if (moduleName === 'users') {
+        if (!isMobile) adminSidebar.style.display = 'none';
+        fetchUsers();
     } else {
-        // Settings - hide sidebar completely on desktop too usually, or keep empty
+        // Settings - hide sidebar
         if (!isMobile) adminSidebar.style.display = 'none';
     }
 
@@ -367,10 +518,12 @@ function updateRagCharCount() {
 // ========================================
 async function fetchJourneys() {
     try {
+        await refreshToken();
         const urlWithCache = `${JOURNEYS_API_URL}?_t=${Date.now()}`;
-        let res = await fetch(urlWithCache);
+        let res = await fetch(urlWithCache, { headers: authHeaders() });
+        if (res.status === 401) { handleSignOut(); return; }
         if (res.status === 404) {
-            res = await fetch(`/admin/journeys?_t=${Date.now()}`);
+            res = await fetch(`/admin/journeys?_t=${Date.now()}`, { headers: authHeaders() });
         }
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
@@ -450,7 +603,8 @@ function renderJourneysList() {
 async function deleteJourney(id) {
     if (!confirm("Are you sure you want to delete this journey? This cannot be undone.")) return;
     try {
-        const res = await fetch(`${JOURNEYS_API_URL}/${id}`, { method: 'DELETE' });
+        await refreshToken();
+        const res = await fetch(`${JOURNEYS_API_URL}/${id}`, { method: 'DELETE', headers: authHeaders() });
         if (res.ok) {
             if (id === currentJourneyId) {
                 currentJourneyId = null;
@@ -470,7 +624,8 @@ async function clearAllJourneys() {
     if (!confirm(msg)) return;
     if (!confirm("Really delete EVERYTHING?")) return;
     try {
-        const res = await fetch(JOURNEYS_API_URL, { method: 'DELETE' });
+        await refreshToken();
+        const res = await fetch(JOURNEYS_API_URL, { method: 'DELETE', headers: authHeaders() });
         if (res.ok) {
             currentJourneyId = null;
             adminCanvas.innerHTML = '<div class="empty-placeholder">Select a completed journey to preview</div>';
@@ -506,7 +661,9 @@ function loadJourney(journey) {
 // ========================================
 async function fetchSettings() {
     try {
-        const res = await fetch(`${SETTINGS_API_URL}?_t=${Date.now()}`);
+        await refreshToken();
+        const res = await fetch(`${SETTINGS_API_URL}?_t=${Date.now()}`, { headers: authHeaders() });
+        if (res.status === 401 || res.status === 403) return; // Not super admin, silently skip
         const settings = await res.json();
         if (settings.agentName) agentNameInput.value = settings.agentName;
         if (settings.activeModel) activeModelInput.value = settings.activeModel;
@@ -519,9 +676,10 @@ async function saveSettings() {
     try {
         saveSettingsBtn.textContent = 'Saving...';
         saveSettingsBtn.disabled = true;
+        await refreshToken();
         const res = await fetch(SETTINGS_API_URL, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify({ agentName, activeModel })
         });
         if (res.ok) { alert('Settings saved!'); } else { alert('Failed to save settings.'); }
@@ -537,7 +695,9 @@ async function saveSettings() {
 // ========================================
 async function fetchLinks() {
     try {
-        const res = await fetch(`${LINKS_API_URL}?_t=${Date.now()}`);
+        await refreshToken();
+        const res = await fetch(`${LINKS_API_URL}?_t=${Date.now()}`, { headers: authHeaders() });
+        if (res.status === 401) { handleSignOut(); return; }
         savedLinks = await res.json();
         renderLinksList();
     } catch (e) {
@@ -565,6 +725,7 @@ function renderLinksList() {
         const activeCount = TOGGLE_KEYS.filter(k => toggles[k]).length;
         const globalBadge = link.global ? ' • 🌐' : '';
 
+        const createdByText = link.createdBy ? ` | ${link.createdBy}` : '';
         const div = document.createElement('div');
         div.className = `saved-link-item ${link.id === currentLinkId ? 'active' : ''}`;
         const iconHtml = getIconSvg(link.icon || 'file-text', 18);
@@ -572,7 +733,7 @@ function renderLinksList() {
             <div class="link-icon">${iconHtml}</div>
             <div class="link-info">
                 <div class="link-name">${escapeHtml(link.configName || 'Untitled')}</div>
-                <div class="link-meta">${activeCount} param${activeCount !== 1 ? 's' : ''} defined${globalBadge}</div>
+                <div class="link-meta">${activeCount} param${activeCount !== 1 ? 's' : ''} defined${globalBadge}${escapeHtml(createdByText)}</div>
             </div>
         `;
         div.onclick = () => {
@@ -589,6 +750,7 @@ function loadConfiguration(link) {
     configNameInput.value = link.configName || '';
     templateDescriptionInput.value = link.description || '';
     globalToggle.checked = !!link.global;
+    if (requireAuthToggle) requireAuthToggle.checked = !!link.requireAuth;
     selectIcon(link.icon || 'file-text');
 
     // Load field values (always load, regardless of toggle state)
@@ -619,7 +781,10 @@ function loadConfiguration(link) {
         applyToggleUI(k);
     });
 
-    deleteBtn.style.display = 'inline-flex';
+    // Show delete button only if creator or super admin
+    const canDelete = !link.createdBy || 
+                      (currentAppUser && (currentAppUser.role === 'super_admin' || currentAppUser.email === link.createdBy));
+    deleteBtn.style.display = canDelete ? 'inline-flex' : 'none';
     saveBtn.textContent = 'Update';
     renderLinksList();
     updateUrl();
@@ -630,6 +795,7 @@ function resetForm() {
     configNameInput.value = '';
     templateDescriptionInput.value = '';
     globalToggle.checked = false;
+    if (requireAuthToggle) requireAuthToggle.checked = false;
     selectIcon('file-text');
 
     Object.values(formInputs).forEach(input => {
@@ -672,6 +838,7 @@ async function saveConfiguration() {
         description,
         icon: selectedIcon,
         global: globalToggle.checked,
+        requireAuth: requireAuthToggle ? requireAuthToggle.checked : false,
         name: formInputs.name.value.trim(),
         role: formInputs.role.value.trim(),
         journey: formInputs.journey.value.trim(),
@@ -690,18 +857,19 @@ async function saveConfiguration() {
     try {
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving...';
+        await refreshToken();
 
         let res;
         if (currentLinkId) {
             res = await fetch(`${LINKS_API_URL}/${currentLinkId}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authHeaders(),
                 body: JSON.stringify(payload)
             });
         } else {
             res = await fetch(LINKS_API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authHeaders(),
                 body: JSON.stringify(payload)
             });
         }
@@ -728,7 +896,8 @@ async function saveConfiguration() {
 async function deleteConfiguration() {
     if (!currentLinkId || !confirm("Are you sure you want to delete this template?")) return;
     try {
-        const res = await fetch(`${LINKS_API_URL}/${currentLinkId}`, { method: 'DELETE' });
+        await refreshToken();
+        const res = await fetch(`${LINKS_API_URL}/${currentLinkId}`, { method: 'DELETE', headers: authHeaders() });
         if (res.ok) { resetForm(); fetchLinks(); } else { alert("Failed to delete."); }
     } catch (e) { alert("Error deleting."); }
 }
@@ -856,5 +1025,77 @@ function copyToClipboard() {
     });
 }
 
-// Run
-document.addEventListener('DOMContentLoaded', init);
+// ========================================
+// Users Management (Super Admin)
+// ========================================
+async function fetchUsers() {
+    if (!usersTableBody) return;
+    try {
+        await refreshToken();
+        const res = await fetch(`${USERS_API_URL}?_t=${Date.now()}`, { headers: authHeaders() });
+        if (!res.ok) { usersTableBody.innerHTML = '<tr><td colspan="5" class="empty-state">Failed to load users.</td></tr>'; return; }
+        const users = await res.json();
+        renderUsersTable(users);
+    } catch (e) {
+        console.error('Failed to fetch users', e);
+        usersTableBody.innerHTML = '<tr><td colspan="5" class="empty-state">Error loading users.</td></tr>';
+    }
+}
+
+function renderUsersTable(users) {
+    if (!usersTableBody) return;
+    usersTableBody.innerHTML = '';
+    
+    if (!users || users.length === 0) {
+        usersTableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No users registered yet.</td></tr>';
+        return;
+    }
+
+    const sorted = [...users].sort((a, b) => {
+        if (a.role === 'super_admin') return -1;
+        if (b.role === 'super_admin') return 1;
+        return new Date(b.lastLoginAt || 0) - new Date(a.lastLoginAt || 0);
+    });
+
+    sorted.forEach(user => {
+        const tr = document.createElement('tr');
+        const lastLogin = user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never';
+        const isSuperAdmin = user.role === 'super_admin';
+        const statusClass = user.active ? 'status-active' : 'status-inactive';
+        const statusText = user.active ? 'Active' : 'Inactive';
+        
+        tr.innerHTML = `
+            <td><strong>${escapeHtml(user.displayName || 'Unknown')}</strong></td>
+            <td>${escapeHtml(user.email || '')}</td>
+            <td><span class="role-badge ${user.role}">${user.role === 'super_admin' ? 'Super Admin' : 'Admin'}</span></td>
+            <td>${lastLogin}</td>
+            <td>
+                ${isSuperAdmin 
+                    ? `<span class="status-badge status-active">Always Active</span>` 
+                    : `<button class="status-toggle-btn ${statusClass}" data-uid="${user.uid}">${statusText}</button>`
+                }
+            </td>
+        `;
+        usersTableBody.appendChild(tr);
+    });
+
+    // Bind toggle buttons
+    usersTableBody.querySelectorAll('.status-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const uid = btn.dataset.uid;
+            try {
+                await refreshToken();
+                const res = await fetch(`${USERS_API_URL}/${uid}/active`, { method: 'PUT', headers: authHeaders() });
+                if (res.ok) fetchUsers();
+                else alert('Failed to toggle user status.');
+            } catch (e) { alert('Error toggling user.'); }
+        });
+    });
+}
+
+// Run - Set up auth UI listeners, then wait for Firebase auth state
+document.addEventListener('DOMContentLoaded', () => {
+    if (googleSignInBtn) googleSignInBtn.addEventListener('click', handleSignIn);
+    if (logoutBtn) logoutBtn.addEventListener('click', handleSignOut);
+    if (headerLogoutBtn) headerLogoutBtn.addEventListener('click', handleSignOut);
+});

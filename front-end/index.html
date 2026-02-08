@@ -1091,6 +1091,329 @@
     }
 
     /* ========================================
+       NAV BUTTONS & HAMBURGER MENU
+       ======================================== */
+    .max-header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .header-nav.desktop-only {
+        display: none;
+    }
+
+    @media (min-width: 769px) {
+        .header-nav.desktop-only {
+            display: flex;
+        }
+    }
+
+    .nav-btn {
+        font-family: var(--max-font-family-mono);
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 6px 12px;
+        background: transparent;
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-small);
+        color: var(--max-color-text-secondary);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+
+    .nav-btn:hover {
+        background: var(--max-color-surface-tertiary);
+        color: var(--max-color-text-primary);
+        border-color: var(--max-color-text-secondary);
+    }
+
+    .hamburger-btn {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: transparent;
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-small);
+        color: var(--max-color-text-secondary);
+        cursor: pointer;
+    }
+
+    .hamburger-btn:hover {
+        background: var(--max-color-surface-tertiary);
+        color: var(--max-color-text-primary);
+    }
+
+    .mobile-only-flex {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .mobile-only-flex {
+            display: flex;
+        }
+    }
+
+    /* Mobile Menu Overlay */
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.7);
+        z-index: 10000;
+        display: none;
+        justify-content: flex-end;
+    }
+
+    .mobile-menu-overlay.active {
+        display: flex;
+    }
+
+    .mobile-menu-content {
+        background: var(--max-color-surface-primary);
+        width: 260px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        animation: slideInRight 0.2s ease;
+    }
+
+    @keyframes slideInRight {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+    }
+
+    .mobile-menu-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--max-color-border);
+    }
+
+    .mobile-menu-close {
+        background: none;
+        border: none;
+        color: var(--max-color-text-secondary);
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0 4px;
+    }
+
+    .mobile-menu-nav {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 12px 0;
+    }
+
+    .mobile-menu-item {
+        display: block;
+        width: 100%;
+        padding: 14px 20px;
+        background: none;
+        border: none;
+        text-align: left;
+        color: var(--max-color-text-primary);
+        font-family: var(--max-font-family-mono);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .mobile-menu-item:hover {
+        background: var(--max-color-surface-secondary);
+    }
+
+    .mobile-menu-footer {
+        padding: 12px 20px;
+        border-top: 1px solid var(--max-color-border);
+    }
+
+    .mobile-model-label {
+        font-family: var(--max-font-family-mono);
+        font-size: 9px;
+        color: var(--max-color-text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* ========================================
+       FEEDBACK PANEL
+       ======================================== */
+    .feedback-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .feedback-card {
+        background: var(--max-color-surface-primary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-large);
+        padding: 24px;
+        width: 90%;
+        max-width: 480px;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    }
+
+    .feedback-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .feedback-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .feedback-close {
+        background: none;
+        border: none;
+        color: var(--max-color-text-tertiary);
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    .feedback-textarea {
+        width: 100%;
+        padding: 12px;
+        background: var(--max-color-surface-secondary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-small);
+        color: var(--max-color-text-primary);
+        font-family: var(--max-font-family);
+        font-size: 14px;
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .feedback-textarea:focus {
+        outline: none;
+        border-color: var(--max-color-accent);
+    }
+
+    .feedback-actions {
+        margin-top: 16px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .feedback-submit-btn {
+        padding: 10px 20px;
+        background: var(--max-color-accent);
+        color: #fff;
+        border: none;
+        border-radius: var(--max-radius-small);
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .feedback-submit-btn:hover {
+        background: var(--max-color-accent-hover);
+    }
+
+    .feedback-submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .feedback-status {
+        margin-top: 12px;
+        font-size: 13px;
+        padding: 8px;
+        border-radius: var(--max-radius-small);
+        text-align: center;
+    }
+
+    .feedback-status.success {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+    }
+
+    .feedback-status.error {
+        background: var(--max-color-error-subtle);
+        color: var(--max-color-error);
+    }
+
+    /* ========================================
+       AUTH GATE (Per-Template)
+       ======================================== */
+    .auth-gate-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(10, 12, 16, 0.95);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .auth-gate-card {
+        background: var(--max-color-surface-primary);
+        border: 1px solid var(--max-color-border);
+        border-radius: var(--max-radius-large);
+        padding: 40px 32px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    }
+
+    .auth-gate-card h3 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .auth-gate-desc {
+        color: var(--max-color-text-secondary);
+        font-size: 14px;
+        margin-bottom: 24px;
+    }
+
+    .google-signin-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 24px;
+        background: #fff;
+        color: #3c4043;
+        border: 1px solid #dadce0;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .google-signin-btn:hover {
+        background: #f8f9fa;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    /* ========================================
        PDF EXPORT STYLES
        ======================================== */
     .pdf-export-mode {
@@ -1134,30 +1457,86 @@
           <span id="headerTemplateIcon" class="header-template-icon"></span>
           <img src="max_header.svg" alt="M.AX" style="height: 32px; width: auto;">
       </div>
-      <div class="max-status" id="connectionStatus">
+      <div class="max-header-right">
         <button id="mobileToggleBtn" class="mobile-toggle-btn" onclick="toggleMobileView()">Map</button>
-        <span class="max-status-dot" id="statusDot"></span>
-        <span id="statusText" class="desktop-only">Connecting...</span>
-        <div class="template-picker-wrapper">
-            <button id="templatePickerBtn" class="reset-btn" title="Start new journey">
-                NEW
-            </button>
-            <div id="templatePickerPanel" class="template-picker-panel" style="display: none;">
-                <div class="template-picker-header">
-                    <span>Choose a Journey</span>
-                    <button class="template-picker-close" onclick="closeTemplatePicker()">&times;</button>
+        
+        <!-- Desktop Nav Buttons -->
+        <nav class="header-nav desktop-only">
+            <div class="template-picker-wrapper">
+                <button id="templatePickerBtn" class="nav-btn" title="Choose a journey template">CHOOSE</button>
+                <div id="templatePickerPanel" class="template-picker-panel" style="display: none;">
+                    <div class="template-picker-header">
+                        <span>Choose a Journey</span>
+                        <button class="template-picker-close" onclick="closeTemplatePicker()">&times;</button>
+                    </div>
+                    <div id="templatePickerList" class="template-picker-list">
+                        <div class="template-picker-loading">Loading...</div>
+                    </div>
+                    <button class="template-picker-blank" onclick="startBlankJourney()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Blank Journey
+                    </button>
                 </div>
-                <div id="templatePickerList" class="template-picker-list">
-                    <div class="template-picker-loading">Loading...</div>
-                </div>
-                <button class="template-picker-blank" onclick="startBlankJourney()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    Blank Journey
-                </button>
             </div>
-        </div>
+            <button class="nav-btn" onclick="showPlaceholder('Create')">CREATE</button>
+            <button class="nav-btn" onclick="showPlaceholder('About')">ABOUT</button>
+            <button class="nav-btn" id="feedbackNavBtn" onclick="openFeedbackPanel()">FEEDBACK</button>
+        </nav>
+
+        <!-- Hamburger (Mobile) -->
+        <button id="hamburgerBtn" class="hamburger-btn mobile-only-flex" aria-label="Menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
       </div>
     </header>
+
+    <!-- Mobile Hamburger Menu -->
+    <div id="mobileMenu" class="mobile-menu-overlay">
+        <div class="mobile-menu-content">
+            <div class="mobile-menu-header">
+                <img src="max_header.svg" alt="M.AX" style="height: 24px;">
+                <button class="mobile-menu-close" onclick="closeMobileMenu()">&times;</button>
+            </div>
+            <nav class="mobile-menu-nav">
+                <button class="mobile-menu-item" onclick="openTemplatePicker(); closeMobileMenu();">CHOOSE</button>
+                <button class="mobile-menu-item" onclick="showPlaceholder('Create'); closeMobileMenu();">CREATE</button>
+                <button class="mobile-menu-item" onclick="showPlaceholder('About'); closeMobileMenu();">ABOUT</button>
+                <button class="mobile-menu-item" onclick="openFeedbackPanel(); closeMobileMenu();">FEEDBACK</button>
+            </nav>
+            <div class="mobile-menu-footer">
+                <span id="mobileModelName" class="mobile-model-label">Loading model...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Panel Overlay -->
+    <div id="feedbackPanel" class="feedback-overlay" style="display: none;">
+        <div class="feedback-card">
+            <div class="feedback-header">
+                <h3>Please give us feedback</h3>
+                <button class="feedback-close" onclick="closeFeedbackPanel()">&times;</button>
+            </div>
+            <textarea id="feedbackText" class="feedback-textarea" rows="5" placeholder="What's on your mind? Tell us how we can improve..."></textarea>
+            <div class="feedback-actions">
+                <button class="feedback-submit-btn" id="feedbackSubmitBtn" onclick="submitFeedback()">Submit Feedback</button>
+            </div>
+            <div id="feedbackStatus" class="feedback-status" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Auth Gate (for requireAuth templates) -->
+    <div id="authGate" class="auth-gate-overlay" style="display: none;">
+        <div class="auth-gate-card">
+            <img src="max_header.svg" alt="M.AX" style="height: 32px; margin-bottom: 20px;">
+            <h3>Sign in to begin</h3>
+            <p class="auth-gate-desc">This journey requires Google authentication to proceed.</p>
+            <button id="authGateSignInBtn" class="google-signin-btn">
+                <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Sign in with Google
+            </button>
+            <div id="authGateError" style="display: none; color: #ef4444; margin-top: 12px; font-size: 13px;"></div>
+        </div>
+    </div>
 
     <div class="max-main-content">
       <!-- Chat Container (Left) -->
@@ -1236,6 +1615,9 @@
     </div>
   </div>
 
+  <!-- Firebase Auth SDK (for optional per-template auth) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -1302,7 +1684,7 @@
     })();
   </script>
   <script src="js/lucide-icons.js?v=1"></script>
-  <script src="js/renderer.js?v=1018"></script>
+  <script src="js/renderer.js?v=1019"></script>
   <script src="js/json-renderer.js"></script>
   <script>
     // ===========================================
@@ -1646,8 +2028,6 @@
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
     const inputWrapper = document.getElementById('inputWrapper');
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
     const journeyDashboard = document.getElementById('journeyDashboard');
     let currentJourneyId = null;
     let currentJourney = null; // Store full object
@@ -1723,15 +2103,14 @@
         
         if (data.status === 'ok') {
           state.isConnected = true;
-          statusDot.classList.add('connected');
-          statusDot.classList.remove('error');
-          statusText.textContent = `${data.model}`;
+          // Update mobile hamburger model label
+          const mobileLabel = document.getElementById('mobileModelName');
+          if (mobileLabel) mobileLabel.textContent = data.model || 'Connected';
         }
       } catch (error) {
         state.isConnected = false;
-        statusDot.classList.add('error');
-        statusDot.classList.remove('connected');
-        statusText.textContent = 'Not connected';
+        const mobileLabel = document.getElementById('mobileModelName');
+        if (mobileLabel) mobileLabel.textContent = 'Not connected';
       }
     }
 
@@ -1750,7 +2129,7 @@
 
       if (configId) {
           try {
-              const res = await fetch(`/api/admin/links/${configId}?_t=${Date.now()}`);
+              const res = await fetch(`/api/links/${configId}?_t=${Date.now()}`);
               if (res.ok) {
                   const linkData = await res.json();
                   // If toggles exist, only include fields whose toggles are ON.
@@ -1766,7 +2145,9 @@
                       journeyPrompt: use('journeyPrompt', linkData.journeyPrompt),
                       ragContext: use('ragContext', linkData.ragContext) || null,
                       swimlanes: use('swimlanes', linkData.swimlanes),
-                      phases: use('phases', linkData.phases)
+                      phases: use('phases', linkData.phases),
+                      requireAuth: !!linkData.requireAuth,
+                      templateId: linkData.id
                   };
 
                   // Set header template icon
@@ -1823,7 +2204,9 @@
           ragContext: remoteConfig.ragContext || null,
           swimlanes: urlSwimlanes || remoteConfig.swimlanes,
           phases: urlPhases || remoteConfig.phases,
-          journeyId: journeyId
+          journeyId: journeyId,
+          templateId: remoteConfig.templateId || null,
+          requireAuth: remoteConfig.requireAuth || false
       };
 
       // Clean up undefined/null values
@@ -1856,8 +2239,14 @@
       // OR it would see a journeyId in local storage (even if we wanted to reset).
       
       if (!journeyId && state.conversationHistory.length === 0) {
-          // Add a small delay to ensure everything is initialized
-          setTimeout(() => startConversation(), 500);
+          // Check if this template requires auth
+          if (state.sessionConfig.requireAuth) {
+              // Show auth gate instead of starting conversation directly
+              setTimeout(() => showAuthGate(), 300);
+          } else {
+              // Add a small delay to ensure everything is initialized
+              setTimeout(() => startConversation(), 500);
+          }
       }
     }
     
@@ -1875,7 +2264,7 @@
     // ===========================================
     async function fetchSettings() {
         try {
-            const response = await fetch('/api/admin/settings');
+            const response = await fetch('/api/settings');
             if (response.ok) {
                 const settings = await response.json();
                 if (settings.agentName) {
@@ -2526,18 +2915,170 @@ async function exportToPdf() {
         }
     });
 
+    // ========================================
+    // Mobile Hamburger Menu
+    // ========================================
+    function openMobileMenu() {
+        document.getElementById('mobileMenu').classList.add('active');
+    }
+    function closeMobileMenu() {
+        document.getElementById('mobileMenu').classList.remove('active');
+    }
+    document.getElementById('hamburgerBtn').addEventListener('click', openMobileMenu);
+    // Close on backdrop click
+    document.getElementById('mobileMenu').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('mobileMenu')) closeMobileMenu();
+    });
+
+    // ========================================
+    // Placeholder Modals (Create / About)
+    // ========================================
+    function showPlaceholder(name) {
+        alert(`${name} is coming soon!`);
+    }
+
+// ===========================================
+    // Feedback Panel
+    // ===========================================
+    function openFeedbackPanel() {
+        document.getElementById('feedbackPanel').style.display = 'flex';
+        document.getElementById('feedbackText').value = '';
+        document.getElementById('feedbackStatus').style.display = 'none';
+        document.getElementById('feedbackSubmitBtn').disabled = false;
+        document.getElementById('feedbackSubmitBtn').textContent = 'Submit Feedback';
+    }
+
+    function closeFeedbackPanel() {
+        document.getElementById('feedbackPanel').style.display = 'none';
+    }
+
+    async function submitFeedback() {
+        const text = document.getElementById('feedbackText').value.trim();
+        if (!text) {
+            document.getElementById('feedbackText').focus();
+            return;
+        }
+
+        const btn = document.getElementById('feedbackSubmitBtn');
+        const status = document.getElementById('feedbackStatus');
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+
+        try {
+            const payload = {
+                text,
+                messages: state.conversationHistory || [],
+                journeyId: currentJourneyId || null,
+                templateId: state.sessionConfig?.templateId || null,
+                email: state.sessionConfig?.userEmail || null
+            };
+
+            const res = await fetch('/api/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                status.textContent = 'Thank you for your feedback!';
+                status.className = 'feedback-status success';
+                status.style.display = 'block';
+                setTimeout(closeFeedbackPanel, 2000);
+            } else {
+                throw new Error('Failed to submit');
+            }
+        } catch (e) {
+            status.textContent = 'Failed to send feedback. Please try again.';
+            status.className = 'feedback-status error';
+            status.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Submit Feedback';
+        }
+    }
+
+    // Close feedback on backdrop click
+    document.getElementById('feedbackPanel').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('feedbackPanel')) closeFeedbackPanel();
+    });
+
+    // ========================================
+    // Firebase Auth (for per-template auth gate)
+    // ========================================
+    const frontendFirebaseConfig = {
+        apiKey: "AIzaSyA4kA1WHUfHAqznL-Us-d8-whjpkr_D4a0",
+        authDomain: "journey-mapper-ai-8822.firebaseapp.com",
+        projectId: "journey-mapper-ai-8822",
+        storageBucket: "journey-mapper-ai-8822.firebasestorage.app",
+        messagingSenderId: "98598658832",
+        appId: "1:98598658832:web:a7199d2b48d46914167b95"
+    };
+
+    let frontendFirebaseApp = null;
+    let frontendAuth = null;
+
+    function initFrontendFirebase() {
+        if (frontendFirebaseApp) return;
+        // Check if Firebase was already initialized (by admin sharing same SDK)
+        if (firebase.apps.length === 0) {
+            frontendFirebaseApp = firebase.initializeApp(frontendFirebaseConfig);
+        } else {
+            frontendFirebaseApp = firebase.apps[0];
+        }
+        frontendAuth = firebase.auth();
+    }
+
+    async function showAuthGate() {
+        initFrontendFirebase();
+        const gate = document.getElementById('authGate');
+        gate.style.display = 'flex';
+
+        const signInBtn = document.getElementById('authGateSignInBtn');
+        const errorEl = document.getElementById('authGateError');
+        
+        signInBtn.onclick = async () => {
+            try {
+                errorEl.style.display = 'none';
+                signInBtn.disabled = true;
+                signInBtn.textContent = 'Signing in...';
+                
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await frontendAuth.signInWithPopup(provider);
+                const email = result.user.email;
+                
+                // Store email in session config
+                state.sessionConfig.userEmail = email;
+                
+                // Hide auth gate
+                gate.style.display = 'none';
+                
+                // Now start the conversation
+                if (state.conversationHistory.length === 0) {
+                    startConversation();
+                }
+            } catch (err) {
+                errorEl.textContent = err.message || 'Sign-in failed.';
+                errorEl.style.display = 'block';
+                signInBtn.disabled = false;
+                signInBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Sign in with Google`;
+            }
+        };
+    }
+
     function toggleMobileView() {
-        document.body.classList.toggle('show-map');
         const btn = document.getElementById('mobileToggleBtn');
+        // Always clear glow on interaction
+        if (btn) btn.classList.remove('map-updated');
+
+        document.body.classList.toggle('show-map');
+        
         if (document.body.classList.contains('show-map')) {
-            btn.textContent = 'Chat';
-            btn.classList.remove('map-updated'); // Clear glow when viewing map
+            if (btn) btn.textContent = 'Chat';
             // Auto-fit when switching to map
             setTimeout(() => {
                 if(window.panzoomInstance) performFit();
             }, 100);
         } else {
-            btn.textContent = 'Map';
+            if (btn) btn.textContent = 'Map';
         }
     }
 
