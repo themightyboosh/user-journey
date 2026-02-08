@@ -328,7 +328,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--max-color-accent);
+        color: #ffffff;
     }
 
     .header-template-icon:empty {
@@ -346,6 +346,7 @@
         font-weight: 600;
         color: var(--max-color-accent);
         letter-spacing: 0.02em;
+        text-transform: uppercase;
     }
 
     .header-template-name:empty {
@@ -1992,13 +1993,14 @@
                       templateId: linkData.id
                   };
 
-                  // Set header template icon and name
+                  // Set header template icon (white) and template title (red, uppercase)
                   const headerIcon = document.getElementById('headerTemplateIcon');
-                  if (headerIcon) headerIcon.innerHTML = getPickerIconSvg(linkData.icon || 'file-text', 32);
+                  if (headerIcon) headerIcon.innerHTML = getPickerIconSvg(linkData.icon || 'file-text', 24);
                   const headerName = document.getElementById('headerTemplateName');
-                  if (headerName && linkData.name) {
-                      headerName.textContent = linkData.name;
-                      // Hide logo when template name is shown
+                  const templateTitle = linkData.configName || linkData.journey || '';
+                  if (headerName && templateTitle) {
+                      headerName.textContent = templateTitle;
+                      // Hide logo when template is loaded
                       const logoImg = document.getElementById('headerLogoImg');
                       if (logoImg) logoImg.style.display = 'none';
                   }
