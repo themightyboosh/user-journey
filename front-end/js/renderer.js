@@ -608,9 +608,9 @@ async function exportToPdf() {
     await embedFontsForPdf();
 
     // 1. Reset Transform to ensure full capture (on parent)
-    const parent = document.getElementById('journeyDashboard');
-    const originalTransform = parent.style.transform;
-    parent.style.transform = 'none'; 
+    const parent = (window.journeyViewer && document.getElementById(window.journeyViewer.canvasId)) || document.getElementById('journeyDashboard');
+    const originalTransform = parent ? parent.style.transform : '';
+    if (parent) parent.style.transform = 'none'; 
     
     // 2. Calculate Full Dimensions
     const width = element.scrollWidth;

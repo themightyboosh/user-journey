@@ -1622,7 +1622,7 @@
 
         <!-- Chat Canvas (Right) — powered by JourneyViewer -->
       <div class="max-chat-canvas" id="chatCanvas">
-        <div id="journeyViewerRoot" style="position: relative; width: 100%; height: 100%;"></div>
+        <div id="journeyViewerRoot" style="position: relative; flex: 1; min-height: 0; overflow: hidden;"></div>
       </div>
       
       <!-- Cell Detail Modal (Hidden) -->
@@ -1743,11 +1743,9 @@
         if (!currentJourney) return;
         
         if (state.currentView === 'map') {
-            if (window.journeyViewer) {
-                window.journeyViewer.render(currentJourney);
-            } else {
-                renderMap(currentJourney);
-            }
+            // During streaming, render directly (no auto-fit).
+            // journeyRendered event handles fit logic separately.
+            renderMap(currentJourney);
         } else {
             renderJson(currentJourney);
         }
@@ -1774,7 +1772,7 @@
         });
 
         // Seed canvas with empty "New Journey" board
-        window.journeyViewer.render({
+        renderMap({
             name: 'New Journey',
             role: '',
             userName: '',
@@ -1783,6 +1781,7 @@
             cells: [],
             quotes: []
         });
+        setTimeout(function () { window.journeyViewer.fit(); }, 150);
     });
 
     // Convenience wrappers for code that still calls these
