@@ -1684,7 +1684,7 @@
     })();
   </script>
   <script src="js/lucide-icons.js?v=1"></script>
-  <script src="js/renderer.js?v=1019"></script>
+  <script src="js/renderer.js?v=1020"></script>
   <script src="js/json-renderer.js"></script>
   <script>
     // ===========================================
@@ -2159,13 +2159,7 @@
           }
       }
 
-      // Set default header icon if no template loaded (or fetch failed)
-      {
-          const headerIcon = document.getElementById('headerTemplateIcon');
-          if (headerIcon && !headerIcon.innerHTML) {
-              headerIcon.innerHTML = getPickerIconSvg('columns4', 32);
-          }
-      }
+      // No default header icon when no template is loaded
 
       // 2. Check URL first, then LocalStorage
       const journeyId = params.get('journeyId') || localStorage.getItem('max_journey_id');
@@ -3187,7 +3181,8 @@ async function exportToPdf() {
             cells: cells,
             mentalModels: "1. Model Alpha: Users think linear.\n2. Model Beta: Users jump around.\n3. Model Gamma: Price is key.",
             summaryOfFindings: "Overall, the journey is fragmented. We need better cohesion in the purchase phase.",
-            quotes: ["This is the absolute best test quote I have ever seen."]
+            quotes: ["This is the absolute best test quote I have ever seen."],
+            templateIcon: "activity"
         };
         
         currentJourney = journey;
