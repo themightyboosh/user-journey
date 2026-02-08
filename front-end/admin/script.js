@@ -1,5 +1,5 @@
 // Config
-const VERSION = '2.3';
+const VERSION = '2.5';
 console.log('Journey Mapper Admin v' + VERSION);
 
 const BASE_URL = window.location.origin + '/';
@@ -42,8 +42,21 @@ const formInputs = {
     ragContext: document.getElementById('ragContext')
 };
 const configNameInput = document.getElementById('configName');
+const templateDescriptionInput = document.getElementById('templateDescription');
 const ragCharCount = document.getElementById('ragCharCount');
 const globalToggle = document.getElementById('globalToggle');
+
+// Icon Picker
+const iconPickerBtn = document.getElementById('iconPickerBtn');
+const iconPickerDropdown = document.getElementById('iconPickerDropdown');
+const iconPickerLabel = document.getElementById('iconPickerLabel');
+const selectedIconPreview = document.getElementById('selectedIconPreview');
+const iconSearchInput = document.getElementById('iconSearchInput');
+const iconGrid = document.getElementById('iconGrid');
+let selectedIcon = 'file-text'; // Default icon
+
+// Icon library loaded from ../js/lucide-icons.js (LUCIDE_ICONS global — 1906 icons)
+const ICON_LIBRARY = (typeof LUCIDE_ICONS !== 'undefined') ? LUCIDE_ICONS : {};
 
 const swimlanesContainer = document.getElementById('swimlanesContainer');
 const phasesContainer = document.getElementById('phasesContainer');
@@ -145,6 +158,9 @@ function init() {
         if (window.innerWidth < 1024) toggleSidebar(); // Close sidebar on mobile after new click
     });
 
+    // Icon Picker
+    initIconPicker();
+
     // Journeys Module
     if (clearJourneysBtn) clearJourneysBtn.addEventListener('click', clearAllJourneys);
 
@@ -211,6 +227,70 @@ function switchModule(e, moduleName) {
     
     // Reset sidebar state on mobile
     if (isMobile) adminSidebar.classList.remove('active');
+}
+
+// ========================================
+// Icon Picker
+// ========================================
+function getIconSvg(name, size = 20) {
+    const paths = ICON_LIBRARY[name] || ICON_LIBRARY['file-text'];
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+}
+
+function initIconPicker() {
+    if (!iconPickerBtn || !iconPickerDropdown) return;
+    
+    // Build grid
+    renderIconGrid('');
+
+    // Toggle dropdown
+    iconPickerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = iconPickerDropdown.style.display !== 'none';
+        iconPickerDropdown.style.display = isOpen ? 'none' : 'flex';
+        if (!isOpen) {
+            iconSearchInput.value = '';
+            renderIconGrid('');
+            iconSearchInput.focus();
+        }
+    });
+
+    // Search
+    iconSearchInput.addEventListener('input', (e) => {
+        renderIconGrid(e.target.value.toLowerCase());
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (!iconPickerDropdown.contains(e.target) && e.target !== iconPickerBtn) {
+            iconPickerDropdown.style.display = 'none';
+        }
+    });
+}
+
+function renderIconGrid(filter) {
+    if (!iconGrid) return;
+    iconGrid.innerHTML = '';
+    Object.keys(ICON_LIBRARY).forEach(name => {
+        if (filter && !name.includes(filter)) return;
+        const item = document.createElement('div');
+        item.className = `icon-grid-item ${name === selectedIcon ? 'active' : ''}`;
+        item.title = name;
+        item.innerHTML = getIconSvg(name, 20);
+        item.addEventListener('click', () => selectIcon(name));
+        iconGrid.appendChild(item);
+    });
+}
+
+function selectIcon(name) {
+    selectedIcon = name;
+    const preview = document.getElementById('selectedIconPreview');
+    if (preview) {
+        preview.outerHTML = getIconSvg(name, 20).replace('<svg ', '<svg id="selectedIconPreview" ');
+    }
+    if (iconPickerLabel) iconPickerLabel.textContent = name;
+    if (iconPickerDropdown) iconPickerDropdown.style.display = 'none';
+    renderIconGrid('');
 }
 
 // ========================================
@@ -487,9 +567,13 @@ function renderLinksList() {
 
         const div = document.createElement('div');
         div.className = `saved-link-item ${link.id === currentLinkId ? 'active' : ''}`;
+        const iconHtml = getIconSvg(link.icon || 'file-text', 18);
         div.innerHTML = `
-            <div class="link-name">${escapeHtml(link.configName || 'Untitled')}</div>
-            <div class="link-meta">${activeCount} param${activeCount !== 1 ? 's' : ''} defined${globalBadge}</div>
+            <div class="link-icon">${iconHtml}</div>
+            <div class="link-info">
+                <div class="link-name">${escapeHtml(link.configName || 'Untitled')}</div>
+                <div class="link-meta">${activeCount} param${activeCount !== 1 ? 's' : ''} defined${globalBadge}</div>
+            </div>
         `;
         div.onclick = () => {
             loadConfiguration(link);
@@ -503,7 +587,9 @@ function loadConfiguration(link) {
     currentLinkId = link.id;
 
     configNameInput.value = link.configName || '';
+    templateDescriptionInput.value = link.description || '';
     globalToggle.checked = !!link.global;
+    selectIcon(link.icon || 'file-text');
 
     // Load field values (always load, regardless of toggle state)
     formInputs.name.value = link.name || '';
@@ -542,7 +628,9 @@ function loadConfiguration(link) {
 function resetForm() {
     currentLinkId = null;
     configNameInput.value = '';
+    templateDescriptionInput.value = '';
     globalToggle.checked = false;
+    selectIcon('file-text');
 
     Object.values(formInputs).forEach(input => {
         if (input && input.value !== undefined) input.value = '';
@@ -571,10 +659,18 @@ async function saveConfiguration() {
         configNameInput.focus();
         return;
     }
+    const description = templateDescriptionInput.value.trim();
+    if (!description) {
+        alert("Please enter a Description.");
+        templateDescriptionInput.focus();
+        return;
+    }
 
     // Save ALL values (even if toggle is off) so they persist for toggling
     const payload = {
         configName,
+        description,
+        icon: selectedIcon,
         global: globalToggle.checked,
         name: formInputs.name.value.trim(),
         role: formInputs.role.value.trim(),

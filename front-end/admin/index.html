@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../styles/max-components.css">
     <!-- Shared Journey Viewer (renderer.js output styles) -->
     <link rel="stylesheet" href="../styles/journey-viewer.css?v=1">
-    <link rel="stylesheet" href="style.css?v=2.4">
+    <link rel="stylesheet" href="style.css?v=2.7">
 
     <!-- Fonts -->
     <style>
@@ -200,9 +200,29 @@
                     </div>
 
                     <div class="template-editor">
-                        <div class="form-group compact" style="margin-bottom: 24px;">
-                            <label>Template Name</label>
+                        <div class="form-group compact" style="margin-bottom: 16px;">
+                            <label>Template Name <span style="color: var(--max-color-status-error-default);">*</span></label>
                             <input type="text" id="configName" placeholder="e.g. Employee Onboarding">
+                        </div>
+
+                        <div class="form-group compact" style="margin-bottom: 16px;">
+                            <label>Description <span style="color: var(--max-color-status-error-default);">*</span></label>
+                            <textarea id="templateDescription" rows="2" placeholder="Brief description shown to users when selecting this template"></textarea>
+                        </div>
+
+                        <div class="form-group compact" style="margin-bottom: 24px;">
+                            <label>Icon</label>
+                            <div class="icon-selector">
+                                <button type="button" id="iconPickerBtn" class="icon-picker-btn" title="Choose icon">
+                                    <svg id="selectedIconPreview" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                    <span id="iconPickerLabel">file-text</span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                </button>
+                                <div id="iconPickerDropdown" class="icon-picker-dropdown" style="display: none;">
+                                    <input type="text" id="iconSearchInput" placeholder="Search icons..." class="icon-search-input">
+                                    <div id="iconGrid" class="icon-grid"></div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Global Toggle -->
@@ -471,7 +491,8 @@
         </div>
     </template>
 
+    <script src="../js/lucide-icons.js?v=1"></script>
     <script src="../js/renderer.js?v=1018"></script>
-    <script src="script.js?v=2.3"></script>
+    <script src="script.js?v=2.7"></script>
 </body>
 </html>

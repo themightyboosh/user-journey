@@ -475,6 +475,22 @@ server.get('/api/admin/links', async (request, reply) => {
     return await adminService.getLinks();
 });
 
+// Public endpoint: global templates (for frontend template picker)
+server.get('/api/templates', async (request, reply) => {
+    const allLinks = await adminService.getLinks();
+    const links = Array.isArray(allLinks) ? allLinks : Object.values(allLinks);
+    // Return only global templates with public-safe fields
+    const globalTemplates = links
+        .filter((l: any) => l.global)
+        .map((l: any) => ({
+            id: l.id,
+            configName: l.configName,
+            description: l.description || '',
+            icon: l.icon || 'file-text',
+        }));
+    return globalTemplates;
+});
+
 server.get('/api/admin/links/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
     const link = await adminService.getLink(id);

@@ -362,37 +362,49 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
             html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 24px;">`;
             
             models.forEach((model, index) => {
-                let title = `Model ${index + 1}`;
-                let content = model;
-                const colonMatch = model.match(/^([^:]+):\s*(.*)/s);
-                if (colonMatch) {
-                    title = colonMatch[1];
-                    content = colonMatch[2];
-                } else {
-                    const dotIdx = model.indexOf('.');
-                    if (dotIdx > 0 && dotIdx < 50) {
-                         title = model.substring(0, dotIdx);
-                         content = model.substring(dotIdx + 1);
+                let title = '';
+                let content = model.trim();
+                
+                // Strategy 1: **Bold Title:** rest  OR  **Bold Title.** rest  OR  **Bold Title** rest
+                const boldMatch = content.match(/^\*\*(.+?)\*\*[:\.\s]*(.*)/s);
+                if (boldMatch) {
+                    title = boldMatch[1].replace(/[:\.]$/, '').trim();
+                    content = boldMatch[2].trim();
+                }
+                
+                // Strategy 2: Title: rest (colon-separated, title < 80 chars)
+                if (!title) {
+                    const colonMatch = content.match(/^([^:\n]{3,80}):\s*(.*)/s);
+                    if (colonMatch) {
+                        title = colonMatch[1].trim();
+                        content = colonMatch[2].trim();
                     }
                 }
                 
-                // Clean up title: remove markdown bold/italic markers manually if formatMessage didn't catch them due to fragmentation
-                // Also handle cases where the split left hanging markers
-                let cleanTitle = title.trim();
-                let cleanContent = content.trim();
-
-                // Remove leading/trailing ** or * from title if it looks like a bold header
-                cleanTitle = cleanTitle.replace(/^\*\*|\*\*$/g, '').replace(/^\*|\*$/g, '');
+                // Strategy 3: Short first sentence as title (period within first 80 chars)
+                if (!title) {
+                    const dotIdx = content.indexOf('.');
+                    if (dotIdx > 2 && dotIdx < 80) {
+                        title = content.substring(0, dotIdx).trim();
+                        content = content.substring(dotIdx + 1).trim();
+                    }
+                }
                 
-                // Remove leading ** from content if it looks like a continuation of bold
-                cleanContent = cleanContent.replace(/^\*\*\s*/, '');
+                // Fallback
+                if (!title) {
+                    title = `Insight ${index + 1}`;
+                }
+
+                // Strip any remaining ** or * markdown artifacts from both
+                let cleanTitle = title.replace(/\*\*/g, '').replace(/^\*|\*$/g, '').trim();
+                let cleanContent = content.replace(/^\*\*\s*/, '').trim();
 
                 const formattedTitle = formatMessage(cleanTitle).replace(/^<p>|<\/p>$/g, ''); 
 
                 html += `
                     <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 32px; border-radius: 16px; display: flex; gap: 24px; align-items: flex-start;">
                         <div style="flex-shrink: 0; margin-top: 4px;">
-                            ${getSematicIcon(title + ' ' + content)}
+                            ${getSematicIcon(cleanTitle + ' ' + cleanContent)}
                         </div>
                         <div>
                             <h4 style="font-size: 20px; font-weight: 700; color: var(--max-color-text-primary); margin-bottom: 8px;">${formattedTitle}</h4>
@@ -422,7 +434,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                 if (p.summary) {
                     html += `
                         <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column;">
-                            <div style="font-family: var(--max-font-family-mono); font-size: 22px; color: #ffffff; background-color: var(--max-color-accent); padding: 4px 8px; border-radius: 4px; display: inline-block; width: fit-content; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Phase</div>
+                            <div style="font-family: var(--max-font-family); font-weight: 700; font-size: 15px; color: #ffffff; background-color: var(--max-color-accent); padding: 4px 8px; border-radius: 4px; display: inline-block; width: fit-content; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Phase</div>
                             <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(p.name)}</h4>
                             <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary); flex-grow: 1;">${formatMessage(p.summary)}</div>
                         </div>
@@ -437,7 +449,7 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
                 if (s.summary) {
                     html += `
                         <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--max-color-border); padding: 24px; border-radius: 16px; display: flex; flex-direction: column;">
-                            <div style="font-family: var(--max-font-family-mono); font-size: 22px; color: #ffffff; background-color: var(--max-color-accent); padding: 4px 8px; border-radius: 4px; display: inline-block; width: fit-content; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Lane</div>
+                            <div style="font-family: var(--max-font-family); font-weight: 700; font-size: 15px; color: #ffffff; background-color: var(--max-color-accent); padding: 4px 8px; border-radius: 4px; display: inline-block; width: fit-content; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Lane</div>
                             <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--max-color-text-primary);">${escapeHtml(s.name)}</h4>
                             <div style="font-size: 16px; line-height: 1.6; color: var(--max-color-text-secondary); flex-grow: 1;">${formatMessage(s.summary)}</div>
                         </div>
