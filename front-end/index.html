@@ -1619,38 +1619,9 @@
       </div>
     </div>
 
-        <!-- Chat Canvas (Right) -->
+        <!-- Chat Canvas (Right) — powered by JourneyViewer -->
       <div class="max-chat-canvas" id="chatCanvas">
-        <!-- Panzoom Viewport -->
-        <div id="panzoomViewport" class="panzoom-viewport">
-            <!-- Canvas Content -->
-            <div class="journey-dashboard" id="journeyDashboard">
-            </div>
-        </div>
-        
-        <!-- Controls -->
-        <div class="panzoom-controls" id="panzoomControls">
-            <button class="panzoom-btn" onclick="panzoomAction('zoomIn')" title="Zoom In">
-                (+)
-            </button>
-            <button class="panzoom-btn" onclick="panzoomAction('zoomOut')" title="Zoom Out">
-                (-)
-            </button>
-            <button class="panzoom-btn" onclick="panzoomAction('fit')" title="Fit to Screen">
-                FIT
-            </button>
-            <!-- Actions (Added via JS when complete) -->
-            <button id="btnCopyConv" class="panzoom-btn" onclick="downloadTranscript()" style="display: none;" title="Download Transcript">
-                TRANSCRIPT
-            </button>
-            <button id="btnExportPdf" class="panzoom-btn" onclick="exportToPdf()" style="display: none;" title="Export PDF">
-                PDF
-            </button>
-            <!-- IMG export button hidden -->
-            <button class="panzoom-btn" onclick="debugGenerateRandom()" title="Generate Random Journey" style="color: var(--max-color-accent);">
-                GEN
-            </button>
-        </div>
+        <div id="journeyViewerRoot" style="position: relative; width: 100%; height: 100%;"></div>
       </div>
       
       <!-- Cell Detail Modal (Hidden) -->
@@ -1734,6 +1705,7 @@
   </script>
   <script src="js/lucide-icons.js?v=1"></script>
   <script src="js/renderer.js?v=1022"></script>
+  <script src="js/journey-viewer.js?v=1"></script>
   <script src="js/json-renderer.js"></script>
   <script>
     // ===========================================
@@ -1751,24 +1723,14 @@
     function toggleView() {
         state.currentView = state.currentView === 'map' ? 'json' : 'map';
         
-        // Handle Panzoom Logic
-        const viewport = document.getElementById('journeyDashboard');
-        const controls = document.getElementById('panzoomControls');
-        
         if (state.currentView === 'json') {
-            if (window.panzoomInstance) {
-                // Pause panzoom
-                window.panzoomInstance.pause();
-            }
-            viewport.classList.add('json-view-mode');
-            if (controls) controls.style.display = 'none';
+            if (window.journeyViewer) window.journeyViewer.pause();
+            var cv = document.getElementById(window.journeyViewer ? window.journeyViewer.canvasId : '');
+            if (cv) cv.classList.add('json-view-mode');
         } else {
-            if (window.panzoomInstance) {
-                // Resume panzoom
-                window.panzoomInstance.resume();
-            }
-            viewport.classList.remove('json-view-mode');
-            if (controls) controls.style.display = 'flex';
+            if (window.journeyViewer) window.journeyViewer.resume();
+            var cv2 = document.getElementById(window.journeyViewer ? window.journeyViewer.canvasId : '');
+            if (cv2) cv2.classList.remove('json-view-mode');
         }
 
         if (currentJourney) {
@@ -1780,248 +1742,64 @@
         if (!currentJourney) return;
         
         if (state.currentView === 'map') {
-            renderMap(currentJourney);
-            // Re-init or fit if needed, but panzoom handles DOM changes gracefully mostly.
-            // Maybe ensure size is updated if changed drastically
+            if (window.journeyViewer) {
+                window.journeyViewer.render(currentJourney);
+            } else {
+                renderMap(currentJourney);
+            }
         } else {
             renderJson(currentJourney);
         }
     }
 
     // ===========================================
-    // Panzoom Setup
+    // JourneyViewer Setup (singleton)
     // ===========================================
-    window.panzoomInstance = null;
+    window.journeyViewer = null;
 
-    function initPanzoom() {
-        const elem = document.getElementById('journeyDashboard'); // The element to zoom
-        // Note: Panzoom should be applied to the inner content, but user interacts with viewport
-        // Wait, I structured it as #panzoomViewport > #journeyDashboard
-        // So Panzoom initializes on #journeyDashboard, and listens to events on #panzoomViewport (or itself if not set)
-        
-        // Actually, best practice:
-        // elem is the canvas (child)
-        // parent is the viewport
-        
-        const viewport = document.getElementById('panzoomViewport');
-        if (!elem || !viewport) return;
-
-        // Initialize Panzoom
-        window.panzoomInstance = Panzoom(elem, {
-            maxScale: 5,
-            minScale: 0.1,
-            canvas: true, // "Infinite canvas" mode
-            contain: false, // Don't constrain to viewport
-            cursor: 'grab',
-            startScale: 1,
-            animate: true, // Smooth transitions
-            disableZoom: true // We handle zoom manually for focal-point behavior
+    document.addEventListener('DOMContentLoaded', () => {
+        window.journeyViewer = JourneyViewer.init('journeyViewerRoot', {
+            showDebugGen: true,
+            showTranscript: true,
+            showPdf: true,
+            onDebugGen: function () { debugGenerateRandom(); },
+            onTranscript: function () { downloadTranscript(); },
+            onPdf: function () { exportToPdf(); }
         });
 
-        // --- Focal-point zoom helper ---
-        function focalZoom(focalX, focalY, newScale) {
-            const pz = window.panzoomInstance;
-            const currentScale = pz.getScale();
-            const currentPan = pz.getPan();
-            const clamped = Math.max(0.1, Math.min(5, newScale));
-            const localX = (focalX / currentScale) - currentPan.x;
-            const localY = (focalY / currentScale) - currentPan.y;
-            const newPanX = (focalX / clamped) - localX;
-            const newPanY = (focalY / clamped) - localY;
-            pz.zoom(clamped, { animate: false });
-            pz.pan(newPanX, newPanY, { animate: false });
-        }
-
-        // Mouse wheel zooms at cursor position
-        viewport.addEventListener('wheel', (event) => {
-            event.preventDefault();
-            const pz = window.panzoomInstance;
-            const currentScale = pz.getScale();
-            const delta = event.deltaY > 0 ? -0.1 : 0.1;
-            const rect = viewport.getBoundingClientRect();
-            const mouseX = event.clientX - rect.left;
-            const mouseY = event.clientY - rect.top;
-            focalZoom(mouseX, mouseY, currentScale + delta);
-        }, { passive: false });
-
-        // --- Pinch-to-zoom at midpoint of two fingers ---
-        let pinchStartDist = 0;
-        let pinchStartScale = 1;
-        let pinchMid = { x: 0, y: 0 };
-
-        viewport.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                const t0 = e.touches[0], t1 = e.touches[1];
-                pinchStartDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
-                pinchStartScale = window.panzoomInstance.getScale();
-                const rect = viewport.getBoundingClientRect();
-                pinchMid = {
-                    x: ((t0.clientX + t1.clientX) / 2) - rect.left,
-                    y: ((t0.clientY + t1.clientY) / 2) - rect.top
-                };
-            }
-        }, { passive: true });
-
-        viewport.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2 && pinchStartDist > 0) {
-                e.preventDefault();
-                const t0 = e.touches[0], t1 = e.touches[1];
-                const currentDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
-                const ratio = currentDist / pinchStartDist;
-                const rect = viewport.getBoundingClientRect();
-                pinchMid = {
-                    x: ((t0.clientX + t1.clientX) / 2) - rect.left,
-                    y: ((t0.clientY + t1.clientY) / 2) - rect.top
-                };
-                focalZoom(pinchMid.x, pinchMid.y, pinchStartScale * ratio);
-            }
-        }, { passive: false });
-
-        viewport.addEventListener('touchend', () => {
-            pinchStartDist = 0;
-        }, { passive: true });
-        
-        // Sync Background Grid (Infinite Canvas Effect)
-        elem.addEventListener('panzoomchange', (event) => {
-            const { x, y, scale } = event.detail;
-            // Update grid size and position to match the board transform
-            // This creates the illusion that the grid is part of the canvas surface
-            const gridSize = 20 * scale; 
-            viewport.style.backgroundSize = `${gridSize}px ${gridSize}px`;
-            viewport.style.backgroundPosition = `${x}px ${y}px`;
+        // Backward compat: expose panzoomInstance for any remaining refs
+        Object.defineProperty(window, 'panzoomInstance', {
+            get: function () { return window.journeyViewer ? window.journeyViewer.panzoom : null; }
         });
 
-        /* 
-        // Snap-back Logic REMOVED - Causing erratic behavior
-        // Constrain Panning (Snap-back / Rubber-band effect)
-        elem.addEventListener('panzoomend', (event) => { ... });
-        */
-        
-        // Center initial content?
-        // Let's do a fit on load if content exists
-        setTimeout(() => {
-             // panzoomInstance.zoom(1);
-             // panzoomInstance.pan(0, 0);
-        }, 100);
-    }
+        // Seed canvas with empty "New Journey" board
+        window.journeyViewer.render({
+            name: 'New Journey',
+            role: '',
+            userName: '',
+            phases: [],
+            swimlanes: [],
+            cells: [],
+            quotes: []
+        });
+    });
 
+    // Convenience wrappers for code that still calls these
+    function performFit() { if (window.journeyViewer) window.journeyViewer.fit(); }
     function panzoomAction(action) {
-        if (!window.panzoomInstance) {
-            console.warn("Panzoom instance missing, re-initializing...");
-            initPanzoom();
-            if (!window.panzoomInstance) return;
-        }
-        
-        const pz = window.panzoomInstance;
-        const viewport = document.getElementById('panzoomViewport');
-        if (!viewport) return;
-        
-        const rect = viewport.getBoundingClientRect();
-        const cx = rect.width / 2;
-        const cy = rect.height / 2;
-        
-        // Use a consistent step
-        const ZOOM_STEP = 0.3;
-
-        switch(action) {
-            case 'zoomIn':
-                // Zoom from screen center
-                pz.zoomIn({ 
-                    step: ZOOM_STEP, 
-                    focal: { clientX: rect.left + cx, clientY: rect.top + cy } 
-                }); 
-                break;
-            case 'zoomOut':
-                pz.zoomOut({ 
-                    step: ZOOM_STEP, 
-                    focal: { clientX: rect.left + cx, clientY: rect.top + cy } 
-                });
-                break;
-            case 'fit':
-                performFit();
-                break;
-        }
-    }
-
-    function performFit() {
-        if (!window.panzoomInstance) return;
-        const pz = window.panzoomInstance;
-        const dashboard = document.getElementById('journeyDashboard');
-        const container = document.querySelector('.journey-board-container');
-
-        // Re-query viewport to get fresh dimensions (critical after sidebar hides)
-        const viewport = document.getElementById('panzoomViewport');
-        if (!viewport || !dashboard) return;
-
-        // Ensure origin is top-left for our math
-        dashboard.style.transformOrigin = '0 0';
-
-        // 1. Get viewport dimensions (the visible area)
-        const viewportW = viewport.clientWidth;
-        const viewportH = viewport.clientHeight;
-
-        // 2. Get board dimensions (unscaled - offsetWidth/Height are NOT affected by CSS transforms)
-        let boardX, boardY, boardW, boardH;
-
-        if (container) {
-            // offsetLeft/Top are relative to offsetParent (#journeyDashboard which has position: relative)
-            boardX = container.offsetLeft;
-            boardY = container.offsetTop;
-            boardW = container.offsetWidth;
-            boardH = container.offsetHeight;
-        } else {
-            // No board yet - nothing to fit
-            return;
-        }
-
-        if (boardW === 0 || boardH === 0 || viewportW === 0 || viewportH === 0) return;
-
-        // 3. Calculate scale to fit board in viewport with padding
-        const padding = 40;
-        const availableW = viewportW - (padding * 2);
-        const availableH = viewportH - (padding * 2);
-
-        let newScale = Math.min(availableW / boardW, availableH / boardH);
-        newScale = Math.max(0.1, Math.min(5, newScale)); // Clamp to Panzoom limits
-
-        // 4. Calculate pan to CENTER the board
-        //
-        // Panzoom transform: scale(S) translate(X, Y)
-        // CSS applies right-to-left: translate first, then scale from origin
-        // So a local point (lx, ly) appears on screen at: ((lx + X) * S, (ly + Y) * S)
-        //
-        // We want the board center to appear at the viewport center:
-        //   (boardCenterX + X) * S = viewportW / 2
-        //   X = viewportW / (2 * S) - boardCenterX
-        //
-        const boardCenterX = boardX + (boardW / 2);
-        const boardCenterY = boardY + (boardH / 2);
-
-        const panX = (viewportW / (2 * newScale)) - boardCenterX;
-        const panY = (viewportH / (2 * newScale)) - boardCenterY;
-
-        // 5. Apply atomically (no animation, no setTimeout between zoom and pan)
-        pz.setOptions({ animate: false });
-        pz.zoom(newScale);
-        pz.pan(panX, panY);
-
-        // Re-enable animation after a frame
-        requestAnimationFrame(() => {
-            pz.setOptions({ animate: true });
-        });
-
-        console.log("Fit:", { viewportW, viewportH, boardX, boardY, boardW, boardH, newScale, panX, panY });
+        if (!window.journeyViewer) return;
+        if (action === 'zoomIn') window.journeyViewer.zoomIn();
+        else if (action === 'zoomOut') window.journeyViewer.zoomOut();
+        else if (action === 'fit') window.journeyViewer.fit();
     }
 
     let hasAutoFitComplete = false;
-
     let lastRenderedWidth = 0;
     let lastRenderedHeight = 0;
 
     // Listen for render events from renderer.js
     window.addEventListener('journeyRendered', (e) => {
         const { width, height } = e.detail;
-
         const hasSizeChanged = Math.abs(width - lastRenderedWidth) > 50 ||
                               Math.abs(height - lastRenderedHeight) > 50;
         const isComplete = currentJourney &&
@@ -2035,7 +1813,6 @@
         if (hasSizeChanged || (isComplete && !hasAutoFitComplete)) {
             document.fonts.ready.then(() => {
                 if (isComplete) {
-                    // Wait for sidebar hide and flexbox reflow (2 animation frames)
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
                             performFit();
@@ -2043,32 +1820,9 @@
                         });
                     });
                 } else {
-                    // During journey building, fit after layout settles (1 frame)
                     requestAnimationFrame(() => performFit());
                 }
             });
-        }
-    });
-
-    // Init on load
-    document.addEventListener('DOMContentLoaded', () => {
-        initPanzoom();
-
-        // Seed canvas with empty "New Journey" board so the user sees the layout immediately
-        if (typeof renderMap === 'function') {
-            renderMap({
-                name: 'New Journey',
-                role: '',
-                userName: '',
-                phases: [],
-                swimlanes: [],
-                cells: [],
-                quotes: []
-            });
-            // Fit the empty board into view
-            setTimeout(() => {
-                if (window.panzoomInstance) performFit();
-            }, 100);
         }
     });
 
@@ -2112,7 +1866,11 @@
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
     const inputWrapper = document.getElementById('inputWrapper');
-    const journeyDashboard = document.getElementById('journeyDashboard');
+    // journeyDashboard is created dynamically by JourneyViewer — use getter
+    function getJourneyDashboard() {
+        if (window.journeyViewer) return document.getElementById(window.journeyViewer.canvasId);
+        return document.getElementById('journeyViewerRoot_cv');
+    }
     let currentJourneyId = null;
     let currentJourney = null; // Store full object
     let lastJourneyVersion = 0;
@@ -2795,9 +2553,9 @@ async function exportToPdf() {
         await embedFontsForPdf();
     }
 
-    const parent = document.getElementById('journeyDashboard');
-    const originalTransform = parent.style.transform;
-    parent.style.transform = 'none'; 
+    const parent = getJourneyDashboard();
+    const originalTransform = parent ? parent.style.transform : '';
+    if (parent) parent.style.transform = 'none'; 
     
     try {
         const canvas = await html2canvas(element, {
@@ -2845,9 +2603,9 @@ async function exportToPdf() {
         }
 
         // 1. Reset Transform to ensure full capture (on parent)
-        const parent = document.getElementById('journeyDashboard');
-        const originalTransform = parent.style.transform;
-        parent.style.transform = 'none'; 
+        const parent = getJourneyDashboard();
+        const originalTransform = parent ? parent.style.transform : '';
+        if (parent) parent.style.transform = 'none'; 
         
         try {
             const canvas = await html2canvas(element, {
@@ -3217,8 +2975,8 @@ async function exportToPdf() {
     // DEBUG: Fit Debugger
     // ===========================================
     function debugFit() {
-        const viewport = document.getElementById('panzoomViewport');
-        const dashboard = document.getElementById('journeyDashboard');
+        const viewport = document.getElementById('journeyViewerRoot_vp');
+        const dashboard = getJourneyDashboard();
         const container = document.querySelector('.journey-board-container');
         const pz = window.panzoomInstance;
         

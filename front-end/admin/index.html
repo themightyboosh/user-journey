@@ -203,17 +203,15 @@
                                 </button>
                             </div>
                         </div>
-                        <div id="adminCanvasContainer" class="admin-canvas-viewport">
-                            <div id="adminCanvas" class="journey-dashboard admin-journey-dashboard">
-                                <div class="empty-placeholder">Select a completed journey to preview</div>
-                            </div>
-                            <!-- Cell Detail Modal -->
-                            <div class="cell-detail-overlay" id="cellModal" onclick="closeCellModal(event)">
-                                <div class="cell-detail-modal">
-                                  <h3 id="modalTitle">Action</h3>
-                                  <div id="modalContext">Context</div>
-                                  <button onclick="closeCellModal(null)" class="modal-close-btn">Close</button>
-                                </div>
+                        <div id="adminViewerRoot" class="admin-canvas-viewport" style="position: relative;">
+                            <div class="empty-placeholder" id="adminEmptyPlaceholder">Select a completed journey to preview</div>
+                        </div>
+                        <!-- Cell Detail Modal -->
+                        <div class="cell-detail-overlay" id="cellModal" onclick="closeCellModal(event)">
+                            <div class="cell-detail-modal">
+                              <h3 id="modalTitle">Action</h3>
+                              <div id="modalContext">Context</div>
+                              <button onclick="closeCellModal(null)" class="modal-close-btn">Close</button>
                             </div>
                         </div>
                     </div>
@@ -587,6 +585,7 @@
     <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
     <script src="../js/lucide-icons.js?v=1"></script>
     <script src="../js/renderer.js?v=1022"></script>
-    <script src="script.js?v=3.1"></script>
+    <script src="../js/journey-viewer.js?v=1"></script>
+    <script src="script.js?v=3.2"></script>
 </body>
 </html>

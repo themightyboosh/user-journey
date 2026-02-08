@@ -115,10 +115,10 @@ const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 
 // DOM Elements - Journeys Module
 const journeyList = document.getElementById('journeyList');
-const adminCanvas = document.getElementById('adminCanvas');
 const journeyPreviewTitle = document.getElementById('journeyPreviewTitle');
 const clearJourneysBtn = document.getElementById('clearJourneysBtn');
 let currentConversationHistory = null;
+let adminViewer = null; // JourneyViewer instance for admin
 
 // DOM Elements - Users Module
 const usersTableBody = document.getElementById('usersTableBody');
@@ -618,7 +618,9 @@ async function deleteJourney(id) {
         if (res.ok) {
             if (id === currentJourneyId) {
                 currentJourneyId = null;
-                adminCanvas.innerHTML = '<div class="empty-placeholder">Select a completed journey to preview</div>';
+                if (adminViewer) { adminViewer.destroy(); adminViewer = null; }
+                var ph = document.getElementById('adminEmptyPlaceholder');
+                if (ph) ph.style.display = '';
                 journeyPreviewTitle.textContent = 'Select a Journey';
             }
             fetchJourneys();
@@ -637,7 +639,9 @@ async function clearAllJourneys() {
         const res = await fetch(JOURNEYS_API_URL, { method: 'DELETE', headers: authHeaders() });
         if (res.ok) {
             currentJourneyId = null;
-            adminCanvas.innerHTML = '<div class="empty-placeholder">Select a completed journey to preview</div>';
+            if (adminViewer) { adminViewer.destroy(); adminViewer = null; }
+            var ph2 = document.getElementById('adminEmptyPlaceholder');
+            if (ph2) ph2.style.display = '';
             journeyPreviewTitle.textContent = 'Select a Journey';
             fetchJourneys();
         } else { alert("Failed to clear journeys."); }
@@ -648,10 +652,19 @@ function loadJourney(journey) {
     currentJourneyId = journey.journeyMapId;
     renderJourneysList();
     journeyPreviewTitle.textContent = journey.name || 'Untitled Journey';
-    if (typeof renderMap === 'function') {
-        renderMap(journey, 'adminCanvas');
-    } else {
-        adminCanvas.innerHTML = "Error: Renderer not loaded.";
+
+    // Hide empty placeholder and init viewer if needed
+    const placeholder = document.getElementById('adminEmptyPlaceholder');
+    if (placeholder) placeholder.style.display = 'none';
+
+    if (!adminViewer && typeof JourneyViewer !== 'undefined') {
+        adminViewer = JourneyViewer.init('adminViewerRoot');
+    }
+
+    if (adminViewer) {
+        adminViewer.render(journey);
+    } else if (typeof renderMap === 'function') {
+        renderMap(journey, 'adminViewerRoot_cv');
     }
 
     // Show chat history button if conversation data exists
@@ -667,77 +680,6 @@ function loadJourney(journey) {
             if (chatHistoryPanel) chatHistoryPanel.style.display = 'none';
         }
     }
-
-    // Initialize admin Panzoom after render
-    setTimeout(() => initAdminPanzoom(), 100);
-}
-
-// ========================================
-// Admin Panzoom
-// ========================================
-let adminPanzoomInstance = null;
-
-function initAdminPanzoom() {
-    const elem = document.getElementById('adminCanvas');
-    const viewport = document.getElementById('adminCanvasContainer');
-    if (!elem || !viewport || typeof Panzoom === 'undefined') return;
-
-    // Destroy previous instance
-    if (adminPanzoomInstance) {
-        adminPanzoomInstance.destroy();
-        adminPanzoomInstance = null;
-    }
-
-    adminPanzoomInstance = Panzoom(elem, {
-        maxScale: 5,
-        minScale: 0.1,
-        canvas: true,
-        contain: false,
-        cursor: 'grab',
-        startScale: 1,
-        animate: true,
-        pinchAndPan: true
-    });
-
-    // Mouse wheel zooms at cursor position
-    viewport.addEventListener('wheel', (event) => {
-        event.preventDefault();
-        const pz = adminPanzoomInstance;
-        if (!pz) return;
-        const currentScale = pz.getScale();
-        const currentPan = pz.getPan();
-        const delta = event.deltaY > 0 ? -0.1 : 0.1;
-        const newScale = Math.max(0.1, Math.min(5, currentScale + delta));
-        const rect = viewport.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-        const localX = (mouseX / currentScale) - currentPan.x;
-        const localY = (mouseY / currentScale) - currentPan.y;
-        const newPanX = (mouseX / newScale) - localX;
-        const newPanY = (mouseY / newScale) - localY;
-        pz.zoom(newScale, { animate: false });
-        pz.pan(newPanX, newPanY, { animate: false });
-    }, { passive: false });
-
-    // Fit to view
-    setTimeout(() => fitAdminCanvas(), 200);
-}
-
-function fitAdminCanvas() {
-    if (!adminPanzoomInstance) return;
-    const elem = document.getElementById('adminCanvas');
-    const viewport = document.getElementById('adminCanvasContainer');
-    if (!elem || !viewport) return;
-    const vw = viewport.clientWidth;
-    const vh = viewport.clientHeight;
-    const cw = elem.scrollWidth;
-    const ch = elem.scrollHeight;
-    if (cw === 0 || ch === 0) return;
-    const scale = Math.min(vw / cw, vh / ch, 1) * 0.95;
-    const panX = (vw - cw * scale) / (2 * scale);
-    const panY = (vh - ch * scale) / (2 * scale);
-    adminPanzoomInstance.zoom(scale, { animate: true });
-    adminPanzoomInstance.pan(panX, panY, { animate: true });
 }
 
 // ========================================

@@ -122,7 +122,11 @@ function closeCellModal(event) {
 }
 
 // Main Render Function
-function renderMap(journey, targetElementId = 'journeyDashboard') {
+function renderMap(journey, targetElementId) {
+    // Default: use JourneyViewer canvas if available, else fallback
+    if (!targetElementId) {
+        targetElementId = (window.journeyViewer && window.journeyViewer.canvasId) || 'journeyDashboard';
+    }
     const container = document.getElementById(targetElementId);
     if (!container || !journey) return;
 
@@ -470,23 +474,15 @@ function renderMap(journey, targetElementId = 'journeyDashboard') {
             </div>`;
     }
     
-    // Buttons (Action Area) - Show when complete OR if we have artifacts
-    if (isComplete) {
-        const btnCopy = document.getElementById('btnCopyConv');
-        const btnPdf = document.getElementById('btnExportPdf');
-        const btnImg = document.getElementById('btnExportImg');
-        
-        if (btnCopy) btnCopy.style.display = 'flex';
-        if (btnPdf) btnPdf.style.display = 'flex';
-        if (btnImg) btnImg.style.display = 'flex';
-    } else {
-        const btnCopy = document.getElementById('btnCopyConv');
-        const btnPdf = document.getElementById('btnExportPdf');
-        const btnImg = document.getElementById('btnExportImg');
-        
-        if (btnCopy) btnCopy.style.display = 'none';
-        if (btnPdf) btnPdf.style.display = 'none';
-        if (btnImg) btnImg.style.display = 'none';
+    // Show/hide action buttons via JourneyViewer (if available)
+    if (window.journeyViewer) {
+        if (isComplete) {
+            window.journeyViewer.showButton('jv-transcript');
+            window.journeyViewer.showButton('jv-pdf');
+        } else {
+            window.journeyViewer.hideButton('jv-transcript');
+            window.journeyViewer.hideButton('jv-pdf');
+        }
     }
     
     html += `</div>`; // End artifacts container 
