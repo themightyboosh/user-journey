@@ -76,8 +76,7 @@ window.JourneyViewer = (function () {
                 contain: false,
                 cursor: 'grab',
                 startScale: 1,
-                animate: true,
-                disableZoom: true
+                animate: true
             });
 
             function focalZoom(fx, fy, newScale) {
@@ -164,8 +163,6 @@ window.JourneyViewer = (function () {
             var bw = board.offsetWidth;
             var bh = board.offsetHeight;
 
-            console.log('JourneyViewer.fit:', { vw: vw, vh: vh, bx: bx, by: by, bw: bw, bh: bh });
-
             if (!bw || !bh || !vw || !vh) return;
 
             var pad = 40;
@@ -176,8 +173,6 @@ window.JourneyViewer = (function () {
             var cy = by + bh / 2;
             var px = (vw / (2 * s)) - cx;
             var py = (vh / (2 * s)) - cy;
-
-            console.log('JourneyViewer.fit result:', { scale: s, panX: px, panY: py });
 
             pz.zoom(s);
             pz.pan(px, py);
