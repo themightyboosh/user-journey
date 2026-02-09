@@ -65,6 +65,17 @@ window.JourneyViewer = (function () {
 
         var pz = null;
 
+        function focalZoom(fx, fy, newScale) {
+            if (!pz) return;
+            var s = pz.getScale();
+            var p = pz.getPan();
+            var clamped = Math.max(0.1, Math.min(5, newScale));
+            var lx = (fx / s) - p.x;
+            var ly = (fy / s) - p.y;
+            pz.zoom(clamped, { animate: false });
+            pz.pan((fx / clamped) - lx, (fy / clamped) - ly, { animate: false });
+        }
+
         function initPanzoom() {
             if (pz) { pz.destroy(); pz = null; }
             if (typeof Panzoom === 'undefined') { console.warn('JourneyViewer: Panzoom not loaded'); return; }
@@ -82,16 +93,6 @@ window.JourneyViewer = (function () {
                 animate: true,
                 origin: '0 0'
             });
-
-            function focalZoom(fx, fy, newScale) {
-                var s = pz.getScale();
-                var p = pz.getPan();
-                var clamped = Math.max(0.1, Math.min(5, newScale));
-                var lx = (fx / s) - p.x;
-                var ly = (fy / s) - p.y;
-                pz.zoom(clamped, { animate: false });
-                pz.pan((fx / clamped) - lx, (fy / clamped) - ly, { animate: false });
-            }
 
             viewport.addEventListener('wheel', function (e) {
                 e.preventDefault();
