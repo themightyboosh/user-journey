@@ -245,22 +245,44 @@ server.post('/api/chat', async (request, reply) => {
       requestModel = genResult.model;
       currentModelName = genResult.modelName;
       logger.info('Got initial response');
+      let emptyRetries = 0;
       
       while (currentTurn < maxTurns && !finalDone) {
           currentTurn++;
           
-          // Guard against empty candidates (safety filters can return empty)
+          // Guard against empty candidates (safety filters, recitation, or model hiccups)
           const candidates = response.candidates;
           if (!candidates || candidates.length === 0 || !candidates[0]?.content?.parts) {
-              logger.warn('Empty candidates in response - possible safety filter block', {
-                  finishReason: candidates?.[0]?.finishReason,
-                  safetyRatings: candidates?.[0]?.safetyRatings
+              const finishReason = candidates?.[0]?.finishReason || 'NO_CANDIDATES';
+              const safetyRatings = candidates?.[0]?.safetyRatings;
+              logger.warn('Empty candidates in response', {
+                  finishReason,
+                  safetyRatings,
+                  turn: currentTurn,
+                  model: currentModelName
               });
-              reply.raw.write(`data: ${JSON.stringify({ text: "I need to rephrase my response. Could you repeat your last message?" })}\n\n`);
+
+              // Retry up to 2 times on empty candidates before giving up
+              if (!emptyRetries) emptyRetries = 0;
+              emptyRetries++;
+              if (emptyRetries <= 2) {
+                  logger.info(`Retrying after empty candidates (attempt ${emptyRetries}/2)...`);
+                  await sleep(1000);
+                  genResult = await generateSafe(requestModel, { contents }, currentModelName);
+                  response = genResult.response;
+                  requestModel = genResult.model;
+                  currentModelName = genResult.modelName;
+                  continue;
+              }
+
+              logger.error('Empty candidates after all retries', { finishReason, turn: currentTurn });
+              reply.raw.write(`data: ${JSON.stringify({ text: "I had a brief hiccup processing that. Could you try sending your message again?" })}\n\n`);
               reply.raw.write(`data: ${JSON.stringify({ done: true, journeyId: config.journeyId })}\n\n`);
               finalDone = true;
               break;
           }
+          // Reset empty retry counter on successful response
+          emptyRetries = 0;
 
           const functionCalls = candidates[0].content.parts.filter((p: any) => p.functionCall);
           
