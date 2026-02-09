@@ -493,11 +493,8 @@ function renderMap(journey, targetElementId) {
         html += `
             <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border);">
                 <div style="font-family: var(--max-font-family-mono, monospace); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--max-color-accent, #ed2224); margin-bottom: 16px;">User Quote</div>
-                <div style="display: flex; align-items: flex-start; gap: 16px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ed2224" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
-                    <div style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 128px; line-height: 1.2; color: #ffffff;">
-                        ${escapeHtml(journey.quotes[0])}
-                    </div>
+                <div style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 128px; line-height: 1.2; color: #ffffff;">
+                    ${escapeHtml(journey.quotes[0])}
                 </div>
             </div>`;
     }
@@ -596,6 +593,53 @@ async function embedFontsForPdf() {
     console.log("Fonts embedded successfully.");
 }
 
+// Rasterize SVG <img> elements to PNG data URLs so html2canvas renders them correctly
+async function rasterizeSvgImages(container) {
+    const svgImgs = Array.from(container.querySelectorAll('img')).filter(img =>
+        img.src && (img.src.endsWith('.svg') || img.src.includes('.svg?'))
+    );
+    const originals = [];
+    for (const img of svgImgs) {
+        try {
+            const resp = await fetch(img.src);
+            const svgText = await resp.text();
+            const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            // Draw SVG onto a canvas at 2x for crisp output
+            const renderW = (img.naturalWidth || img.offsetWidth || 200) * 2;
+            const renderH = (img.naturalHeight || img.offsetHeight || 60) * 2;
+            const cvs = document.createElement('canvas');
+            cvs.width = renderW;
+            cvs.height = renderH;
+            const ctx = cvs.getContext('2d');
+
+            await new Promise((resolve, reject) => {
+                const tmpImg = new Image();
+                tmpImg.onload = () => {
+                    ctx.drawImage(tmpImg, 0, 0, renderW, renderH);
+                    URL.revokeObjectURL(url);
+                    resolve();
+                };
+                tmpImg.onerror = reject;
+                tmpImg.src = url;
+            });
+
+            const pngDataUrl = cvs.toDataURL('image/png');
+            originals.push({ el: img, origSrc: img.src });
+            img.src = pngDataUrl;
+        } catch (e) {
+            console.warn('SVG rasterize failed for', img.src, e);
+        }
+    }
+    return originals;
+}
+
+// Restore SVG images after export
+function restoreSvgImages(originals) {
+    originals.forEach(o => { o.el.src = o.origSrc; });
+}
+
 // Export to PDF
 async function exportToPdf() {
     if (!currentRenderedJourney) return;
@@ -611,14 +655,15 @@ async function exportToPdf() {
     const parent = (window.journeyViewer && document.getElementById(window.journeyViewer.canvasId)) || document.getElementById('journeyDashboard');
     const originalTransform = parent ? parent.style.transform : '';
     if (parent) parent.style.transform = 'none'; 
+
+    // 1b. Rasterize SVG images to PNG so html2canvas doesn't distort them
+    const svgOriginals = await rasterizeSvgImages(element);
     
     // 2. Calculate Full Dimensions
     const width = element.scrollWidth;
     const height = element.scrollHeight;
     
     // 3. Configure html2pdf to use html2canvas with full dimensions
-    // We set windowWidth/windowHeight to ensure it renders at full size
-    // We set jsPDF format to custom [width, height] in pixels/points to fit everything on one page
     const opt = {
         margin: 0,
         filename: `journey-map-${new Date().toISOString().split('T')[0]}.pdf`,
@@ -645,11 +690,12 @@ async function exportToPdf() {
     
     // 4. Capture and Save
     html2pdf().set(opt).from(element).save().then(() => {
-        // Restore transform
-        parent.style.transform = originalTransform;
+        restoreSvgImages(svgOriginals);
+        if (parent) parent.style.transform = originalTransform;
     }).catch(err => {
         console.error("PDF export failed:", err);
-        parent.style.transform = originalTransform;
+        restoreSvgImages(svgOriginals);
+        if (parent) parent.style.transform = originalTransform;
     });
 }
 

@@ -69,6 +69,9 @@ window.JourneyViewer = (function () {
             if (pz) { pz.destroy(); pz = null; }
             if (typeof Panzoom === 'undefined') { console.warn('JourneyViewer: Panzoom not loaded'); return; }
 
+            // Ensure consistent transform-origin for focal zoom math
+            canvas.style.transformOrigin = '0 0';
+
             pz = Panzoom(canvas, {
                 maxScale: 5,
                 minScale: 0.1,
@@ -76,7 +79,8 @@ window.JourneyViewer = (function () {
                 contain: false,
                 cursor: 'grab',
                 startScale: 1,
-                animate: true
+                animate: true,
+                origin: '0 0'
             });
 
             function focalZoom(fx, fy, newScale) {
@@ -97,10 +101,13 @@ window.JourneyViewer = (function () {
                 focalZoom(e.clientX - rect.left, e.clientY - rect.top, s + delta);
             }, { passive: false });
 
-            var pinchDist = 0, pinchScale = 1;
+            var pinchDist = 0, pinchScale = 1, isPinching = false;
 
             viewport.addEventListener('touchstart', function (e) {
                 if (e.touches.length === 2) {
+                    isPinching = true;
+                    // Disable Panzoom's built-in pan so it doesn't fight our focal zoom
+                    pz.setOptions({ disablePan: true });
                     var t0 = e.touches[0], t1 = e.touches[1];
                     pinchDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
                     pinchScale = pz.getScale();
@@ -108,7 +115,7 @@ window.JourneyViewer = (function () {
             }, { passive: true });
 
             viewport.addEventListener('touchmove', function (e) {
-                if (e.touches.length === 2 && pinchDist > 0) {
+                if (e.touches.length === 2 && isPinching && pinchDist > 0) {
                     e.preventDefault();
                     var t0 = e.touches[0], t1 = e.touches[1];
                     var dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
@@ -119,7 +126,14 @@ window.JourneyViewer = (function () {
                 }
             }, { passive: false });
 
-            viewport.addEventListener('touchend', function () { pinchDist = 0; }, { passive: true });
+            viewport.addEventListener('touchend', function () {
+                if (isPinching) {
+                    isPinching = false;
+                    pinchDist = 0;
+                    // Re-enable Panzoom's built-in pan for single-finger drag
+                    pz.setOptions({ disablePan: false });
+                }
+            }, { passive: true });
 
             canvas.addEventListener('panzoomchange', function (e) {
                 var d = e.detail;
