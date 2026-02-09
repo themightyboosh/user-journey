@@ -196,7 +196,7 @@ server.post('/api/chat', async (request, reply) => {
       logger.info(`Got request model: ${currentModelName}`);
   
       let currentTurn = 0;
-      const maxTurns = 5;
+      const maxTurns = 10;
       let finalDone = false;
   
       // Helper for generation with 429 handling + backoff retry

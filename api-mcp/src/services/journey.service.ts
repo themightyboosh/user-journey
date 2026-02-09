@@ -224,13 +224,12 @@ export class JourneyService {
 
         // Clear cells as structure changed
         journey.cells = [];
-        // Auto-advance stage
-        journey.stage = 'MATRIX_GENERATION';
-
-        journey = recalculateJourney(journey);
+        // Save intermediate state
         await Store.save(journey);
-        logger.info(`[JourneyService] Set Swimlanes Bulk: ${id} | Count: ${journey.swimlanes.length}`);
-        return journey;
+        
+        // Immediately generate matrix to reduce AI turn count
+        logger.info(`[JourneyService] Set Swimlanes Bulk: ${id} | Count: ${journey.swimlanes.length} | Auto-generating Matrix...`);
+        return this.generateMatrix(id);
     }
 
     async generateMatrix(id: string): Promise<JourneyMap | null> {

@@ -64,8 +64,10 @@ STATE MACHINE:
     *   **Action**: Call \`set_swimlanes_bulk\`.
     *   **Gate**: Ensure Swimlanes are set.
     *   **Transition**: Call \`generate_matrix\`.
-9.  **Matrix Generation**: 
-    *   **Action**: Call \`generate_matrix\` internally.
+9.  **Matrix Verification**: 
+    *   **Logic**: Check if 'cells' are populated in the context or if Current Stage is 'CELL_POPULATION'.
+    *   **Mode [BYPASS]**: If yes, DO NOT CALL TOOL. JUMP to Step 10.
+    *   **Action**: If cells are missing, call \`generate_matrix\`.
 10. **Capture Cells (ONE CELL AT A TIME)**: 
     *   **Logic**: You must traverse the grid **chronologically**, focusing on ONE PHASE at a time, and within that phase, ONE SWIMLANE (cell) at a time. Use the CELL GRID STATUS in the context to find the NEXT EMPTY CELL.
     *   **Concept**: Treat PHASES as time periods or gates. Treat SWIMLANES as layers of the experience (e.g. what they do, use, feel).
