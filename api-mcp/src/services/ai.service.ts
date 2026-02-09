@@ -1,9 +1,16 @@
-import { VertexAI, GenerativeModel } from '@google-cloud/vertexai';
+import { VertexAI, GenerativeModel, HarmCategory, HarmBlockThreshold } from '@google-cloud/vertexai';
 import { buildSystemInstruction, SessionConfig } from '../ai/prompts';
 import { JOURNEY_TOOLS } from '../ai/tools';
 import { JourneyService } from './journey.service';
 import { AdminService } from './admin.service';
 import logger from '../logger';
+
+const SAFETY_SETTINGS = [
+    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+];
 
 export class AIService {
     static instance: AIService;
@@ -47,7 +54,8 @@ export class AIService {
         
         try {
             const model = this.vertexAI.getGenerativeModel({
-                model: modelName
+                model: modelName,
+                safetySettings: SAFETY_SETTINGS
             });
             await model.generateContent({
                 contents: [{ role: 'user', parts: [{ text: 'ping' }] }]
@@ -119,6 +127,7 @@ export class AIService {
 
             const model = this.vertexAI.getGenerativeModel({
                 model: targetModel,
+                safetySettings: SAFETY_SETTINGS,
                 generationConfig: {
                     maxOutputTokens,
                     temperature: 0.4,
@@ -196,7 +205,8 @@ export class AIService {
             const modelName = settings.activeModel || 'gemini-2.5-flash-lite';
             
             const model = this.vertexAI.getGenerativeModel({
-                model: modelName
+                model: modelName,
+                safetySettings: SAFETY_SETTINGS
             });
 
             const cellContext = cells.map(c => `- ${c.headline}: ${c.description}`).join('\n');
