@@ -255,18 +255,28 @@ server.post('/api/chat', async (request, reply) => {
           if (!candidates || candidates.length === 0 || !candidates[0]?.content?.parts) {
               const finishReason = candidates?.[0]?.finishReason || 'NO_CANDIDATES';
               const safetyRatings = candidates?.[0]?.safetyRatings;
-              logger.warn('Empty candidates in response', {
+              const promptFeedback = response.promptFeedback;
+              const blockReason = promptFeedback?.blockReason || null;
+              logger.warn('⚠️ EMPTY_CANDIDATES: AI returned no usable response', {
+                  journeyId: config.journeyId || null,
                   finishReason,
-                  safetyRatings,
+                  blockReason,
+                  safetyRatings: JSON.stringify(safetyRatings || []),
+                  promptFeedback: JSON.stringify(promptFeedback || {}),
                   turn: currentTurn,
-                  model: currentModelName
+                  model: currentModelName,
+                  lastUserMessage: message?.substring(0, 200) || '(no message)',
+                  historyLength: contents.length
               });
 
               // Retry up to 2 times on empty candidates before giving up
               if (!emptyRetries) emptyRetries = 0;
               emptyRetries++;
               if (emptyRetries <= 2) {
-                  logger.info(`Retrying after empty candidates (attempt ${emptyRetries}/2)...`);
+                  logger.info(`Retrying after empty candidates (attempt ${emptyRetries}/2)`, {
+                      journeyId: config.journeyId,
+                      model: currentModelName
+                  });
                   await sleep(1000);
                   genResult = await generateSafe(requestModel, { contents }, currentModelName);
                   response = genResult.response;
@@ -275,7 +285,16 @@ server.post('/api/chat', async (request, reply) => {
                   continue;
               }
 
-              logger.error('Empty candidates after all retries', { finishReason, turn: currentTurn });
+              logger.error('🚨 EMPTY_CANDIDATES_FINAL: All retries exhausted — user saw error', {
+                  journeyId: config.journeyId || null,
+                  finishReason,
+                  blockReason,
+                  safetyRatings: JSON.stringify(safetyRatings || []),
+                  turn: currentTurn,
+                  model: currentModelName,
+                  lastUserMessage: message?.substring(0, 200) || '(no message)',
+                  totalEmptyRetries: emptyRetries
+              });
               reply.raw.write(`data: ${JSON.stringify({ text: "I had a brief hiccup processing that. Could you try sending your message again?" })}\n\n`);
               reply.raw.write(`data: ${JSON.stringify({ done: true, journeyId: config.journeyId })}\n\n`);
               finalDone = true;
@@ -348,7 +367,10 @@ server.post('/api/chat', async (request, reply) => {
       reply.raw.end();
   
     } catch (error: any) {
-      logger.error('Chat error:', { error: error.message, stack: error.stack });
+      logger.error('🚨 CHAT_ERROR: Unhandled exception in /api/chat', { 
+          error: error.message, 
+          stack: error.stack
+      });
       reply.raw.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
       reply.raw.end();
     }
