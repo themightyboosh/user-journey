@@ -1892,6 +1892,10 @@
         
         if (journey) {
           lastJourneyVersion = journey.version;
+          // Inject template icon from session config so canvas renderer can use it
+          if (state.sessionConfig && state.sessionConfig.templateIcon) {
+              journey.templateIcon = state.sessionConfig.templateIcon;
+          }
           currentJourney = journey; // Update global state
           renderCurrentView();
         }
@@ -1991,7 +1995,8 @@
                       swimlanes: use('swimlanes', linkData.swimlanes),
                       phases: use('phases', linkData.phases),
                       requireAuth: !!linkData.requireAuth,
-                      templateId: linkData.id
+                      templateId: linkData.id,
+                      templateIcon: linkData.icon || null
                   };
 
                   // Set header template icon (white) and template title (red, uppercase)
@@ -2054,6 +2059,7 @@
           phases: urlPhases || remoteConfig.phases,
           journeyId: journeyId,
           templateId: remoteConfig.templateId || null,
+          templateIcon: remoteConfig.templateIcon || null,
           requireAuth: remoteConfig.requireAuth || false
       };
 
