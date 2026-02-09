@@ -145,14 +145,18 @@ window.JourneyViewer = (function () {
 
         function zoomIn() {
             if (!pz) return;
-            var rect = viewport.getBoundingClientRect();
-            pz.zoomIn({ step: 0.3, focal: { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 } });
+            var s = pz.getScale();
+            var cx = viewport.clientWidth / 2;
+            var cy = viewport.clientHeight / 2;
+            focalZoom(cx, cy, s + 0.15);
         }
 
         function zoomOut() {
             if (!pz) return;
-            var rect = viewport.getBoundingClientRect();
-            pz.zoomOut({ step: 0.3, focal: { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 } });
+            var s = pz.getScale();
+            var cx = viewport.clientWidth / 2;
+            var cy = viewport.clientHeight / 2;
+            focalZoom(cx, cy, s - 0.15);
         }
 
         function fit() {
