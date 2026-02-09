@@ -1,4 +1,5 @@
 .env
+.env.local
 .DS_Store
 node_modules/
 dist/
@@ -14,6 +15,10 @@ firebase-debug.log
 firebase-debug.*.log
 .firebase/
 
-# Design files
+# Design files & archives
 *.ai
-.env.local
+*.zip
+*.pdf
+
+# OS junk
+Thumbs.db
