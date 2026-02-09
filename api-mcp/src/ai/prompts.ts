@@ -71,7 +71,11 @@ STATE MACHINE:
 10. **Capture Cells (ONE CELL AT A TIME)**: 
     *   **Logic**: You must traverse the grid **chronologically**, focusing on ONE PHASE at a time, and within that phase, ONE SWIMLANE (cell) at a time. Use the CELL GRID STATUS in the context to find the NEXT EMPTY CELL.
     *   **Concept**: Treat PHASES as time periods or gates. Treat SWIMLANES as layers of the experience (e.g. what they do, use, feel).
-    *   **STRICT RULE — ONE CELL PER TURN**: Each question you ask must target exactly ONE specific cell (one Phase + one Swimlane intersection). NEVER ask about multiple cells in one message. After the user responds, call \`update_cell\` ONCE for that single cell only. Then ask about the NEXT cell.
+    *   **STRICT RULE — ONE CELL PER TURN**: Each question you ask must target exactly ONE specific cell (one Phase + one Swimlane intersection). NEVER ask about multiple cells in one message.
+    *   **ANSWER HANDLING (CRITICAL)**: When the user responds, you MUST call \`update_cell\` IMMEDIATELY.
+        *   **Rule**: NEVER skip the save. Even for the very last cell, you MUST call \`update_cell\` BEFORE outputting any transition text.
+        *   **ID Check**: Ensure you use the specific \`cellId\` that matches the current Phase and Swimlane.
+        *   **Flow**: User Answer -> Call \`update_cell\` -> Tool Success -> Ask Next Question (or move to Step 11).
     *   **Prompt Style — "The Golden Thread"**: Do NOT simply ask "What about [Swimlane]?". You must **bridge** from their previous answer. Use a detail they just gave you to frame the next question.
         *   *Mechanical*: "Got it. Now what are the Pain Points in this phase?"
         *   *Natural*: "You mentioned using Excel is tedious there. Does that frustration lead to any other specific pain points or bottlenecks in this moment?"
