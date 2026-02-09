@@ -214,10 +214,16 @@ function renderMap(journey, targetElementId) {
     const hasContent = journey.phases.length > 0 || journey.swimlanes.length > 0;
     
     // Title & Quote Logic — with template icon
+    // Build inline SVG directly from LUCIDE_ICONS dictionary (no lucide.createIcons needed)
     const templateIcon = journey.templateIcon || null;
-    const iconHtml = templateIcon
-        ? '<i data-lucide="' + escapeHtml(templateIcon) + '" style="color: #ffffff; width: 48px; height: 48px; flex-shrink: 0; margin-right: 16px; margin-top: 6px;"></i>'
-        : '';
+    let iconHtml = '';
+    if (templateIcon) {
+        const lib = (typeof LUCIDE_ICONS !== 'undefined') ? LUCIDE_ICONS : {};
+        const paths = lib[templateIcon] || null;
+        if (paths) {
+            iconHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-right: 16px; margin-top: 6px;">' + paths + '</svg>';
+        }
+    }
 
     let titleRowHtml = '<div style="display: flex; align-items: flex-start;">'
         + iconHtml
@@ -502,11 +508,6 @@ function renderMap(journey, targetElementId) {
     html += `</div>`; // End board container
 
     container.innerHTML = html;
-
-    // Initialize Lucide icons inside the rendered container
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons({ root: container });
-    }
     
     // Dispatch event to notify Panzoom
     window.dispatchEvent(new CustomEvent('journeyRendered', { 
