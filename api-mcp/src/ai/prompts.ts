@@ -202,12 +202,26 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
     // --- Step 1: Welcome Logic ---
     let step1 = STEP_1_DEFAULT;
     if (config.welcomePrompt) {
+         const hasName = !!config.name;
+         const hasRole = !!config.role;
+         
+         let secondaryAction = "";
+         if (hasName && hasRole) {
+             secondaryAction = `*   **Secondary Action**: After the greeting, explicitly ask the user to confirm their Name and Role (e.g. "Just to confirm, do I have your name and role correct?").`;
+         } else if (hasRole && !hasName) {
+             secondaryAction = `*   **Secondary Action**: After the greeting, you know their role is "${config.role}", but you DO NOT know their name. You MUST ask: "Could you please tell me your name so I know who I'm chatting with?"`;
+         } else if (hasName && !hasRole) {
+             secondaryAction = `*   **Secondary Action**: After the greeting, you know their name is "${config.name}", but you DO NOT know their role. You MUST ask: "Could you tell me a bit about your role?"`;
+         } else {
+             secondaryAction = `*   **Secondary Action**: After the greeting, ask for their name and what they do.`;
+         }
+
          // FORCE Override: If a custom prompt exists, it supersedes the default identity check logic.
          step1 = `1.  **Welcome & Confirmation (Custom Protocol)**:
     *   **CRITICAL ACTION**: Ignore standard greeting protocols. You MUST execute the following custom instruction immediately:
         "${config.welcomePrompt}"
-    *   **Secondary Action**: After delivering the custom greeting above, you MUST then explicitly ask the user to confirm their Name and Role (e.g. "Just to confirm, do I have your name and role correct?").
-    *   **Gate**: Do NOT proceed to the next step until the user says "yes" or confirms.
+    ${secondaryAction}
+    *   **Gate**: Do NOT proceed to the next step until the identity is established/confirmed.
     *   **Goal**: Establish a human connection using the specific persona requested, then verify identity.`;
     }
     // Pre-inject variables to avoid template confusion later
