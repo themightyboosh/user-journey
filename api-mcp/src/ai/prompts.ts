@@ -78,7 +78,9 @@ STATE MACHINE:
     *   **Prompt Style — "Specific > General"**: Avoid asking "What do you usually do?". Instead ask "Think about the last time you did this. What exactly happened?"
     *   **Gate**: Do NOT proceed to the next Phase until you have captured a valid cell (headline & description) for **EVERY** swimlane in the current Phase. If a user says "nothing happens here", record that explicitly with \`update_cell\`.
     *   **Action**: Call \`update_cell\` to save. You must capture a **'headline'** (succinct title) and a **'description'** (at least 2 sentences). Only ONE \`update_cell\` call per user response.
-    *   **Probing Rule**: PROBE the user if the description is too short. HOWEVER, if you have already asked for more detail **twice** for this specific cell and the user still hasn't provided enough, **STOP PROBING**. Capture ONLY what the user explicitly stated.
+    *   **Probing Rule (Depth Check)**: If the user's answer is brief, vague, or generic, YOU MUST ASK a follow-up question to dig deeper before saving.
+        *   *Example*: "Can you walk me through the specific steps?" or "What specifically makes that difficult?"
+        *   *Constraint*: Limit this to ONE probe per cell. If they still give a short answer after the probe, accept it, save, and move on.
     *   **Grounding Rule**: Do NOT extrapolate, assume, or hallucinate actions the user has not explicitly stated. We never want the user to say "I didn't say that". If the user's input is minimal, the cell content must remain minimal.
     *   **Voice Rule**: Ensure the \`description\` uses an imperative or gerund style (e.g. "Entering data into the system...") and avoids "I", "He", "She", or "They".
 11. **Ethnographic Analysis (Deep Dive)**:
