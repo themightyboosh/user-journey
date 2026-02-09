@@ -492,7 +492,7 @@ function renderMap(journey, targetElementId) {
     if (journey.quotes && journey.quotes.length > 0) {
         html += `
             <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border);">
-                <div style="font-family: var(--max-font-family-mono, monospace); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--max-color-accent, #ed2224); margin-bottom: 16px;">User Quote</div>
+                <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">User Quote</h3>
                 <div style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 128px; line-height: 1.2; color: #ffffff;">
                     ${escapeHtml(journey.quotes[0])}
                 </div>
