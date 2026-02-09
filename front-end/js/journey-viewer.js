@@ -107,8 +107,8 @@ window.JourneyViewer = (function () {
             viewport.addEventListener('touchstart', function (e) {
                 if (e.touches.length === 2) {
                     isPinching = true;
-                    // Disable Panzoom's built-in pan so it doesn't fight our focal zoom
-                    pz.setOptions({ disablePan: true });
+                    // Disable Panzoom's built-in pan AND zoom so it doesn't fight our focal zoom
+                    pz.setOptions({ disablePan: true, disableZoom: true });
                     var t0 = e.touches[0], t1 = e.touches[1];
                     pinchDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
                     pinchScale = pz.getScale();
@@ -131,8 +131,8 @@ window.JourneyViewer = (function () {
                 if (isPinching) {
                     isPinching = false;
                     pinchDist = 0;
-                    // Re-enable Panzoom's built-in pan for single-finger drag
-                    pz.setOptions({ disablePan: false });
+                    // Re-enable Panzoom's built-in pan and zoom for normal interaction
+                    pz.setOptions({ disablePan: false, disableZoom: false });
                 }
             }, { passive: true });
 
