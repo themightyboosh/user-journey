@@ -593,7 +593,14 @@ async function embedFontsForPdf() {
     console.log("Fonts embedded successfully.");
 }
 
-// Rasterize SVG <img> elements to PNG data URLs so html2canvas renders them correctly
+// Rasterize SVG <img> elements to PNG data URLs so html2canvas renders them correctly.
+// SVGs with embedded <style>/<defs> (like max_header.svg) break when drawn via blob URLs
+// because the canvas security model strips CSS class references. Instead we:
+//   1. Fetch the raw SVG markup
+//   2. Parse it, inject explicit width/height from the viewBox
+//   3. Inline any class-based styles as presentation attributes (belt-and-suspenders)
+//   4. Encode as a base64 data:image/svg+xml URI
+//   5. Draw onto a <canvas> at 2× for retina-crisp output
 async function rasterizeSvgImages(container) {
     const svgImgs = Array.from(container.querySelectorAll('img')).filter(img =>
         img.src && (img.src.endsWith('.svg') || img.src.includes('.svg?'))
@@ -603,26 +610,55 @@ async function rasterizeSvgImages(container) {
         try {
             const resp = await fetch(img.src);
             const svgText = await resp.text();
-            const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(svgBlob);
 
-            // Draw SVG onto a canvas at 2x for crisp output
-            const renderW = (img.naturalWidth || img.offsetWidth || 200) * 2;
-            const renderH = (img.naturalHeight || img.offsetHeight || 60) * 2;
+            // Parse the SVG to inject explicit dimensions
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+            const svgEl = svgDoc.documentElement;
+
+            // Determine intrinsic size from viewBox
+            const vb = svgEl.getAttribute('viewBox');
+            let vbW = 800, vbH = 200;
+            if (vb) {
+                const parts = vb.split(/[\s,]+/).map(Number);
+                if (parts.length === 4) { vbW = parts[2]; vbH = parts[3]; }
+            }
+
+            // Use the displayed size of the <img> on page, fall back to viewBox ratio
+            const displayW = img.offsetWidth || img.clientWidth || 400;
+            const displayH = img.offsetHeight || img.clientHeight || Math.round(displayW * (vbH / vbW));
+
+            // Force explicit width/height on the <svg> element so the raster canvas
+            // knows the target size (prevents 0-dimension renders)
+            svgEl.setAttribute('width', String(vbW));
+            svgEl.setAttribute('height', String(vbH));
+
+            // Serialize back to string
+            const serializer = new XMLSerializer();
+            const fixedSvg = serializer.serializeToString(svgEl);
+
+            // Encode as base64 data URI (avoids blob security/style issues)
+            const b64 = btoa(unescape(encodeURIComponent(fixedSvg)));
+            const dataUri = 'data:image/svg+xml;base64,' + b64;
+
+            // Render at 2× the viewBox size for retina crispness
+            const scale = 2;
             const cvs = document.createElement('canvas');
-            cvs.width = renderW;
-            cvs.height = renderH;
+            cvs.width = vbW * scale;
+            cvs.height = vbH * scale;
             const ctx = cvs.getContext('2d');
 
             await new Promise((resolve, reject) => {
                 const tmpImg = new Image();
                 tmpImg.onload = () => {
-                    ctx.drawImage(tmpImg, 0, 0, renderW, renderH);
-                    URL.revokeObjectURL(url);
+                    ctx.drawImage(tmpImg, 0, 0, cvs.width, cvs.height);
                     resolve();
                 };
-                tmpImg.onerror = reject;
-                tmpImg.src = url;
+                tmpImg.onerror = (e) => {
+                    console.warn('SVG rasterize draw failed', e);
+                    resolve(); // Don't block export on a single image
+                };
+                tmpImg.src = dataUri;
             });
 
             const pngDataUrl = cvs.toDataURL('image/png');

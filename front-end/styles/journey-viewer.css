@@ -22,11 +22,7 @@
     box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-    .journey-board-container {
-        padding: 24px 16px;
-    }
-}
+/* No responsive overrides — canvas renders at full desktop size inside panzoom viewport */
 
 /* ========================================
    Header
