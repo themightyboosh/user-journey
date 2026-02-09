@@ -1,24 +1,44 @@
+# Environment files
 .env
 .env.local
-.DS_Store
+
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
 coverage/
+
+# IDE
 .cursor/
+.vscode/
+.idea/
 
 # Playwright test artifacts
 playwright-report/
 test-results/
+test-results.json
 
 # Firebase
 firebase-debug.log
 firebase-debug.*.log
 .firebase/
 
-# Design files & archives
+# Design source files (keep in assets_source/ if needed)
 *.ai
+*.sketch
+*.fig
+*.psd
+*.xd
+
+# Archives
 *.zip
-*.pdf
+*.tar.gz
+*.rar
 
 # OS junk
+.DS_Store
 Thumbs.db
+*.swp
+*.swo
+*~
