@@ -1999,10 +1999,10 @@
                   const templateTitle = linkData.configName || linkData.journey || '';
                   if (headerName && templateTitle) {
                       headerName.textContent = templateTitle;
-                      // Hide logo when template is loaded
-                      const logoImg = document.getElementById('headerLogoImg');
-                      if (logoImg) logoImg.style.display = 'none';
                   }
+                  // Hide logo whenever a template is loaded (icon replaces it)
+                  const logoImg = document.getElementById('headerLogoImg');
+                  if (logoImg) logoImg.style.display = 'none';
               }
           } catch (e) {
               console.error("Error fetching config:", e);
