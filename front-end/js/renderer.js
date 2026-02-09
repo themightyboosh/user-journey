@@ -677,64 +677,9 @@ function restoreSvgImages(originals) {
     originals.forEach(o => { o.el.src = o.origSrc; });
 }
 
-// Export to PDF
-async function exportToPdf() {
-    if (!currentRenderedJourney) return;
-
-    // Use the container logic from exportToImage, but save as PDF
-    const element = document.querySelector('.journey-board-container');
-    if (!element) return;
-    
-    // Ensure fonts are embedded
-    await embedFontsForPdf();
-
-    // 1. Reset Transform to ensure full capture (on parent)
-    const parent = (window.journeyViewer && document.getElementById(window.journeyViewer.canvasId)) || document.getElementById('journeyDashboard');
-    const originalTransform = parent ? parent.style.transform : '';
-    if (parent) parent.style.transform = 'none'; 
-
-    // 1b. Rasterize SVG images to PNG so html2canvas doesn't distort them
-    const svgOriginals = await rasterizeSvgImages(element);
-    
-    // 2. Calculate Full Dimensions
-    const width = element.scrollWidth;
-    const height = element.scrollHeight;
-    
-    // 3. Configure html2pdf to use html2canvas with full dimensions
-    const opt = {
-        margin: 0,
-        filename: `journey-map-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-            scale: 2, // High res
-            useCORS: true,
-            backgroundColor: '#0a0c10', // Match background
-            windowWidth: width,
-            windowHeight: height,
-            width: width,
-            height: height,
-            scrollX: 0,
-            scrollY: 0,
-            x: 0,
-            y: 0
-        },
-        jsPDF: { 
-            unit: 'px', 
-            format: [width, height], 
-            orientation: width > height ? 'landscape' : 'portrait' 
-        }
-    };
-    
-    // 4. Capture and Save
-    html2pdf().set(opt).from(element).save().then(() => {
-        restoreSvgImages(svgOriginals);
-        if (parent) parent.style.transform = originalTransform;
-    }).catch(err => {
-        console.error("PDF export failed:", err);
-        restoreSvgImages(svgOriginals);
-        if (parent) parent.style.transform = originalTransform;
-    });
-}
+// NOTE: exportToPdf() is defined in index.html (includes transcript pages).
+// The helpers below (rasterizeSvgImages, restoreSvgImages, embedFontsForPdf)
+// are still used by the main exportToPdf implementation.
 
 // Copy Mermaid Code
 function copyMermaid(btn) {

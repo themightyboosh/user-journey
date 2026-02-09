@@ -1705,7 +1705,7 @@
     })();
   </script>
   <script src="js/lucide-icons.js?v=1"></script>
-  <script src="js/renderer.js?v=1026"></script>
+  <script src="js/renderer.js?v=1027"></script>
   <script src="js/journey-viewer.js?v=4"></script>
   <script src="js/json-renderer.js"></script>
   <script>
@@ -1759,12 +1759,14 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.journeyViewer = JourneyViewer.init('journeyViewerRoot', {
             showDebugGen: true,
-            showTranscript: true,
+            showTranscript: false,
             showPdf: true,
             onDebugGen: function () { debugGenerateRandom(); },
-            onTranscript: function () { downloadTranscript(); },
             onPdf: function () { exportToPdf(); }
         });
+
+        // GEN button: hidden by default, shown only for superadmin after auth
+        window.journeyViewer.hideButton('jv-gen');
 
         // Backward compat: expose panzoomInstance for any remaining refs
         Object.defineProperty(window, 'panzoomInstance', {
@@ -2552,7 +2554,7 @@
         URL.revokeObjectURL(url);
     }
 
-    // Export to PDF
+    // Export to PDF (Canvas + Transcript)
 async function exportToPdf() {
     if (!currentRenderedJourney) return;
 
@@ -2568,8 +2570,15 @@ async function exportToPdf() {
     const originalTransform = parent ? parent.style.transform : '';
     if (parent) parent.style.transform = 'none'; 
     
+    // Rasterize SVGs before capture
+    let svgOriginals = [];
+    if (typeof rasterizeSvgImages === 'function') {
+        svgOriginals = await rasterizeSvgImages(element);
+    }
+
     try {
-        const canvas = await html2canvas(element, {
+        // ── PAGE 1: Journey Canvas ──
+        const canvasEl = await html2canvas(element, {
             scale: 2,
             useCORS: true,
             backgroundColor: '#0a0c10',
@@ -2578,28 +2587,151 @@ async function exportToPdf() {
             windowHeight: element.scrollHeight
         });
 
-        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+        const canvasImg = canvasEl.toDataURL('image/jpeg', 0.98);
         const { jsPDF } = window.jspdf;
         
-        // Calculate dimensions to fit on one page (landscape)
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
+        const cw = canvasEl.width;
+        const ch = canvasEl.height;
         
-        // Create PDF with custom page size matching the canvas
         const pdf = new jsPDF({
-            orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+            orientation: cw > ch ? 'landscape' : 'portrait',
             unit: 'px',
-            format: [imgWidth, imgHeight]
+            format: [cw, ch]
         });
+        pdf.addImage(canvasImg, 'JPEG', 0, 0, cw, ch);
 
-        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-        pdf.save(`journey-map-${new Date().toISOString().split('T')[0]}.pdf`);
+        // ── TRANSCRIPT PAGES ──
+        if (state.conversationHistory && state.conversationHistory.length > 0) {
+            // Build transcript header info
+            const journey = currentRenderedJourney;
+            const templateIcon = journey.templateIcon || null;
+            const journeyName = escapeHtml(journey.name || state.sessionConfig.journeyName || 'Untitled Journey');
+            const userName = journey.userName || state.sessionConfig.name || '';
+            const userRole = journey.role || state.sessionConfig.role || '';
+            const agentName = (state.sessionConfig.agentName || 'MAX').toUpperCase();
+
+            // Build Lucide icon SVG from LUCIDE_ICONS dict
+            let iconSvg = '';
+            if (templateIcon) {
+                const lib = (typeof LUCIDE_ICONS !== 'undefined') ? LUCIDE_ICONS : {};
+                const paths = lib[templateIcon] || null;
+                if (paths) {
+                    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-right:12px;">' + paths + '</svg>';
+                }
+            }
+
+            // Fixed transcript page width (match canvas or use sensible default)
+            const pageW = Math.max(cw, 2400);
+            const pageH = Math.round(pageW * 1.414); // ~A4 ratio
+
+            // Build offscreen transcript HTML
+            const transcriptDiv = document.createElement('div');
+            transcriptDiv.style.cssText = 'position:absolute; left:-99999px; top:0; width:' + (pageW / 2) + 'px; background:#000000; color:#ffffff; font-family:var(--max-font-family-mono, "Messina Sans Mono", monospace); font-size:16px; line-height:1.7; padding:80px;';
+
+            let html = '';
+            // Header: Logo
+            html += '<div style="margin-bottom:40px;"><img src="/max_header.svg" style="height:48px; width:auto; display:block;" alt="M.AX"></div>';
+            // Header: Icon + Journey Name
+            html += '<div style="display:flex; align-items:center; margin-bottom:16px;">';
+            html += iconSvg;
+            html += '<span style="font-size:36px; font-weight:700; color:#ed2224;">' + journeyName + '</span>';
+            html += '</div>';
+            // Header: Name & Role
+            if (userName || userRole) {
+                html += '<div style="font-size:20px; color:rgba(255,255,255,0.6); margin-bottom:12px;">';
+                if (userName) html += '<span style="font-weight:700; color:#ffffff;">' + escapeHtml(userName) + '</span>';
+                if (userName && userRole) html += ', ';
+                if (userRole) html += escapeHtml(userRole);
+                html += '</div>';
+            }
+            // Divider
+            html += '<div style="border-top:1px solid rgba(255,255,255,0.15); margin:32px 0;"></div>';
+            // Section title
+            html += '<div style="font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#ed2224; margin-bottom:32px;">Conversation Transcript</div>';
+
+            // Messages
+            state.conversationHistory.forEach(msg => {
+                const isUser = msg.role === 'user';
+                const roleName = isUser ? (userName ? userName.split(' ')[0].toUpperCase() : 'USER') : agentName;
+                const roleColor = isUser ? '#ed2224' : 'rgba(255,255,255,0.45)';
+                const ts = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }) : '';
+
+                html += '<div style="margin-bottom:28px;">';
+                html += '<div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:' + roleColor + '; margin-bottom:6px;">' + escapeHtml(roleName);
+                if (ts) html += ' <span style="color:rgba(255,255,255,0.25); font-weight:400;">' + ts + '</span>';
+                html += '</div>';
+                html += '<div style="color:rgba(255,255,255,0.88); white-space:pre-wrap; word-wrap:break-word;">' + escapeHtml(msg.content || '') + '</div>';
+                html += '</div>';
+            });
+
+            // Footer
+            html += '<div style="border-top:1px solid rgba(255,255,255,0.15); margin-top:40px; padding-top:24px; font-size:12px; color:rgba(255,255,255,0.3);">Generated by M.AX Journey Mapper</div>';
+
+            transcriptDiv.innerHTML = html;
+            document.body.appendChild(transcriptDiv);
+
+            // Wait for images (logo) to load
+            await new Promise(r => setTimeout(r, 300));
+
+            // Rasterize SVG images inside transcript too
+            let tSvgOrig = [];
+            if (typeof rasterizeSvgImages === 'function') {
+                tSvgOrig = await rasterizeSvgImages(transcriptDiv);
+            }
+
+            // Capture the full transcript as one tall image
+            const tCanvas = await html2canvas(transcriptDiv, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#000000',
+                logging: false,
+                windowWidth: transcriptDiv.scrollWidth,
+                windowHeight: transcriptDiv.scrollHeight
+            });
+
+            // Restore SVGs and remove temp element
+            if (typeof restoreSvgImages === 'function') restoreSvgImages(tSvgOrig);
+            document.body.removeChild(transcriptDiv);
+
+            // Split into pages
+            const tw = tCanvas.width;
+            const th = tCanvas.height;
+            const tPageH = Math.round(tw * 1.414); // A4-ish ratio
+            const numPages = Math.ceil(th / tPageH);
+
+            for (let i = 0; i < numPages; i++) {
+                pdf.addPage([tw, tPageH], 'portrait');
+
+                // Slice this portion from the tall canvas
+                const sliceY = i * tPageH;
+                const sliceH = Math.min(tPageH, th - sliceY);
+
+                const sliceCanvas = document.createElement('canvas');
+                sliceCanvas.width = tw;
+                sliceCanvas.height = tPageH;
+                const ctx = sliceCanvas.getContext('2d');
+
+                // Fill black background for the full page (last page may be partial)
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, tw, tPageH);
+
+                // Draw the slice
+                ctx.drawImage(tCanvas, 0, sliceY, tw, sliceH, 0, 0, tw, sliceH);
+
+                const sliceImg = sliceCanvas.toDataURL('image/jpeg', 0.95);
+                pdf.addImage(sliceImg, 'JPEG', 0, 0, tw, tPageH);
+            }
+        }
+
+        const jName = (currentRenderedJourney.name || 'journey').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+        pdf.save(`${jName}-${new Date().toISOString().split('T')[0]}.pdf`);
 
     } catch (err) {
         console.error("PDF export failed:", err);
         alert("Export failed. See console for details.");
     } finally {
-        parent.style.transform = originalTransform;
+        if (typeof restoreSvgImages === 'function') restoreSvgImages(svgOriginals);
+        if (parent) parent.style.transform = originalTransform;
     }
 }
 
@@ -2925,6 +3057,11 @@ async function exportToPdf() {
                 
                 // Store email in session config
                 state.sessionConfig.userEmail = email;
+
+                // Show GEN button for superadmin
+                if (email === 'daniel@monumental-i.com' && window.journeyViewer) {
+                    window.journeyViewer.showButton('jv-gen');
+                }
                 
                 // Hide auth gate
                 gate.style.display = 'none';
