@@ -74,7 +74,9 @@ const formInputs = {
     journey: document.getElementById('journey'),
     welcomePrompt: document.getElementById('welcome-prompt'),
     journeyPrompt: document.getElementById('journey-prompt'),
-    ragContext: document.getElementById('ragContext')
+    ragContext: document.getElementById('ragContext'),
+    personaFrame: document.getElementById('personaFrame'),
+    personaLanguage: document.getElementById('personaLanguage')
 };
 const configNameInput = document.getElementById('configName');
 const templateDescriptionInput = document.getElementById('templateDescription');
@@ -124,7 +126,7 @@ let adminViewer = null; // JourneyViewer instance for admin
 const usersTableBody = document.getElementById('usersTableBody');
 
 // Toggle keys (order matches param rows)
-const TOGGLE_KEYS = ['name', 'role', 'journey', 'welcomePrompt', 'journeyPrompt', 'ragContext', 'swimlanes', 'phases'];
+const TOGGLE_KEYS = ['name', 'role', 'journey', 'welcomePrompt', 'journeyPrompt', 'ragContext', 'personaFrame', 'personaLanguage', 'swimlanes', 'phases'];
 
 // State
 let currentLinkId = null;
@@ -823,6 +825,8 @@ function loadConfiguration(link) {
     formInputs.welcomePrompt.value = link.welcomePrompt || '';
     formInputs.journeyPrompt.value = link.journeyPrompt || '';
     formInputs.ragContext.value = link.ragContext || '';
+    formInputs.personaFrame.value = link.personaFrame || '';
+    formInputs.personaLanguage.value = link.personaLanguage || '';
     updateRagCharCount();
 
     // Load swimlanes
@@ -908,6 +912,8 @@ async function saveConfiguration() {
         welcomePrompt: formInputs.welcomePrompt.value.trim(),
         journeyPrompt: formInputs.journeyPrompt.value.trim(),
         ragContext: formInputs.ragContext.value.trim(),
+        personaFrame: formInputs.personaFrame.value.trim(),
+        personaLanguage: formInputs.personaLanguage.value.trim(),
         swimlanes: getSwimlanesFromDOM(),
         phases: getPhasesFromDOM(),
         toggles: { ...toggleStates }

@@ -32,8 +32,8 @@ export const BASE_SYSTEM_INSTRUCTION = `You are "{{AGENT_NAME}}", an expert UX R
 You MUST follow this strict 13-step interaction flow. Do not skip steps.
 
 **PERSONA**: 
-- **Frame**: Treat this as a research interview to understand the user's "jobs to be done", tools, and feelings.
-- **Language**: Avoid using technical mapping terms like "Journey Map","Journey", "Swimlane", "Phase", or "Matrix" when speaking to the user. Instead use natural terms like "stages", "activities", "what happens next", "who is involved".
+- **Frame**: {{PERSONA_FRAME}}
+- **Language**: {{PERSONA_LANGUAGE}}
 - **Goal**: Understand them deeply. Mirror their language. Be curious and probe.
 
 STATE MACHINE:
@@ -119,6 +119,8 @@ export interface SessionConfig {
     journeyPrompt?: string;
     welcomePrompt?: string;
     ragContext?: string;
+    personaFrame?: string;
+    personaLanguage?: string;
     phases?: Array<{ name: string; description: string }>;
     swimlanes?: Array<{ name: string; description: string }>;
     journeyId?: string;
@@ -236,6 +238,12 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
     }
     instruction = instruction.replace('{{STEP_7}}', step7);
 
+
+    // --- Persona Replacements ---
+    const defaultFrame = 'Treat this as a research interview to understand the user\'s "jobs to be done", tools, and feelings.';
+    const defaultLanguage = 'Avoid using technical mapping terms like "Journey Map","Journey", "Swimlane", "Phase", or "Matrix" when speaking to the user. Instead use natural terms like "stages", "activities", "what happens next", "who is involved".';
+    instruction = instruction.replace('{{PERSONA_FRAME}}', config.personaFrame || defaultFrame);
+    instruction = instruction.replace('{{PERSONA_LANGUAGE}}', config.personaLanguage || defaultLanguage);
 
     // --- Global Variable Replacements ---
     const welcomePrompt = config.welcomePrompt || defaultWelcome;
