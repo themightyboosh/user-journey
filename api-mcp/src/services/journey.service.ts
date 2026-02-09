@@ -72,6 +72,8 @@ export class JourneyService {
         let journey = await Store.get(id);
         if (!journey) return null;
 
+        const oldStage = journey.stage;
+
         if (params.name !== undefined) journey.name = params.name;
         if (params.userName !== undefined) journey.userName = params.userName;
         if (params.role !== undefined) journey.role = params.role;
@@ -87,7 +89,13 @@ export class JourneyService {
 
         journey = recalculateJourney(journey);
         await Store.save(journey);
-        logger.info(`[JourneyService] Updated Metadata: ${id} | Stage: ${journey.stage}`);
+
+        // Log stage transitions
+        if (oldStage !== journey.stage) {
+            logger.info(`🚦 [GATE TRANSITION] ${oldStage} → ${journey.stage} | Journey: ${journey.name}`);
+        }
+
+        logger.info(`[JourneyService] Updated Metadata: ${id} | Name: "${journey.name}" | Stage: ${journey.stage}`);
         return journey;
     }
 
@@ -143,6 +151,8 @@ export class JourneyService {
         let journey = await Store.get(id);
         if (!journey) return null;
 
+        const oldStage = journey.stage;
+
         journey.phases = phases.map((p, index) => ({
             phaseId: uuidv4(),
             sequence: index + 1,
@@ -158,6 +168,8 @@ export class JourneyService {
 
         journey = recalculateJourney(journey);
         await Store.save(journey);
+
+        logger.info(`🚦 [GATE TRANSITION] ${oldStage} → ${journey.stage} | Phases set: ${journey.phases.length}`);
         logger.info(`[JourneyService] Set Phases Bulk: ${id} | Count: ${journey.phases.length}`);
         return journey;
     }
@@ -236,6 +248,8 @@ export class JourneyService {
         let journey = await Store.get(id);
         if (!journey) return null;
 
+        const oldStage = journey.stage;
+
         // Ensure all phase x swimlane combos exist
         for (const phase of journey.phases) {
             for (const swimlane of journey.swimlanes) {
@@ -258,6 +272,8 @@ export class JourneyService {
 
         journey = recalculateJourney(journey);
         await Store.save(journey);
+
+        logger.info(`🚦 [GATE TRANSITION] ${oldStage} → ${journey.stage} | Matrix ready: ${journey.cells.length} cells`);
         logger.info(`[JourneyService] Matrix Generated: ${id} | Cells: ${journey.cells.length}`);
         return journey;
     }
@@ -345,12 +361,16 @@ export class JourneyService {
         if (params.anythingElse) journey.anythingElse = params.anythingElse;
         if (params.quotes) journey.quotes = params.quotes;
 
+        const oldStage = journey.stage;
+
         // Finalize stage
         journey.stage = 'COMPLETE';
         journey.status = 'READY_FOR_REVIEW';
 
         journey = recalculateJourney(journey);
         await Store.save(journey);
+
+        logger.info(`🚦 [GATE TRANSITION] ${oldStage} → ${journey.stage} | Journey "${journey.name}" complete!`);
         return journey;
     }
 

@@ -1923,17 +1923,17 @@
     function showCompletionButton() {
         if (state.completionButtonShown) return;
         state.completionButtonShown = true;
-        
+
         const messageDiv = document.createElement('div');
         messageDiv.className = 'max-message max-message--ai';
-        
+
         const journeyIcon = (currentJourney && currentJourney.templateIcon) || 'file-text';
-        
+
         let iconSvg = '';
         if (typeof LUCIDE_ICONS !== 'undefined' && LUCIDE_ICONS[journeyIcon]) {
             iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">${LUCIDE_ICONS[journeyIcon]}</svg>`;
         }
-        
+
         messageDiv.innerHTML = `
             <div class="max-message-header" style="background: var(--max-color-accent);">MAX</div>
             <div class="max-message-content">
@@ -1946,10 +1946,16 @@
                 </div>
             </div>
         `;
-        
+
         const messagesArea = document.getElementById('messagesArea');
         messagesArea.appendChild(messageDiv);
         messagesArea.scrollTop = messagesArea.scrollHeight;
+
+        // Hide the input area when journey is complete
+        const inputArea = document.querySelector('.max-input-area');
+        if (inputArea) {
+            inputArea.style.display = 'none';
+        }
     }
 
     async function pollJourneyState() {
@@ -2314,11 +2320,14 @@
     // Message Handling
     // ===========================================
     async function sendMessage(isSystemStart = false) {
+      // Prevent sending messages after journey is complete
+      if (state.completionButtonShown) return;
+
       let text = '';
-      
+
       if (isSystemStart) {
           // Special signal text that won't be shown to user but triggers the backend
-          text = "START_SESSION"; 
+          text = "START_SESSION";
       } else {
           text = chatInput.value.trim();
           if (!text || state.isStreaming) return;
@@ -2399,12 +2408,15 @@
                 
                 // If we get text and haven't created the bubble yet, do it now
                 if (data.text) {
+                  // Don't create new messages after completion button is shown
+                  if (state.completionButtonShown) continue;
+
                   if (!aiMessageEl) {
                       removeTypingIndicator();
                       aiMessageEl = createStreamingMessage();
                       bubbleEl = aiMessageEl.querySelector('.max-message-bubble');
                   }
-                  
+
                   fullResponse += data.text;
                   bubbleEl.innerHTML = formatMessage(fullResponse) + '<span class="streaming-cursor"></span>';
                   messagesArea.scrollTop = messagesArea.scrollHeight;
@@ -2505,9 +2517,12 @@
 
     // Add static message (user messages)
     function addMessage(content, type) {
+      // Don't add messages after completion button is shown
+      if (state.completionButtonShown && type === 'ai') return;
+
       const messageDiv = document.createElement('div');
       messageDiv.className = `max-message max-message--${type}`;
-      
+
       const name = getDisplayName(type);
 
       messageDiv.innerHTML = `
