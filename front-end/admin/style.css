@@ -19,12 +19,16 @@ body {
     line-height: var(--max-line-height-body-medium);
     font-size: var(--max-font-size-body-medium);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    width: 100%;
 }
 
 .admin-app {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 /* ========================================
@@ -447,6 +451,7 @@ body {
 .form-group textarea,
 .form-group select {
     width: 100%;
+    max-width: 100%;
     background: var(--max-color-surface-primary-elevated);
     border: 1px solid var(--max-color-border-primary-default);
     border-radius: var(--max-radius-medium);

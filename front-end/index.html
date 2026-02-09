@@ -907,6 +907,31 @@
         color: var(--max-color-text-primary);
         font-size: 13px;
         font-family: var(--max-font-family-mono);
+    }
+    
+    .completion-btn {
+        margin-top: 16px;
+        width: 100%;
+        justify-content: center;
+        background: var(--max-color-accent);
+        color: white;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: none;
+        border-radius: var(--max-radius-medium);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .completion-btn:hover {
+        background: var(--max-color-accent-hover, #c9191b);
+        transform: translateY(-2px);
+        box-shadow: var(--max-shadow-elevation-medium);
+    }
         font-weight: 500;
         cursor: pointer;
         margin-right: 12px;
@@ -1496,6 +1521,7 @@
                 <button id="templatePickerBtn" class="nav-btn" title="Choose a journey template">CHOOSE</button>
             </div>
             <button class="nav-btn" onclick="copyTranscript(this)">COPY</button>
+            <button class="nav-btn" onclick="resetSession()" style="color: var(--max-color-status-error-default);">RESET</button>
             <button class="nav-btn" onclick="window.location.href='/admin'">CREATE</button>
             <button class="nav-btn" onclick="openAboutModal()">ABOUT</button>
             <button class="nav-btn" id="feedbackNavBtn" onclick="openFeedbackPanel()">FEEDBACK</button>
@@ -1533,6 +1559,7 @@
             <nav class="mobile-menu-nav">
                 <button class="mobile-menu-item" onclick="openTemplatePicker(); closeMobileMenu();">CHOOSE</button>
                 <button class="mobile-menu-item" onclick="copyTranscript(); closeMobileMenu();">COPY</button>
+                <button class="mobile-menu-item" onclick="resetSession(); closeMobileMenu();" style="color: var(--max-color-status-error-default);">RESET</button>
                 <button class="mobile-menu-item" onclick="window.location.href='/admin'; closeMobileMenu();">CREATE</button>
                 <button class="mobile-menu-item" onclick="openAboutModal(); closeMobileMenu();">ABOUT</button>
                 <button class="mobile-menu-item" onclick="openFeedbackPanel(); closeMobileMenu();">FEEDBACK</button>
@@ -1707,7 +1734,7 @@
     })();
   </script>
   <script src="js/lucide-icons.js?v=1"></script>
-  <script src="js/renderer.js?v=1028"></script>
+  <script src="js/renderer.js?v=1029"></script>
   <script src="js/journey-viewer.js?v=4"></script>
   <script src="js/json-renderer.js"></script>
   <script>
@@ -1719,7 +1746,8 @@
       isConnected: false,
       conversationHistory: [],
       sessionConfig: {},
-      currentView: 'map' // 'map' or 'json'
+      currentView: 'map', // 'map' or 'json'
+      completionButtonShown: false
     };
 
     // Toggle View
@@ -1882,6 +1910,48 @@
     // ===========================================
     // Journey Visualization (Polling)
     // ===========================================
+    // Reset Session
+    function resetSession() {
+        if (!confirm("Are you sure you want to start over? This will clear your current session and all data.")) return;
+        localStorage.removeItem('max_chat_history');
+        localStorage.removeItem('max_journey_id');
+        // Reload fresh
+        window.location.href = window.location.pathname;
+    }
+
+    // Show Completion Button
+    function showCompletionButton() {
+        if (state.completionButtonShown) return;
+        state.completionButtonShown = true;
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'max-message max-message--ai';
+        
+        const journeyIcon = (currentJourney && currentJourney.templateIcon) || 'file-text';
+        
+        let iconSvg = '';
+        if (typeof LUCIDE_ICONS !== 'undefined' && LUCIDE_ICONS[journeyIcon]) {
+            iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">${LUCIDE_ICONS[journeyIcon]}</svg>`;
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="max-message-header" style="background: var(--max-color-accent);">MAX</div>
+            <div class="max-message-content">
+                <div class="max-message-bubble" style="background: var(--max-color-surface-secondary);">
+                    <p style="margin: 0; margin-bottom: 12px; font-weight: 500;">Thanks for your time, here's your journey.</p>
+                    <button class="completion-btn" onclick="document.body.classList.add('journey-complete'); if(window.journeyViewer) { window.journeyViewer.reinit(); setTimeout(() => window.journeyViewer.fit(), 100); }">
+                        ${iconSvg}
+                        View Journey
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        const messagesArea = document.getElementById('messagesArea');
+        messagesArea.appendChild(messageDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
     async function pollJourneyState() {
       if (!currentJourneyId) return;
 
@@ -1901,6 +1971,12 @@
               journey.templateIcon = state.sessionConfig.templateIcon;
           }
           currentJourney = journey; // Update global state
+          
+          if (journey.stage === 'COMPLETE') {
+              if (!state.completionButtonShown) {
+                  showCompletionButton();
+              }
+          }
           renderCurrentView();
         }
       } catch (e) {
@@ -2277,12 +2353,20 @@
 
       try {
         // Start streaming request
+        // Prepare history to send (exclude current message since it's sent as 'message')
+        let historyToSend = state.conversationHistory;
+        if (!isSystemStart) {
+            historyToSend = state.conversationHistory.slice(0, -1);
+        }
+        // Filter out system start signals
+        historyToSend = historyToSend.filter(h => h.content !== "START_SESSION");
+
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: text,
-            history: state.conversationHistory.filter(h => h.content !== "START_SESSION"), // Don't send START_SESSION in history if it lingered
+            history: historyToSend,
             config: state.sessionConfig, // Pass the context/config
             journeyId: currentJourneyId // Pass the ID so the model doesn't lose track
           })

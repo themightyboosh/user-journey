@@ -316,12 +316,12 @@ function renderMap(journey, targetElementId) {
 
     if (isComplete) {
         // Add complete class to body for full takeover (host may style this)
-        document.body.classList.add('journey-complete');
+        // document.body.classList.add('journey-complete'); -- REMOVED for manual button trigger
         
         // Auto-switch mobile view if the host provides toggleMobileView
-        if (window.innerWidth <= 768 && !document.body.classList.contains('show-map') && typeof toggleMobileView === 'function') {
-            setTimeout(() => { if (!document.body.classList.contains('show-map')) toggleMobileView(); }, 500);
-        }
+        // if (window.innerWidth <= 768 && !document.body.classList.contains('show-map') && typeof toggleMobileView === 'function') {
+        //    setTimeout(() => { if (!document.body.classList.contains('show-map')) toggleMobileView(); }, 500);
+        // }
     } else {
         document.body.classList.remove('journey-complete');
     }
