@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import * as admin from 'firebase-admin';
+import { z } from 'zod';
 import { JourneyService } from './services/journey.service';
 import { AdminService } from './services/admin.service';
 import { AIService } from './services/ai.service';
@@ -11,6 +12,30 @@ import { Store } from './store';
 import { SessionConfig } from './ai/prompts';
 import { SUPER_ADMIN_EMAIL, AppUser } from './types';
 import logger from './logger';
+
+// --- Request Validation Schemas ---
+const ChatRequestSchema = z.object({
+    message: z.string().min(1, 'Message is required'),
+    history: z.array(z.object({
+        role: z.string(),
+        content: z.string()
+    })).default([]),
+    config: z.object({
+        name: z.string().optional(),
+        role: z.string().optional(),
+        journeyName: z.string().optional(),
+        journeyPrompt: z.string().optional(),
+        welcomePrompt: z.string().optional(),
+        ragContext: z.string().optional(),
+        personaFrame: z.string().optional(),
+        personaLanguage: z.string().optional(),
+        phases: z.array(z.object({ name: z.string(), description: z.string() })).optional(),
+        swimlanes: z.array(z.object({ name: z.string(), description: z.string() })).optional(),
+        journeyId: z.string().optional(),
+        agentName: z.string().optional(),
+    }).default({}),
+    journeyId: z.string().optional(),
+});
 
 export const server: FastifyInstance = Fastify({ 
     logger: false, // Use our own logger
@@ -148,29 +173,31 @@ server.post('/api/chat', async (request, reply) => {
     reply.raw.setHeader('Cache-Control', 'no-cache');
     reply.raw.setHeader('Connection', 'keep-alive');
 
-    let body: any;
-    try {
-        body = request.body;
-        logger.info('[HANDLER] Body parsed', { 
-            hasMessage: !!body?.message, 
-            journeyId: body?.journeyId 
-        });
-    } catch (e) {
-        logger.error('[HANDLER] Body parse error', e);
-        return reply.status(400).send({ error: 'Invalid JSON body' });
+    // Validate request body with Zod
+    const parseResult = ChatRequestSchema.safeParse(request.body);
+    if (!parseResult.success) {
+        const errors = parseResult.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ');
+        logger.warn('[HANDLER] Validation failed', { errors });
+        return reply.status(400).send({ error: `Invalid request: ${errors}` });
     }
 
-    const { message, history = [], config = {} as SessionConfig, journeyId } = body || {};
-  
+    const { message, history, config, journeyId } = parseResult.data;
     if (journeyId) config.journeyId = journeyId;
     
-    logger.info('[API] Received Chat Config:', { 
+    logger.info('[API] Chat request validated', { 
         hasWelcome: !!config.welcomePrompt, 
-        welcomeLen: config.welcomePrompt?.length,
-        journeyName: config.journeyName
+        journeyId: config.journeyId,
+        historyLength: history.length
     });
 
-    if (!message) return reply.status(400).send({ error: 'Message is required' });
+    // Safe SSE write helper — guards against writing to closed/destroyed streams
+    const safeSend = (data: object) => {
+        if (!reply.raw.destroyed && reply.raw.writable) {
+            reply.raw.write(`data: ${JSON.stringify(data)}\n\n`);
+        } else {
+            logger.warn('⚠️ Attempted SSE write to closed stream', { journeyId: config?.journeyId });
+        }
+    };
   
     try {
       logger.info('Chat request processing', { journeyId, messageLength: message.length });
@@ -295,24 +322,48 @@ server.post('/api/chat', async (request, reply) => {
                   lastUserMessage: message?.substring(0, 200) || '(no message)',
                   totalEmptyRetries: emptyRetries
               });
-              reply.raw.write(`data: ${JSON.stringify({ text: "I had a brief hiccup processing that. Could you try sending your message again?" })}\n\n`);
-              reply.raw.write(`data: ${JSON.stringify({ done: true, journeyId: config.journeyId })}\n\n`);
+              safeSend({ text: "I had a brief hiccup processing that. Could you try sending your message again?" });
+              safeSend({ done: true, journeyId: config.journeyId });
               finalDone = true;
               break;
           }
           // Reset empty retry counter on successful response
           emptyRetries = 0;
 
-          const functionCalls = candidates[0].content.parts.filter((p: any) => p.functionCall);
+          const allParts = candidates[0].content.parts;
+          const functionCalls = allParts.filter((p: any) => p.functionCall);
+          const textParts = allParts.filter((p: any) => p.text);
           
           if (functionCalls && functionCalls.length > 0) {
+              // P0 FIX: If model generated BOTH text and tool calls in the same turn,
+              // log the discarded text. The tool calls take priority — we'll get proper
+              // follow-up text from the next generation with fresh post-tool context.
+              if (textParts.length > 0) {
+                  const discardedText = textParts.map((p: any) => p.text).join('');
+                  if (discardedText.trim().length > 0) {
+                      logger.info('🔇 Discarding co-generated text in favor of tool execution', {
+                          discardedLength: discardedText.length,
+                          discardedPreview: discardedText.substring(0, 150),
+                          tools: functionCalls.map((c: any) => c.functionCall?.name)
+                      });
+                  }
+              }
+
               // Execute all function calls and collect responses
               const functionResponseParts: any[] = [];
               for (const call of functionCalls) {
                   const fn = call.functionCall;
                   if (!fn) continue;
 
+                  logger.info(`⚙️ Executing tool: ${fn.name}`, { journeyId: config.journeyId });
                   const toolResult: any = await aiService.executeTool(fn.name, fn.args);
+                  
+                  // Log tool outcome for observability
+                  if (toolResult?.error) {
+                      logger.error(`❌ Tool "${fn.name}" returned error`, { error: toolResult.error, args: JSON.stringify(fn.args).substring(0, 500) });
+                  } else {
+                      logger.info(`✅ Tool "${fn.name}" succeeded`, { journeyId: config.journeyId });
+                  }
                   
                   functionResponseParts.push({
                       functionResponse: {
@@ -323,16 +374,17 @@ server.post('/api/chat', async (request, reply) => {
   
                   if (fn.name === 'create_journey_map' && toolResult && toolResult.journeyMapId) {
                        config.journeyId = toolResult.journeyMapId;
-                       reply.raw.write(`data: ${JSON.stringify({ journeyId: toolResult.journeyMapId })}\n\n`);
+                       safeSend({ journeyId: toolResult.journeyMapId });
                   }
               }
 
-              // Push model response (with all call parts) ONCE,
-              // then ONE function message with ALL response parts (1:1 match required by Vertex AI)
-              contents.push(candidates[0].content);
+              // Push model response (with function call parts ONLY — strip co-generated text
+              // to keep conversation history clean and avoid confusing the model)
+              const cleanModelParts = allParts.filter((p: any) => p.functionCall);
+              contents.push({ role: 'model', parts: cleanModelParts });
               contents.push({ role: 'function', parts: functionResponseParts });
               
-              // P0 FIX: Re-fetch journey state after tool calls so the model
+              // Re-fetch journey state after tool calls so the model
               // gets a fresh system instruction reflecting the mutations just made.
               if (config.journeyId) {
                   journeyState = await aiService.getJourneyState(config.journeyId);
@@ -352,16 +404,17 @@ server.post('/api/chat', async (request, reply) => {
               requestModel = genResult.model;
               currentModelName = genResult.modelName;
           } else {
-              const finalText = candidates[0].content.parts[0]?.text || "Processing...";
-              reply.raw.write(`data: ${JSON.stringify({ text: finalText })}\n\n`);
-              reply.raw.write(`data: ${JSON.stringify({ done: true, journeyId: config.journeyId })}\n\n`);
+              // Pure text response — no tool calls. Send to client.
+              const finalText = textParts.map((p: any) => p.text).join('') || "Processing...";
+              safeSend({ text: finalText });
+              safeSend({ done: true, journeyId: config.journeyId });
               finalDone = true;
           }
       }
   
       if (!finalDone) {
-           reply.raw.write(`data: ${JSON.stringify({ text: "I'm still thinking, but I hit a limit. Please continue." })}\n\n`);
-           reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+           safeSend({ text: "I'm still thinking, but I hit a limit. Please continue." });
+           safeSend({ done: true });
       }
   
       reply.raw.end();
@@ -369,10 +422,11 @@ server.post('/api/chat', async (request, reply) => {
     } catch (error: any) {
       logger.error('🚨 CHAT_ERROR: Unhandled exception in /api/chat', { 
           error: error.message, 
-          stack: error.stack
+          stack: error.stack,
+          journeyId: config?.journeyId
       });
-      reply.raw.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
-      reply.raw.end();
+      safeSend({ error: error.message });
+      if (!reply.raw.destroyed) reply.raw.end();
     }
 });
 

@@ -296,7 +296,7 @@ export class AIService {
                 case 'generate_matrix':
                     return await this.journeyService.generateMatrix(args.journeyMapId);
                 case 'update_cell': {
-                    // Fetch journey ONCE for all resolution needs (was 3 reads, now 1)
+                    // Fetch journey ONCE for all resolution needs
                     const journey = await this.journeyService.getJourney(args.journeyMapId);
                     if (!journey) return { error: "Journey not found" };
 
@@ -304,23 +304,62 @@ export class AIService {
                     let pId: string | null = null;
                     let sId: string | null = null;
     
+                    // Strategy 1: Direct cellId lookup
+                    if (targetCellId) {
+                        const directCell = journey.cells.find(c => c.cellId === targetCellId);
+                        if (!directCell) {
+                            logger.warn(`⚠️ cellId "${targetCellId}" not found in journey. Falling back to name resolution.`);
+                            targetCellId = null; // Force name-based resolution
+                        }
+                    }
+
+                    // Strategy 2: Name-based resolution with normalization
                     if (!targetCellId && args.phaseName && args.swimlaneName) {
-                        const findMatch = (list: any[], name: string) => list.find(item => item.name.toLowerCase().trim() === name.toLowerCase().trim());
-                        const phase = findMatch(journey.phases, args.phaseName);
-                        const swimlane = findMatch(journey.swimlanes, args.swimlaneName);
+                        const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ');
+                        
+                        // Exact match (after normalization)
+                        let phase = journey.phases.find(p => normalize(p.name) === normalize(args.phaseName));
+                        let swimlane = journey.swimlanes.find(s => normalize(s.name) === normalize(args.swimlaneName));
+                        
+                        // Fuzzy fallback: startsWith / includes
+                        if (!phase) {
+                            phase = journey.phases.find(p => normalize(p.name).startsWith(normalize(args.phaseName))) 
+                                 || journey.phases.find(p => normalize(p.name).includes(normalize(args.phaseName)));
+                            if (phase) logger.info(`🔍 Fuzzy phase match: "${args.phaseName}" → "${phase.name}"`);
+                        }
+                        if (!swimlane) {
+                            swimlane = journey.swimlanes.find(s => normalize(s.name).startsWith(normalize(args.swimlaneName)))
+                                    || journey.swimlanes.find(s => normalize(s.name).includes(normalize(args.swimlaneName)));
+                            if (swimlane) logger.info(`🔍 Fuzzy swimlane match: "${args.swimlaneName}" → "${swimlane.name}"`);
+                        }
                         
                         if (phase && swimlane) {
-                            const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
+                            const cell = journey.cells.find(c => c.phaseId === phase!.phaseId && c.swimlaneId === swimlane!.swimlaneId);
                             if (cell) {
                                 targetCellId = cell.cellId;
                                 pId = phase.phaseId;
                                 sId = swimlane.swimlaneId;
+                                logger.info(`✅ Cell resolved: "${phase.name}" × "${swimlane.name}" → ${cell.cellId}`);
+                            } else {
+                                logger.warn(`⚠️ Phase+Swimlane found but no cell exists at intersection`, {
+                                    phaseId: phase.phaseId, swimlaneId: swimlane.swimlaneId,
+                                    totalCells: journey.cells.length
+                                });
                             }
+                        } else {
+                            logger.warn(`⚠️ Name resolution failed`, {
+                                requestedPhase: args.phaseName,
+                                requestedSwimlane: args.swimlaneName,
+                                availablePhases: journey.phases.map(p => p.name),
+                                availableSwimlanes: journey.swimlanes.map(s => s.name),
+                            });
                         }
                     }
     
                     if (!targetCellId) {
-                        return { error: "Missing cellId and could not resolve phaseName/swimlaneName to a valid cell." };
+                        return { 
+                            error: `Could not resolve cell. Phase="${args.phaseName}", Swimlane="${args.swimlaneName}". Available phases: [${journey.phases.map(p => p.name).join(', ')}]. Available swimlanes: [${journey.swimlanes.map(s => s.name).join(', ')}].`
+                        };
                     }
 
                     // Get IDs for summarization trigger (using already-fetched journey)
