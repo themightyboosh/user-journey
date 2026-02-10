@@ -3239,9 +3239,13 @@ async function exportToPdf() {
         if (btn) btn.classList.remove('map-updated');
 
         document.body.classList.toggle('show-map');
-        
+
         if (document.body.classList.contains('show-map')) {
             if (btn) btn.textContent = 'Chat';
+            // Render the map if we have journey data (fixes blank canvas on mobile)
+            if (currentJourney) {
+                renderMap(currentJourney);
+            }
             // Auto-fit when switching to map
             setTimeout(() => {
                 if(window.panzoomInstance) performFit();

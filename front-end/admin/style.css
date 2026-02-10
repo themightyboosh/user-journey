@@ -552,6 +552,13 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+.param-content input,
+.param-content textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
 .param-content textarea {
     min-height: 140px;
     resize: vertical;
