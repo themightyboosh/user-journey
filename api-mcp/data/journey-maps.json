@@ -4343,5 +4343,459 @@
     "createdAt": "2026-02-06T18:25:35.136Z",
     "updatedAt": "2026-02-06T18:26:24.359Z",
     "version": 9
+  },
+  "e184a44d-04e1-4d39-8e1f-f99748e3fbb4": {
+    "journeyMapId": "e184a44d-04e1-4d39-8e1f-f99748e3fbb4",
+    "sessionId": "cc27f7c4-b1bd-4a12-a5b0-1ae3de254f95",
+    "status": "DRAFT",
+    "stage": "PHASES",
+    "userName": "Farley",
+    "name": "Farley's Journey",
+    "role": "Straw Maker",
+    "description": "Reclaiming straws to generate income and improve environmental sustainability",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-09T19:42:06.293Z",
+    "updatedAt": "2026-02-09T19:42:41.239Z",
+    "version": 2
+  },
+  "35aab016-17a5-4fcc-82ff-1e1d3773c710": {
+    "journeyMapId": "35aab016-17a5-4fcc-82ff-1e1d3773c710",
+    "sessionId": "d8589389-0812-4922-ba91-3cb77b5ec021",
+    "status": "READY_FOR_REVIEW",
+    "stage": "COMPLETE",
+    "userName": "Kinggy",
+    "name": "Finding Bad Spoons",
+    "role": "spoon washer",
+    "description": "Ensuring the restaurant has amazing spoons for good reviews.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": true
+    },
+    "phases": [
+      {
+        "phaseId": "43faf96a-5549-4fa4-8f01-12e416403498",
+        "sequence": 1,
+        "name": "Evaluate Spoon",
+        "description": "",
+        "context": "",
+        "summary": "During evaluation, the user experiences an emotional attachment, loving the spoon's shiny metal, while simultaneously using an iPhone app to technically gauge its wear. This phase blends aesthetic appreciation with a data-driven assessment."
+      },
+      {
+        "phaseId": "f13a6f3c-7d21-4f5b-80d6-32ab1aac50f7",
+        "sequence": 2,
+        "name": "Spoon Fate",
+        "description": "",
+        "context": "",
+        "summary": "During the \"Spoon Fate\" phase, the user experienced profound sadness and often cried while disposing of the spoon, distressed by its destruction."
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "ca1f8145-289b-4f83-82db-3ed523757596",
+        "sequence": 1,
+        "name": "Feel",
+        "description": "",
+        "context": "",
+        "summary": "The user's initial love for the spoon's shiny metal quickly turns to sadness at the thought of its potential destruction, highlighting a dramatic emotional shift from aesthetic appreciation to distress."
+      },
+      {
+        "swimlaneId": "4e372a20-94b0-44d6-a383-6df440b615d9",
+        "sequence": 2,
+        "name": "Do",
+        "description": "",
+        "context": "",
+        "summary": "The user actively monitors the spoon's wear via an iPhone app, a process that ultimately leads to the deeply distressing and tearful act of disposing of it in a furnace."
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "b6c73058-ead9-4475-93a4-a0081d8773c9",
+        "phaseId": "43faf96a-5549-4fa4-8f01-12e416403498",
+        "swimlaneId": "ca1f8145-289b-4f83-82db-3ed523757596",
+        "headline": "Shiny Metal Love",
+        "description": "Experiencing a feeling of love when evaluating a spoon, specifically because the metal is shiny.",
+        "context": ""
+      },
+      {
+        "cellId": "29a25da8-5240-4ea7-b03e-dc5c40617fda",
+        "phaseId": "43faf96a-5549-4fa4-8f01-12e416403498",
+        "swimlaneId": "4e372a20-94b0-44d6-a383-6df440b615d9",
+        "headline": "Gauging wear with iPhone app",
+        "description": "Using an iPhone application to measure and assess the wear on the spoon.",
+        "context": ""
+      },
+      {
+        "cellId": "e270ddf6-5ef4-4ffe-a986-d75e9337b763",
+        "phaseId": "f13a6f3c-7d21-4f5b-80d6-32ab1aac50f7",
+        "swimlaneId": "ca1f8145-289b-4f83-82db-3ed523757596",
+        "headline": "Sadness of Destruction",
+        "description": "Feeling sad because there is a possibility of having to destroy the spoon.",
+        "context": ""
+      },
+      {
+        "cellId": "cfc30773-729d-4b98-af54-1ddc58d231df",
+        "phaseId": "f13a6f3c-7d21-4f5b-80d6-32ab1aac50f7",
+        "swimlaneId": "4e372a20-94b0-44d6-a383-6df440b615d9",
+        "headline": "Furnace Disposal",
+        "description": "Placing the spoon into the furnace for disposal, often accompanied by crying due to the sadness of destroying it.",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 2,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 4,
+      "totalCellsPresent": 4,
+      "totalCellsCompleted": 4,
+      "percentCellsComplete": 100
+    },
+    "createdAt": "2026-02-09T19:44:56.773Z",
+    "updatedAt": "2026-02-09T19:51:25.166Z",
+    "version": 12,
+    "mermaid": {
+      "code": "graph TD\n    title Finding Bad Spoons\n    %% Styles\n    classDef phase fill:#f9f9f9,stroke:#333,stroke-width:2px;\n    classDef swimlane fill:#e1f5fe,stroke:#0277bd,stroke-width:1px;\n    subgraph 43faf96a-5549-4fa4-8f01-12e416403498[\"Evaluate Spoon\"]\n        cell_b6c73058_ead9_4475_93a4_a0081d8773c9[\"**Feel**<br/>Shiny Metal Love\"]\n        cell_29a25da8_5240_4ea7_b03e_dc5c40617fda[\"**Do**<br/>Gauging wear with iPhone app\"]\n    end\n    subgraph f13a6f3c-7d21-4f5b-80d6-32ab1aac50f7[\"Spoon Fate\"]\n        cell_e270ddf6_5ef4_4ffe_a986_d75e9337b763[\"**Feel**<br/>Sadness of Destruction\"]\n        cell_cfc30773_729d_4b98_af54_1ddc58d231df[\"**Do**<br/>Furnace Disposal\"]\n    end\n"
+    },
+    "outputJson": {
+      "code": "{\n  \"journeyMapId\": \"35aab016-17a5-4fcc-82ff-1e1d3773c710\",\n  \"sessionId\": \"d8589389-0812-4922-ba91-3cb77b5ec021\",\n  \"status\": \"DRAFT\",\n  \"stage\": \"CELL_POPULATION\",\n  \"userName\": \"Kinggy\",\n  \"name\": \"Finding Bad Spoons\",\n  \"role\": \"spoon washer\",\n  \"description\": \"Ensuring the restaurant has amazing spoons for good reviews.\",\n  \"arePhasesComplete\": false,\n  \"areSwimlanesComplete\": false,\n  \"completionStatus\": {\n    \"name\": true,\n    \"role\": true,\n    \"description\": true,\n    \"phases\": false,\n    \"swimlanes\": false,\n    \"cells\": true\n  },\n  \"phases\": [\n    {\n      \"phaseId\": \"43faf96a-5549-4fa4-8f01-12e416403498\",\n      \"sequence\": 1,\n      \"name\": \"Evaluate Spoon\",\n      \"description\": \"\",\n      \"context\": \"\",\n      \"summary\": \"During evaluation, the user experiences an emotional attachment, loving the spoon's shiny metal, while simultaneously using an iPhone app to technically gauge its wear. This phase blends aesthetic appreciation with a data-driven assessment.\"\n    },\n    {\n      \"phaseId\": \"f13a6f3c-7d21-4f5b-80d6-32ab1aac50f7\",\n      \"sequence\": 2,\n      \"name\": \"Spoon Fate\",\n      \"description\": \"\",\n      \"context\": \"\",\n      \"summary\": \"During the \\\"Spoon Fate\\\" phase, the user experienced profound sadness and often cried while disposing of the spoon, distressed by its destruction.\"\n    }\n  ],\n  \"swimlanes\": [\n    {\n      \"swimlaneId\": \"ca1f8145-289b-4f83-82db-3ed523757596\",\n      \"sequence\": 1,\n      \"name\": \"Feel\",\n      \"description\": \"\",\n      \"context\": \"\",\n      \"summary\": \"The user's initial love for the spoon's shiny metal quickly turns to sadness at the thought of its potential destruction, highlighting a dramatic emotional shift from aesthetic appreciation to distress.\"\n    },\n    {\n      \"swimlaneId\": \"4e372a20-94b0-44d6-a383-6df440b615d9\",\n      \"sequence\": 2,\n      \"name\": \"Do\",\n      \"description\": \"\",\n      \"context\": \"\",\n      \"summary\": \"The user actively monitors the spoon's wear via an iPhone app, a process that ultimately leads to the deeply distressing and tearful act of disposing of it in a furnace.\"\n    }\n  ],\n  \"cells\": [\n    {\n      \"cellId\": \"b6c73058-ead9-4475-93a4-a0081d8773c9\",\n      \"phaseId\": \"43faf96a-5549-4fa4-8f01-12e416403498\",\n      \"swimlaneId\": \"ca1f8145-289b-4f83-82db-3ed523757596\",\n      \"headline\": \"Shiny Metal Love\",\n      \"description\": \"Experiencing a feeling of love when evaluating a spoon, specifically because the metal is shiny.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"29a25da8-5240-4ea7-b03e-dc5c40617fda\",\n      \"phaseId\": \"43faf96a-5549-4fa4-8f01-12e416403498\",\n      \"swimlaneId\": \"4e372a20-94b0-44d6-a383-6df440b615d9\",\n      \"headline\": \"Gauging wear with iPhone app\",\n      \"description\": \"Using an iPhone application to measure and assess the wear on the spoon.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"e270ddf6-5ef4-4ffe-a986-d75e9337b763\",\n      \"phaseId\": \"f13a6f3c-7d21-4f5b-80d6-32ab1aac50f7\",\n      \"swimlaneId\": \"ca1f8145-289b-4f83-82db-3ed523757596\",\n      \"headline\": \"Sadness of Destruction\",\n      \"description\": \"Feeling sad because there is a possibility of having to destroy the spoon.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"cfc30773-729d-4b98-af54-1ddc58d231df\",\n      \"phaseId\": \"f13a6f3c-7d21-4f5b-80d6-32ab1aac50f7\",\n      \"swimlaneId\": \"4e372a20-94b0-44d6-a383-6df440b615d9\",\n      \"headline\": \"Furnace Disposal\",\n      \"description\": \"Placing the spoon into the furnace for disposal, often accompanied by crying due to the sadness of destroying it.\",\n      \"context\": \"\"\n    }\n  ],\n  \"metrics\": {\n    \"totalPhases\": 2,\n    \"totalSwimlanes\": 2,\n    \"totalCellsExpected\": 4,\n    \"totalCellsPresent\": 4,\n    \"totalCellsCompleted\": 4,\n    \"percentCellsComplete\": 100\n  },\n  \"createdAt\": \"2026-02-09T19:44:56.773Z\",\n  \"updatedAt\": \"2026-02-09T19:49:40.655Z\",\n  \"version\": 11,\n  \"mermaid\": {\n    \"code\": \"graph TD\\n    title Finding Bad Spoons\\n    %% Styles\\n    classDef phase fill:#f9f9f9,stroke:#333,stroke-width:2px;\\n    classDef swimlane fill:#e1f5fe,stroke:#0277bd,stroke-width:1px;\\n    subgraph 43faf96a-5549-4fa4-8f01-12e416403498[\\\"Evaluate Spoon\\\"]\\n        cell_b6c73058_ead9_4475_93a4_a0081d8773c9[\\\"**Feel**<br/>Shiny Metal Love\\\"]\\n        cell_29a25da8_5240_4ea7_b03e_dc5c40617fda[\\\"**Do**<br/>Gauging wear with iPhone app\\\"]\\n    end\\n    subgraph f13a6f3c-7d21-4f5b-80d6-32ab1aac50f7[\\\"Spoon Fate\\\"]\\n        cell_e270ddf6_5ef4_4ffe_a986_d75e9337b763[\\\"**Feel**<br/>Sadness of Destruction\\\"]\\n        cell_cfc30773_729d_4b98_af54_1ddc58d231df[\\\"**Do**<br/>Furnace Disposal\\\"]\\n    end\\n\"\n  }\n}"
+    },
+    "summaryOfFindings": "Kinggy, a spoon washer, is responsible for 'Finding Bad Spoons' to ensure the restaurant has 'amazing spoons for good reviews.' The process involves two main phases: 'Evaluate Spoon' and 'Spoon Fate.' During 'Evaluate Spoon,' Kinggy feels 'love' because 'the metal is shiny' and uses an 'iphone app to gauge wear.' In the 'Spoon Fate' phase, Kinggy feels 'sad' because they 'may have to destroy the spoon' and ultimately 'put it in the furnace (and cry).' This emotional investment, particularly the sadness and crying, is at odds with the practical goal of maintaining high standards. Kinggy's 'magic wand' wish is to 'Switch to forks since they last longer' because 'It saves huge amounts of money.' Kinggy also expressed a desire to 'get into knives.'",
+    "mentalModels": "The \"Shiny Metal = Love\" Model: Kinggy associates the aesthetic quality of the spoon (shininess) with positive emotions, indicating a strong connection between visual appeal and job satisfaction.\n\nThe \"Destruction = Sadness\" Model: The act of destroying a spoon, even a \"bad\" one, causes significant emotional distress, suggesting a sense of attachment or perhaps a belief in the inherent value of the object beyond its utility.\n\nThe \"Longevity = Cost Savings\" Model: Kinggy believes that more durable cutlery (like forks) would lead to \"huge amounts of money\" saved, highlighting a practical, cost-conscious mindset driven by efficiency and resource management.\n\nThe \"Tool-Assisted Evaluation\" Model: Kinggy relies on technology (\"iphone app to gauge wear\") for objective assessment, indicating a belief in leveraging tools for precision and consistency in their work.",
+    "quotes": [
+      "It's important to the restaurant to have amazing spoons for good reviews",
+      "I put it in the furnace (and cry)",
+      "Switch to forks since they last longer",
+      "It saves huge amounts of money",
+      "I wish to get into knives"
+    ]
+  },
+  "a436e440-e944-4aa3-b970-6763dc089d04": {
+    "journeyMapId": "a436e440-e944-4aa3-b970-6763dc089d04",
+    "sessionId": "21c5ba82-4f85-4c51-a270-2ca97b3a6352",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "userName": "Jose",
+    "name": "Jose's Journey",
+    "role": "bartender",
+    "description": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-09T20:07:26.789Z",
+    "updatedAt": "2026-02-09T20:07:26.789Z",
+    "version": 1
+  },
+  "5c25224b-92a9-4059-8c6c-3dffa43f3f97": {
+    "journeyMapId": "5c25224b-92a9-4059-8c6c-3dffa43f3f97",
+    "sessionId": "a3eae23e-b5d0-4f18-9357-8b4c41c9ba00",
+    "status": "DRAFT",
+    "stage": "IDENTITY",
+    "userName": "Jose",
+    "name": "Jose's Journey",
+    "role": "bartender",
+    "description": "",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": false,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [],
+    "swimlanes": [],
+    "cells": [],
+    "metrics": {
+      "totalPhases": 0,
+      "totalSwimlanes": 0,
+      "totalCellsExpected": 0,
+      "totalCellsPresent": 0,
+      "totalCellsCompleted": 0,
+      "percentCellsComplete": 0
+    },
+    "createdAt": "2026-02-09T20:07:40.414Z",
+    "updatedAt": "2026-02-09T20:07:40.414Z",
+    "version": 1
+  },
+  "24a04627-960c-47ea-8a4e-7f35ddbf3269": {
+    "journeyMapId": "24a04627-960c-47ea-8a4e-7f35ddbf3269",
+    "sessionId": "188fb58a-3a02-47d0-9d3a-95df6553ef40",
+    "status": "DRAFT",
+    "stage": "CELL_POPULATION",
+    "userName": "Jose",
+    "name": "Making Ice",
+    "role": "bartender",
+    "description": "Cooling drinks and show-off a little",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "00cce5cc-1315-40a6-a591-a85ecb124fc3",
+        "sequence": 1,
+        "name": "Get Ice",
+        "description": "",
+        "context": ""
+      },
+      {
+        "phaseId": "c0a79121-4812-4f4c-8621-a0abfc3ce3f9",
+        "sequence": 2,
+        "name": "Cut Ice",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "b74c7ff0-e103-4f6d-aa12-3d5035c8bd54",
+        "sequence": 1,
+        "name": "Feeling",
+        "description": "",
+        "context": ""
+      },
+      {
+        "swimlaneId": "d9b83bca-fd8c-48b0-8258-8c5baa5fe204",
+        "sequence": 2,
+        "name": "Doing",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "9ec45e22-4c66-465c-b75f-f2279035ec44",
+        "phaseId": "00cce5cc-1315-40a6-a591-a85ecb124fc3",
+        "swimlaneId": "b74c7ff0-e103-4f6d-aa12-3d5035c8bd54",
+        "headline": "Sad and Lonely",
+        "description": "Feeling sad and lonely during the \"Get Ice\" phase.",
+        "context": ""
+      },
+      {
+        "cellId": "c40f1984-2d6b-4183-a1f6-e8bfc9b74c8c",
+        "phaseId": "00cce5cc-1315-40a6-a591-a85ecb124fc3",
+        "swimlaneId": "d9b83bca-fd8c-48b0-8258-8c5baa5fe204",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "d7049820-2bf0-4b36-a86a-26efcfc94263",
+        "phaseId": "c0a79121-4812-4f4c-8621-a0abfc3ce3f9",
+        "swimlaneId": "b74c7ff0-e103-4f6d-aa12-3d5035c8bd54",
+        "headline": "",
+        "description": "",
+        "context": ""
+      },
+      {
+        "cellId": "7a7e65c8-c6d6-4596-8d5f-b163ac3e09a8",
+        "phaseId": "c0a79121-4812-4f4c-8621-a0abfc3ce3f9",
+        "swimlaneId": "d9b83bca-fd8c-48b0-8258-8c5baa5fe204",
+        "headline": "",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 2,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 4,
+      "totalCellsPresent": 4,
+      "totalCellsCompleted": 1,
+      "percentCellsComplete": 25
+    },
+    "createdAt": "2026-02-09T20:08:03.707Z",
+    "updatedAt": "2026-02-09T20:09:19.208Z",
+    "version": 6
+  },
+  "5aaf582d-af81-429b-ae5b-72874515d006": {
+    "journeyMapId": "5aaf582d-af81-429b-ae5b-72874515d006",
+    "sessionId": "adb7d179-e5e9-4a24-9441-ec3f4c0b13c3",
+    "status": "READY_FOR_REVIEW",
+    "stage": "COMPLETE",
+    "userName": "Jean",
+    "name": "Sowing Seeds for Produce",
+    "role": "Sower",
+    "description": "Sowing various seeds like corn and apple to cultivate produce.",
+    "arePhasesComplete": false,
+    "areSwimlanesComplete": false,
+    "completionStatus": {
+      "name": true,
+      "role": true,
+      "description": true,
+      "phases": false,
+      "swimlanes": false,
+      "cells": false
+    },
+    "phases": [
+      {
+        "phaseId": "2f97201a-458f-4121-968f-3ce75828c767",
+        "sequence": 1,
+        "name": "Find",
+        "description": "Finding seeds or suitable locations.",
+        "context": "",
+        "summary": "During the \"Find\" phase, the user experiences significant frustration and inefficiency, primarily because dull gear doubles task time and creates friction, leading to an overall \"awful\" feeling when locating items."
+      },
+      {
+        "phaseId": "f5fb8987-0fd4-4a85-861c-507a82264cc6",
+        "sequence": 2,
+        "name": "Water",
+        "description": "Watering the seeds or plants.",
+        "context": "",
+        "summary": "The user expressed a deep love for water, finding it absolutely lovely, but experienced significant frustration and distress due to the difficulty of finding it, especially on the farm."
+      },
+      {
+        "phaseId": "377eba2a-8e76-489b-903e-6c7f455c0043",
+        "sequence": 3,
+        "name": "Feel",
+        "description": "Feeling the soil or plants to assess their condition.",
+        "context": ""
+      }
+    ],
+    "swimlanes": [
+      {
+        "swimlaneId": "8d483dec-600d-47a4-9c1c-9df66e37b654",
+        "sequence": 1,
+        "name": "Pain",
+        "description": "Frictions and problems encountered during the process.",
+        "context": "",
+        "summary": "The user experiences pervasive pain characterized by debilitating inefficiency and friction from dull tools, severe practical hardship due to a lack of water, and profound emotional disconnection that drives a search for comfort."
+      },
+      {
+        "swimlaneId": "6a9a63b4-34f2-4c03-ad06-2c1ae02c175d",
+        "sequence": 2,
+        "name": "Feeling",
+        "description": "What my guy tells me.",
+        "context": ""
+      }
+    ],
+    "cells": [
+      {
+        "cellId": "ab6cf9e2-f88e-4b6e-bcb6-04709c10e218",
+        "phaseId": "2f97201a-458f-4121-968f-3ce75828c767",
+        "swimlaneId": "8d483dec-600d-47a4-9c1c-9df66e37b654",
+        "headline": "Dull Gear",
+        "description": "Encountering dull gear, which causes tasks to take twice as long, creating friction and problems during the finding process.",
+        "context": ""
+      },
+      {
+        "cellId": "471aac9a-993f-4c4a-ae0a-525490917ddf",
+        "phaseId": "2f97201a-458f-4121-968f-3ce75828c767",
+        "swimlaneId": "6a9a63b4-34f2-4c03-ad06-2c1ae02c175d",
+        "headline": "Awful",
+        "description": "Feeling just awful when finding seeds or locations.",
+        "context": ""
+      },
+      {
+        "cellId": "41ecb1a8-8e71-49fa-a166-d770c587c8b5",
+        "phaseId": "f5fb8987-0fd4-4a85-861c-507a82264cc6",
+        "swimlaneId": "8d483dec-600d-47a4-9c1c-9df66e37b654",
+        "headline": "Difficulty Finding Water",
+        "description": "It is difficult to find water, and when on the farm, this situation makes things just awful.",
+        "context": ""
+      },
+      {
+        "cellId": "385b841c-09a7-4c04-8c2e-33832155e57f",
+        "phaseId": "f5fb8987-0fd4-4a85-861c-507a82264cc6",
+        "swimlaneId": "6a9a63b4-34f2-4c03-ad06-2c1ae02c175d",
+        "headline": "Love of Water",
+        "description": "Feeling absolutely lovely because of the water. Expressing love for water, rivers, oceans, and fish.",
+        "context": ""
+      },
+      {
+        "cellId": "ed7b91bb-f09b-4b33-8a82-81d9b54ceabe",
+        "phaseId": "377eba2a-8e76-489b-903e-6c7f455c0043",
+        "swimlaneId": "8d483dec-600d-47a4-9c1c-9df66e37b654",
+        "headline": "Emotional Disconnection",
+        "description": "Experiencing extreme emotional disconnection and seeking solace by going to a Toyota truck to feel better.",
+        "context": ""
+      },
+      {
+        "cellId": "90ebbfb6-8be4-4eca-b2ab-98c5f0c5c9b5",
+        "phaseId": "377eba2a-8e76-489b-903e-6c7f455c0043",
+        "swimlaneId": "6a9a63b4-34f2-4c03-ad06-2c1ae02c175d",
+        "headline": "",
+        "description": "",
+        "context": ""
+      }
+    ],
+    "metrics": {
+      "totalPhases": 3,
+      "totalSwimlanes": 2,
+      "totalCellsExpected": 6,
+      "totalCellsPresent": 6,
+      "totalCellsCompleted": 5,
+      "percentCellsComplete": 83.33333333333334
+    },
+    "createdAt": "2026-02-09T20:16:47.993Z",
+    "updatedAt": "2026-02-09T20:23:35.676Z",
+    "version": 11,
+    "mermaid": {
+      "code": "graph TD\n    title Sowing Seeds for Produce\n    %% Styles\n    classDef phase fill:#f9f9f9,stroke:#333,stroke-width:2px;\n    classDef swimlane fill:#e1f5fe,stroke:#0277bd,stroke-width:1px;\n    subgraph 2f97201a-458f-4121-968f-3ce75828c767[\"Find\"]\n        cell_ab6cf9e2_f88e_4b6e_bcb6_04709c10e218[\"**Pain**<br/>Dull Gear\"]\n        cell_471aac9a_993f_4c4a_ae0a_525490917ddf[\"**Feeling**<br/>Awful\"]\n    end\n    subgraph f5fb8987-0fd4-4a85-861c-507a82264cc6[\"Water\"]\n        cell_41ecb1a8_8e71_49fa_a166_d770c587c8b5[\"**Pain**<br/>Difficulty Finding Water\"]\n        cell_385b841c_09a7_4c04_8c2e_33832155e57f[\"**Feeling**<br/>Love of Water\"]\n    end\n    subgraph 377eba2a-8e76-489b-903e-6c7f455c0043[\"Feel\"]\n        cell_ed7b91bb_f09b_4b33_8a82_81d9b54ceabe[\"**Pain**<br/>Emotional Disconnection\"]\n    end\n"
+    },
+    "outputJson": {
+      "code": "{\n  \"journeyMapId\": \"5aaf582d-af81-429b-ae5b-72874515d006\",\n  \"sessionId\": \"adb7d179-e5e9-4a24-9441-ec3f4c0b13c3\",\n  \"status\": \"DRAFT\",\n  \"stage\": \"CELL_POPULATION\",\n  \"userName\": \"Jean\",\n  \"name\": \"Sowing Seeds for Produce\",\n  \"role\": \"Sower\",\n  \"description\": \"Sowing various seeds like corn and apple to cultivate produce.\",\n  \"arePhasesComplete\": false,\n  \"areSwimlanesComplete\": false,\n  \"completionStatus\": {\n    \"name\": true,\n    \"role\": true,\n    \"description\": true,\n    \"phases\": false,\n    \"swimlanes\": false,\n    \"cells\": false\n  },\n  \"phases\": [\n    {\n      \"phaseId\": \"2f97201a-458f-4121-968f-3ce75828c767\",\n      \"sequence\": 1,\n      \"name\": \"Find\",\n      \"description\": \"Finding seeds or suitable locations.\",\n      \"context\": \"\",\n      \"summary\": \"During the \\\"Find\\\" phase, the user experiences significant frustration and inefficiency, primarily because dull gear doubles task time and creates friction, leading to an overall \\\"awful\\\" feeling when locating items.\"\n    },\n    {\n      \"phaseId\": \"f5fb8987-0fd4-4a85-861c-507a82264cc6\",\n      \"sequence\": 2,\n      \"name\": \"Water\",\n      \"description\": \"Watering the seeds or plants.\",\n      \"context\": \"\",\n      \"summary\": \"The user expressed a deep love for water, finding it absolutely lovely, but experienced significant frustration and distress due to the difficulty of finding it, especially on the farm.\"\n    },\n    {\n      \"phaseId\": \"377eba2a-8e76-489b-903e-6c7f455c0043\",\n      \"sequence\": 3,\n      \"name\": \"Feel\",\n      \"description\": \"Feeling the soil or plants to assess their condition.\",\n      \"context\": \"\"\n    }\n  ],\n  \"swimlanes\": [\n    {\n      \"swimlaneId\": \"8d483dec-600d-47a4-9c1c-9df66e37b654\",\n      \"sequence\": 1,\n      \"name\": \"Pain\",\n      \"description\": \"Frictions and problems encountered during the process.\",\n      \"context\": \"\",\n      \"summary\": \"The user experiences pervasive pain characterized by debilitating inefficiency and friction from dull tools, severe practical hardship due to a lack of water, and profound emotional disconnection that drives a search for comfort.\"\n    },\n    {\n      \"swimlaneId\": \"6a9a63b4-34f2-4c03-ad06-2c1ae02c175d\",\n      \"sequence\": 2,\n      \"name\": \"Feeling\",\n      \"description\": \"What my guy tells me.\",\n      \"context\": \"\"\n    }\n  ],\n  \"cells\": [\n    {\n      \"cellId\": \"ab6cf9e2-f88e-4b6e-bcb6-04709c10e218\",\n      \"phaseId\": \"2f97201a-458f-4121-968f-3ce75828c767\",\n      \"swimlaneId\": \"8d483dec-600d-47a4-9c1c-9df66e37b654\",\n      \"headline\": \"Dull Gear\",\n      \"description\": \"Encountering dull gear, which causes tasks to take twice as long, creating friction and problems during the finding process.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"471aac9a-993f-4c4a-ae0a-525490917ddf\",\n      \"phaseId\": \"2f97201a-458f-4121-968f-3ce75828c767\",\n      \"swimlaneId\": \"6a9a63b4-34f2-4c03-ad06-2c1ae02c175d\",\n      \"headline\": \"Awful\",\n      \"description\": \"Feeling just awful when finding seeds or locations.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"41ecb1a8-8e71-49fa-a166-d770c587c8b5\",\n      \"phaseId\": \"f5fb8987-0fd4-4a85-861c-507a82264cc6\",\n      \"swimlaneId\": \"8d483dec-600d-47a4-9c1c-9df66e37b654\",\n      \"headline\": \"Difficulty Finding Water\",\n      \"description\": \"It is difficult to find water, and when on the farm, this situation makes things just awful.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"385b841c-09a7-4c04-8c2e-33832155e57f\",\n      \"phaseId\": \"f5fb8987-0fd4-4a85-861c-507a82264cc6\",\n      \"swimlaneId\": \"6a9a63b4-34f2-4c03-ad06-2c1ae02c175d\",\n      \"headline\": \"Love of Water\",\n      \"description\": \"Feeling absolutely lovely because of the water. Expressing love for water, rivers, oceans, and fish.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"ed7b91bb-f09b-4b33-8a82-81d9b54ceabe\",\n      \"phaseId\": \"377eba2a-8e76-489b-903e-6c7f455c0043\",\n      \"swimlaneId\": \"8d483dec-600d-47a4-9c1c-9df66e37b654\",\n      \"headline\": \"Emotional Disconnection\",\n      \"description\": \"Experiencing extreme emotional disconnection and seeking solace by going to a Toyota truck to feel better.\",\n      \"context\": \"\"\n    },\n    {\n      \"cellId\": \"90ebbfb6-8be4-4eca-b2ab-98c5f0c5c9b5\",\n      \"phaseId\": \"377eba2a-8e76-489b-903e-6c7f455c0043\",\n      \"swimlaneId\": \"6a9a63b4-34f2-4c03-ad06-2c1ae02c175d\",\n      \"headline\": \"\",\n      \"description\": \"\",\n      \"context\": \"\"\n    }\n  ],\n  \"metrics\": {\n    \"totalPhases\": 3,\n    \"totalSwimlanes\": 2,\n    \"totalCellsExpected\": 6,\n    \"totalCellsPresent\": 6,\n    \"totalCellsCompleted\": 5,\n    \"percentCellsComplete\": 83.33333333333334\n  },\n  \"createdAt\": \"2026-02-09T20:16:47.993Z\",\n  \"updatedAt\": \"2026-02-09T20:21:59.596Z\",\n  \"version\": 10,\n  \"mermaid\": {\n    \"code\": \"graph TD\\n    title Sowing Seeds for Produce\\n    %% Styles\\n    classDef phase fill:#f9f9f9,stroke:#333,stroke-width:2px;\\n    classDef swimlane fill:#e1f5fe,stroke:#0277bd,stroke-width:1px;\\n    subgraph 2f97201a-458f-4121-968f-3ce75828c767[\\\"Find\\\"]\\n        cell_ab6cf9e2_f88e_4b6e_bcb6_04709c10e218[\\\"**Pain**<br/>Dull Gear\\\"]\\n        cell_471aac9a_993f_4c4a_ae0a_525490917ddf[\\\"**Feeling**<br/>Awful\\\"]\\n    end\\n    subgraph f5fb8987-0fd4-4a85-861c-507a82264cc6[\\\"Water\\\"]\\n        cell_41ecb1a8_8e71_49fa_a166_d770c587c8b5[\\\"**Pain**<br/>Difficulty Finding Water\\\"]\\n        cell_385b841c_09a7_4c04_8c2e_33832155e57f[\\\"**Feeling**<br/>Love of Water\\\"]\\n    end\\n    subgraph 377eba2a-8e76-489b-903e-6c7f455c0043[\\\"Feel\\\"]\\n        cell_ed7b91bb_f09b_4b33_8a82_81d9b54ceabe[\\\"**Pain**<br/>Emotional Disconnection\\\"]\\n    end\\n\"\n  }\n}"
+    },
+    "summaryOfFindings": "Jean, a Sower, is engaged in the critical activity of \"Sowing Seeds for Produce,\" which involves cultivating various seeds like corn and apple. The journey is broken down into three main phases: Find, Water, and Feel. Across these phases, Jean tracks \"Pain\" (frictions and problems) and \"Feeling\" (what \"my guy tells me\").\n\nIn the \"Find\" phase, a significant pain point is \"Dull Gear,\" which makes tasks take twice as long, directly impacting efficiency. Jean feels \"just awful\" during this phase. The \"Water\" phase presents a major challenge in \"finding water,\" leading to a feeling of things being \"just fucking awful\" on the farm. However, Jean expresses a deep love for water, finding the act of watering \"absolutely lovely.\" The \"Feel\" phase is characterized by occasional emotional disconnection, with Jean seeking solace in their Toyota truck. Jean relies on \"my guy\" to validate or invalidate feelings, indicating a complex internal emotional processing.\n\nThe overarching motivation for addressing these pain points and seeking improvements is twofold: to \"save my sanity\" and to \"make me money,\" highlighting both personal well-being and financial drivers. The desire for a robot to perform the tasks underscores the arduous nature of the current process and the strong need for automation to alleviate these burdens.",
+    "mentalModels": "**Time is Money:** Jean explicitly states \"time is money,\" indicating a strong mental model where efficiency and speed directly correlate with financial gain and overall productivity. Delays and inefficiencies are not just inconveniences but direct losses.\n\n**Automation as a Solution to Arduous Work:** The wish for a robot to perform the task suggests a mental model where technology is seen as the ultimate solution to physically demanding, repetitive, or frustrating work, aiming to alleviate personal burden and improve outcomes.\n\n**External Validation of Emotions:** Jean refers to \"my guy\" who tells them if their feelings are \"correct\" or \"not correct.\" This points to a mental model where emotional experiences are processed and understood through an external or internalized validating entity, rather than solely through internal reflection.",
+    "quotes": [
+      "\"It makes things take twice as long\"",
+      "\"fine it's difficult to find water and when I'm on the farm it just makes things just fucking awful\"",
+      "\"I feel absolutely love her lovely because of the water I love water I love red water I love rivers I love oceans I love fish\"",
+      "\"sometimes I can be extremely disconnected from my emotions and I run to my Toyota truck to feel better\"",
+      "\"I wish someone could have invented robot to do it\"",
+      "\"well it saves my sanity and it makes me money\""
+    ]
   }
 }

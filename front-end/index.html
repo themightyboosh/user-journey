@@ -2541,10 +2541,10 @@
                     showToolIndicator(data.tool, 'executing');
                   } else if (data.status === 'success') {
                     showToolIndicator(data.tool, 'success');
-                    setTimeout(() => hideToolIndicator(), 1000);
+                    setTimeout(() => hideToolIndicator(), 5000);  // 5 seconds for visibility
                   } else if (data.status === 'error') {
                     showToolIndicator(data.tool, 'error', data.error);
-                    setTimeout(() => hideToolIndicator(), 3000);
+                    setTimeout(() => hideToolIndicator(), 10000);  // 10 seconds to read error
                   }
                 }
 

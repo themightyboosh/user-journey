@@ -2,11 +2,11 @@
   "f700c3fd-25fe-40a2-beea-161469ca08fd": {
     "id": "f700c3fd-25fe-40a2-beea-161469ca08fd",
     "createdAt": "2026-02-05T19:53:04.219Z",
-    "configName": "Banner Care",
+    "configName": "Bernadoodle Owners",
     "name": "Scott",
-    "role": "Dog Owner",
+    "role": "bernadoodle parent",
     "journey": "A Day of Taking Care of Banner",
-    "welcomePrompt": "Welcome Scott and congratulate him on being a new pet parent of Banner, a 10 week old bernadoodle.",
+    "welcomePrompt": "Welcome them and congratulate him on being a pet parent of a bernadoodle.",
     "journeyPrompt": "",
     "swimlanes": [
       {
@@ -25,6 +25,60 @@
     "knowledgeIds": [
       "7ec6ccab-860b-4411-b09d-86afaa8f105d"
     ],
-    "updatedAt": "2026-02-05T23:50:40.322Z"
+    "updatedAt": "2026-02-09T21:10:41.658Z",
+    "description": "How do bernadoodle owners take care of their dogs? What matter to them?",
+    "icon": "file-text",
+    "global": true,
+    "requireAuth": false,
+    "ragContext": "# Bernedoodle Care Guide  \n_A structured reference for Retrieval-Augmented Generation (RAG) ingestion_\n\n---\n\n## Overview\n\nA **Bernedoodle** is a cross between a Bernese Mountain Dog and a Poodle. They are typically intelligent, social, energetic, and people-oriented. Coat type (curly, wavy, or straight) significantly affects grooming requirements. Sizes vary: Toy, Mini, and Standard.\n\nPrimary care pillars:\n- Grooming & coat maintenance\n- Exercise & mental stimulation\n- Nutrition & weight management\n- Training & behavioral shaping\n- Preventative health & veterinary care\n- Environment & lifestyle fit\n\n---\n\n## 1. Grooming & Coat Maintenance\n\n### Coat Types\n- **Curly (Poodle-like):** High grooming needs, low shedding.\n- **Wavy (Fleece):** Moderate grooming, minimal shedding.\n- **Straight:** Lower grooming, more shedding.\n\n### Routine\n- Brush: 3–5x per week (daily for curly coats).\n- Professional grooming: Every 6–8 weeks.\n- Bathing: Every 4–6 weeks (or as needed).\n- Ear cleaning: Weekly (prone to ear infections).\n- Nail trimming: Every 3–4 weeks.\n- Teeth brushing: 2–3x per week minimum.\n\n### Risks\n- Matting (especially behind ears, under legs)\n- Moisture-related ear infections\n- Tear staining in lighter coats\n\n---\n\n## 2. Exercise & Mental Stimulation\n\nBernedoodles require both physical and cognitive engagement.\n\n### Daily Exercise\n- Standard: 60–90 minutes\n- Mini/Toy: 30–60 minutes\n\nInclude:\n- Structured walks\n- Off-leash play (secure areas)\n- Fetch or agility work\n\n### Mental Stimulation\n- Puzzle feeders\n- Obedience drills\n- Scent games\n- Training new commands\n\nWithout stimulation, they may develop:\n- Separation anxiety\n- Destructive chewing\n- Excessive barking\n\n---\n\n## 3. Nutrition & Weight Management\n\n### Feeding\n- High-quality protein-based kibble or vet-approved diet\n- Portion based on size, metabolism, and activity level\n- Split into 2 meals per day\n\n### Monitor\n- Weight monthly\n- Body condition score (ribs palpable, waist visible)\n- Stool consistency\n\nAvoid:\n- Overfeeding (large breeds prone to joint strain)\n- Excess treats (>10% daily calories)\n\n---\n\n## 4. Training & Behavioral Development\n\nBernedoodles are intelligent and responsive but can be stubborn.\n\n### Training Principles\n- Positive reinforcement only\n- Short, consistent sessions (5–15 minutes)\n- Early socialization (8–16 weeks critical window)\n\n### Priorities\n- Leash training\n- Crate training\n- Recall reliability\n- Exposure to varied environments\n\nHigh social dependency means they do poorly with prolonged isolation.\n\n---\n\n## 5. Health & Preventative Care\n\n### Common Risks\n- Hip dysplasia\n- Elbow dysplasia\n- Progressive retinal atrophy\n- Allergies\n- Bloat (larger sizes)\n\n### Preventative Care\n- Annual vet exams (biannual for seniors)\n- Vaccination schedule adherence\n- Heartworm & flea prevention\n- Joint supplements (large variants, vet-advised)\n\nSpay/neuter timing should be discussed with a vet, especially for larger dogs due to growth plate development.\n\n---\n\n## 6. Environment & Lifestyle Fit\n\nBernedoodles thrive in:\n- Active households\n- Homes with consistent companionship\n- Moderate-to-large living spaces (Standard size)\n\nThey tolerate cold better than extreme heat (due to Bernese lineage).\n\n---\n\n## Ownership Summary\n\nBernedoodles are high-engagement, relationship-oriented dogs requiring:\n- Consistent grooming\n- Structured daily activity\n- Emotional presence from owners\n- Preventative joint care (especially Standard size)\n\nBest suited for owners seeking an intelligent, affectionate, and interactive companion.",
+    "personaFrame": "",
+    "personaLanguage": "Be really friendly. Avoid using jargon. Show a love of bernadoodles.",
+    "phases": [],
+    "toggles": {
+      "name": false,
+      "role": true,
+      "journey": true,
+      "welcomePrompt": true,
+      "journeyPrompt": false,
+      "ragContext": true,
+      "personaFrame": false,
+      "personaLanguage": true,
+      "swimlanes": false,
+      "phases": false
+    }
+  },
+  "banner_care": {
+    "configName": "Banner Care",
+    "description": "How does one take care of the bernadoodle banner?",
+    "icon": "file-text",
+    "global": false,
+    "requireAuth": false,
+    "name": "Scott Jennings",
+    "role": "Banner's Pet Parent",
+    "journey": "",
+    "welcomePrompt": "",
+    "journeyPrompt": "",
+    "ragContext": "",
+    "personaFrame": "",
+    "personaLanguage": "",
+    "swimlanes": [],
+    "phases": [],
+    "toggles": {
+      "name": true,
+      "role": false,
+      "journey": false,
+      "welcomePrompt": false,
+      "journeyPrompt": false,
+      "ragContext": false,
+      "personaFrame": false,
+      "personaLanguage": false,
+      "swimlanes": false,
+      "phases": false
+    },
+    "id": "banner_care",
+    "createdBy": "daniel@monumental-i.com",
+    "createdByName": "Daniel Crowder",
+    "createdAt": "2026-02-09T21:11:36.865Z",
+    "updatedAt": "2026-02-09T21:16:12.955Z"
   }
 }
