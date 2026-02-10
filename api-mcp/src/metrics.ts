@@ -42,12 +42,12 @@ export function calculateCompletionStatus(journey: JourneyMap): CompletionStatus
 export function recalculateJourney(journey: JourneyMap): JourneyMap {
     const metrics = calculateMetrics(journey);
     const completionStatus = calculateCompletionStatus(journey);
-    
+
     return {
         ...journey,
         metrics,
         completionStatus,
         updatedAt: new Date().toISOString(),
-        version: journey.version + 1
+        version: (journey.version || 0) + 1
     };
 }

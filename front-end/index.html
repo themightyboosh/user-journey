@@ -1770,13 +1770,26 @@
     }
 
     function renderCurrentView() {
-        if (!currentJourney) return;
-        
+        console.log('[RENDER] renderCurrentView called', {
+          hasJourney: !!currentJourney,
+          currentView: state.currentView,
+          journeyName: currentJourney?.name,
+          phasesCount: currentJourney?.phases?.length || 0
+        });
+
+        if (!currentJourney) {
+          console.warn('[RENDER] No current journey, skipping render');
+          return;
+        }
+
         if (state.currentView === 'map') {
+            console.log('[RENDER] Rendering map view');
             // During streaming, render directly (no auto-fit).
             // journeyRendered event handles fit logic separately.
             renderMap(currentJourney);
+            console.log('[RENDER] Map render complete');
         } else {
+            console.log('[RENDER] Rendering JSON view');
             renderJson(currentJourney);
         }
     }
@@ -1965,34 +1978,62 @@
     }
 
     async function pollJourneyState() {
-      if (!currentJourneyId) return;
+      if (!currentJourneyId) {
+        console.log('[POLL] Skipped: No current journey ID');
+        return;
+      }
 
       // Skip polling for client-side debug journeys
-      if (currentJourneyId.startsWith('debug-')) return;
+      if (currentJourneyId.startsWith('debug-')) {
+        console.log('[POLL] Skipped: Debug journey');
+        return;
+      }
 
       try {
+        console.log('[POLL] Fetching journey state:', currentJourneyId);
         const response = await fetch(`/api/journey-state/${currentJourneyId}`);
-        if (!response.ok) return;
-        
+        if (!response.ok) {
+          console.warn('[POLL] Response not OK:', response.status);
+          return;
+        }
+
         const journey = await response.json();
-        
+        console.log('[POLL] Journey received:', {
+          id: journey.journeyMapId,
+          name: journey.name,
+          stage: journey.stage,
+          version: journey.version,
+          phasesCount: journey.phases?.length || 0,
+          swimlanesCount: journey.swimlanes?.length || 0,
+          cellsCount: journey.cells?.length || 0
+        });
+
         if (journey) {
+          const versionChanged = lastJourneyVersion !== journey.version;
+          console.log('[POLL] Version check:', {
+            previous: lastJourneyVersion,
+            current: journey.version,
+            changed: versionChanged
+          });
+
           lastJourneyVersion = journey.version;
           // Inject template icon from session config so canvas renderer can use it
           if (state.sessionConfig && state.sessionConfig.templateIcon) {
               journey.templateIcon = state.sessionConfig.templateIcon;
           }
           currentJourney = journey; // Update global state
-          
+
           if (journey.stage === 'COMPLETE') {
               if (!state.completionButtonShown) {
                   showCompletionButton();
               }
           }
+          console.log('[POLL] Calling renderCurrentView()');
           renderCurrentView();
+          console.log('[POLL] renderCurrentView() complete');
         }
       } catch (e) {
-        console.error("Polling error", e);
+        console.error("[POLL] Error:", e);
       }
     }
 

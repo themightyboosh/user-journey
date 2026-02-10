@@ -123,12 +123,30 @@ function closeCellModal(event) {
 
 // Main Render Function
 function renderMap(journey, targetElementId) {
+    console.log('[RENDERER] renderMap called', {
+        hasJourney: !!journey,
+        journeyName: journey?.name,
+        phasesCount: journey?.phases?.length || 0,
+        swimlanesCount: journey?.swimlanes?.length || 0,
+        cellsCount: journey?.cells?.length || 0,
+        targetElementId: targetElementId
+    });
+
     // Default: use JourneyViewer canvas if available, else fallback
     if (!targetElementId) {
         targetElementId = (window.journeyViewer && window.journeyViewer.canvasId) || 'journeyDashboard';
+        console.log('[RENDERER] Using default target:', targetElementId);
     }
     const container = document.getElementById(targetElementId);
-    if (!container || !journey) return;
+    if (!container) {
+        console.error('[RENDERER] Container not found:', targetElementId);
+        return;
+    }
+    if (!journey) {
+        console.error('[RENDERER] No journey data provided');
+        return;
+    }
+    console.log('[RENDERER] Container found, starting render');
 
     // Update global state for modals
     currentRenderedJourney = journey;
@@ -507,11 +525,14 @@ function renderMap(journey, targetElementId) {
 
     html += `</div>`; // End board container
 
+    console.log('[RENDERER] Setting container innerHTML, size:', html.length);
     container.innerHTML = html;
-    
+    console.log('[RENDERER] innerHTML set successfully');
+
     // Dispatch event to notify Panzoom
-    window.dispatchEvent(new CustomEvent('journeyRendered', { 
-        detail: { width: container.scrollWidth, height: container.scrollHeight } 
+    console.log('[RENDERER] Dispatching journeyRendered event');
+    window.dispatchEvent(new CustomEvent('journeyRendered', {
+        detail: { width: container.scrollWidth, height: container.scrollHeight }
     }));
 
     // Signal MAP button if user is in chat view (mobile)
@@ -519,6 +540,8 @@ function renderMap(journey, targetElementId) {
         const mapBtn = document.getElementById('mobileToggleBtn');
         if (mapBtn) mapBtn.classList.add('map-updated');
     }
+
+    console.log('[RENDERER] renderMap complete');
 }
 
 // ===========================================

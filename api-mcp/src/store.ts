@@ -121,8 +121,34 @@ class FileStorageAdapter implements StorageAdapter {
     }
 
     // Journey
-    async getJourney(id: string) { const all = await this.read(this.FILES.JOURNEYS); return all[id] || null; }
-    async saveJourney(j: JourneyMap) { const all = await this.read(this.FILES.JOURNEYS); all[j.journeyMapId] = j; await this.write(this.FILES.JOURNEYS, all); }
+    async getJourney(id: string) {
+        const all = await this.read(this.FILES.JOURNEYS);
+        const journey = all[id] || null;
+        if (journey) {
+            logger.info(`[FileStore] Journey retrieved: ${id}`, {
+                name: journey.name,
+                stage: journey.stage,
+                version: journey.version,
+                phasesCount: journey.phases?.length || 0,
+                swimlanesCount: journey.swimlanes?.length || 0
+            });
+        }
+        return journey;
+    }
+    async saveJourney(j: JourneyMap) {
+        logger.info(`[FileStore] Saving journey: ${j.journeyMapId}`, {
+            name: j.name,
+            stage: j.stage,
+            version: j.version,
+            phasesCount: j.phases?.length || 0,
+            swimlanesCount: j.swimlanes?.length || 0,
+            cellsCount: j.cells?.length || 0
+        });
+        const all = await this.read(this.FILES.JOURNEYS);
+        all[j.journeyMapId] = j;
+        await this.write(this.FILES.JOURNEYS, all);
+        logger.info(`[FileStore] Journey saved successfully: ${j.journeyMapId}`);
+    }
     async deleteJourney(id: string) { const all = await this.read(this.FILES.JOURNEYS); delete all[id]; await this.write(this.FILES.JOURNEYS, all); }
     async deleteAllJourneys() { await this.write(this.FILES.JOURNEYS, {}); }
     async listJourneys() { return Object.values(await this.read(this.FILES.JOURNEYS)) as JourneyMap[]; }
@@ -168,11 +194,30 @@ class FirestoreAdapter implements StorageAdapter {
     // Journey
     async getJourney(id: string): Promise<JourneyMap | null> {
         const doc = await this.db.collection(this.COLLS.JOURNEYS).doc(id).get();
-        return doc.exists ? doc.data() as JourneyMap : null;
+        const journey = doc.exists ? doc.data() as JourneyMap : null;
+        if (journey) {
+            logger.info(`[Firestore] Journey retrieved: ${id}`, {
+                name: journey.name,
+                stage: journey.stage,
+                version: journey.version,
+                phasesCount: journey.phases?.length || 0,
+                swimlanesCount: journey.swimlanes?.length || 0
+            });
+        }
+        return journey;
     }
     async saveJourney(j: JourneyMap): Promise<void> {
+        logger.info(`[Firestore] Saving journey: ${j.journeyMapId}`, {
+            name: j.name,
+            stage: j.stage,
+            version: j.version,
+            phasesCount: j.phases?.length || 0,
+            swimlanesCount: j.swimlanes?.length || 0,
+            cellsCount: j.cells?.length || 0
+        });
         // Use merge to be safe, though usually we overwrite whole state in this app model
-        await this.db.collection(this.COLLS.JOURNEYS).doc(j.journeyMapId).set(j); 
+        await this.db.collection(this.COLLS.JOURNEYS).doc(j.journeyMapId).set(j);
+        logger.info(`[Firestore] Journey saved successfully: ${j.journeyMapId}`);
     }
     async deleteJourney(id: string): Promise<void> {
         await this.db.collection(this.COLLS.JOURNEYS).doc(id).delete();

@@ -148,10 +148,18 @@ export class JourneyService {
     }
 
     async setPhasesBulk(id: string, phases: { name: string; description: string; context?: string }[]): Promise<JourneyMap | null> {
+        logger.info(`[JourneyService] setPhasesBulk START: ${id} | Phases to set: ${phases.length}`, {
+            phaseNames: phases.map(p => p.name)
+        });
+
         let journey = await Store.get(id);
-        if (!journey) return null;
+        if (!journey) {
+            logger.error(`[JourneyService] setPhasesBulk FAILED: Journey not found: ${id}`);
+            return null;
+        }
 
         const oldStage = journey.stage;
+        logger.info(`[JourneyService] Current stage: ${oldStage}`);
 
         journey.phases = phases.map((p, index) => ({
             phaseId: uuidv4(),
@@ -161,16 +169,31 @@ export class JourneyService {
             context: p.context || ''
         }));
 
+        logger.info(`[JourneyService] Phases mapped successfully`, {
+            count: journey.phases.length,
+            phaseIds: journey.phases.map(p => p.phaseId)
+        });
+
         // Clear cells as structure changed significantly
         journey.cells = [];
         // Auto-advance stage
         journey.stage = 'SWIMLANES';
 
+        logger.info(`[JourneyService] Journey state updated`, {
+            stage: journey.stage,
+            phasesCount: journey.phases.length
+        });
+
         journey = recalculateJourney(journey);
+        logger.info(`[JourneyService] Journey recalculated`, {
+            metrics: journey.metrics
+        });
+
         await Store.save(journey);
+        logger.info(`[JourneyService] Journey saved to store`);
 
         logger.info(`🚦 [GATE TRANSITION] ${oldStage} → ${journey.stage} | Phases set: ${journey.phases.length}`);
-        logger.info(`[JourneyService] Set Phases Bulk: ${id} | Count: ${journey.phases.length}`);
+        logger.info(`[JourneyService] Set Phases Bulk COMPLETE: ${id} | Count: ${journey.phases.length}`);
         return journey;
     }
 
@@ -223,8 +246,25 @@ export class JourneyService {
     }
 
     async setSwimlanesBulk(id: string, swimlanes: { name: string; description: string; context?: string }[]): Promise<JourneyMap | null> {
+        logger.info(`[JourneyService] setSwimlanesBulk START: ${id} | Swimlanes to set: ${swimlanes.length}`, {
+            swimlaneNames: swimlanes.map(s => s.name),
+            hasDescriptions: swimlanes.map(s => ({ name: s.name, hasDesc: !!s.description && s.description.trim().length > 0 }))
+        });
+
         let journey = await Store.get(id);
-        if (!journey) return null;
+        if (!journey) {
+            logger.error(`[JourneyService] setSwimlanesBulk FAILED: Journey not found: ${id}`);
+            return null;
+        }
+
+        // Validate that ALL swimlanes have descriptions
+        const missingDescriptions = swimlanes.filter(s => !s.description || s.description.trim().length === 0);
+        if (missingDescriptions.length > 0) {
+            logger.error(`[JourneyService] setSwimlanesBulk FAILED: Swimlanes missing descriptions`, {
+                missingNames: missingDescriptions.map(s => s.name)
+            });
+            throw new Error(`Swimlanes missing descriptions: ${missingDescriptions.map(s => s.name).join(', ')}. All swimlanes must have descriptions before saving.`);
+        }
 
         journey.swimlanes = swimlanes.map((s, index) => ({
             swimlaneId: uuidv4(),
@@ -234,11 +274,17 @@ export class JourneyService {
             context: s.context || ''
         }));
 
+        logger.info(`[JourneyService] Swimlanes mapped successfully`, {
+            count: journey.swimlanes.length,
+            swimlaneIds: journey.swimlanes.map(s => s.swimlaneId)
+        });
+
         // Clear cells as structure changed
         journey.cells = [];
         // Save intermediate state
         await Store.save(journey);
-        
+        logger.info(`[JourneyService] Intermediate state saved, generating matrix...`);
+
         // Immediately generate matrix to reduce AI turn count
         logger.info(`[JourneyService] Set Swimlanes Bulk: ${id} | Count: ${journey.swimlanes.length} | Auto-generating Matrix...`);
         return this.generateMatrix(id);

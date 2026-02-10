@@ -305,7 +305,11 @@ export const STEP_3_DEFAULT = `3.  **Journey Setup**:
     *   **Mode [BOTH UNKNOWN]**: If neither name nor description are provided:
         1.  Execute {{JOURNEY_PROMPT}} to ask about their activity.
         2.  DEDUCE a succinct Journey Name from their response (don't explicitly ask "what should we call this?").
-        3.  Call \`update_journey_metadata\` with deduced name + user's description.
+        3.  **CRITICAL - NO HALLUCINATION**: Do NOT infer or make up details about the journey. After getting the activity name, EXPLICITLY ASK:
+            - "Can you give me a brief description of what [Journey Name] entails?"
+            - OR "Tell me a bit more about what [Journey Name] involves."
+        4.  Wait for user's actual description. Do NOT fabricate details like timing, purpose, or steps.
+        5.  Call \`update_journey_metadata\` with deduced name + user's ACTUAL description (not inferred).
     *   **Constraint**: Focus exclusively on the high-level context and purpose. Keep the scope broad - specific stages will be defined in Step 5.
     *   **Voice Rule**: Convert description to imperative/gerund phrase (e.g. "Helping people..." or "Manage requests..."). Do NOT use "I", "He", "She", or "They".
     *   **Formatting Rule**: Description must be PURE TEXT. Do NOT include variable assignments (e.g., \`name='...'\`) or JSON keys.
@@ -819,17 +823,23 @@ function buildStep7(config: SessionConfig): string {
     *   **Context**: Admin provided swimlane names: ${swimlaneNames}
     *   **Missing**: Descriptions for: ${missingDescriptions.join(', ')}
     *   **Signpost**: "We'll be tracking ${swimlaneNames} across each stage."
-    *   **Probe (META-LEVEL ONLY)**: For EACH swimlane in missing list, ask ONE brief question:
-        *   ✅ CORRECT: "What does [Swimlane] track?" or "What kind of things go in the [Swimlane] layer?"
+    *   **Probe (MANDATORY - ONE QUESTION PER MISSING DESCRIPTION)**: For EACH swimlane in missing list, ask ONE brief question:
+        *   ✅ CORRECT: "What does [Swimlane] track?" or "So [Swimlane] captures what exactly?"
         *   ❌ WRONG: "What are you feeling during this journey?" (too specific - that's cell-level)
-        *   **Goal**: Get 1-sentence definition of what this LAYER represents (e.g., "Emotional state throughout").
+        *   **Goal**: Get 1-2 sentence definition of what this LAYER represents across all stages.
+        *   **Examples**:
+            - "Feelings" → "Your emotional state throughout the process"
+            - "Actions" → "What you physically do at each stage"
         *   **CRITICAL - Ambiguity Detection**: If swimlane name is generic (like "Feelings", "Actions") and user's answer suggests multiple entities/actors, ask clarifying question:
             - ✅ CORRECT: "Whose feelings - yours, Banner's, or both?"
             - **Rule**: Swimlane descriptions MUST specify whose perspective if multiple actors exist.
     *   **Accumulate**: Store name + description for each swimlane. Use pre-filled descriptions where they exist.
-    *   **Confirm (SINGLE-GATE ONLY)**: After collecting ALL descriptions, summarize ONLY the swimlanes and ask "Are these the right layers?"
-    *   **Action**: After user confirms "Yes", IMMEDIATELY call set_swimlanes_bulk with complete array.
-    *   **Gate**: Do NOT mention cells or matrix until this tool succeeds.`;
+    *   **Confirm (SINGLE-GATE ONLY)**: After collecting ALL descriptions, summarize with descriptions: "[Swimlane 1]: [desc], [Swimlane 2]: [desc]. Are these the right layers?"
+    *   **Action**: After user confirms "Yes", IMMEDIATELY call set_swimlanes_bulk with complete array (all swimlanes must have descriptions).
+    *   **Gate (CRITICAL)**:
+        - Do NOT call set_swimlanes_bulk until ALL swimlanes have descriptions (no empty strings allowed).
+        - Do NOT mention cells or matrix until this tool succeeds.
+        - Do NOT proceed to Step 9 until you see stage transition to CELL_POPULATION.`;
         }
     }
 
@@ -842,19 +852,30 @@ function buildStep7(config: SessionConfig): string {
     *   **Ambiguity Check (ONE ROUND MAX - Entity Clarification ONLY)**:
         - If user says generic term like "Likes" or "Feelings", ASK: "Whose [term] - yours, [other actor's], or both?"
         - If user says specific term like "My Frustrations" or "Banner's Energy Level", ACCEPT IT immediately.
-        - **Rule**: Do NOT ask for definitions of standard terms. Everyone knows what "Feelings" or "Actions" means.
-    *   **Action - NO OVER-PROBING**:
-        1.  **Accept the list** (e.g., "Your Likes/Dislikes, Pet's Likes/Dislikes").
-        2.  **Clarify entity ONLY if needed** (see Ambiguity Check above).
-        3.  **Auto-describe if standard terms**: If user says "Feelings", auto-describe as "Emotional state experienced during each stage" - no need to probe.
-        4.  **Confirm**: "So the rows are: [Swimlane 1], [Swimlane 2]. Are these the right layers?"
+        - **Rule**: Do NOT ask "What does [term] mean?" Everyone knows what "Feelings" or "Actions" means.
+    *   **Probing for Descriptions (MANDATORY)**:
+        - After getting the swimlane NAMES, you MUST ask clarifying questions to understand what each layer represents.
+        - **ONE question per swimlane MAX** to get a brief description:
+            - ✅ CORRECT: "What kind of things go in the [Swimlane] layer?"
+            - ✅ CORRECT: "So [Swimlane] tracks what exactly?"
+            - ❌ WRONG: "What are you feeling during this journey?" (too specific - that's cell-level)
+        - **Goal**: Get 1-2 sentence definition of what this LAYER represents across ALL stages.
+        - **Examples**:
+            - "Positive Feelings" → "Positive emotions you experience during each stage"
+            - "Actions" → "What you physically do in each stage"
+            - "Pain Points" → "Frustrations or difficulties you encounter"
+    *   **Action - Description Collection**:
+        1.  **Accept the list** (e.g., "Positive Feelings, Negative Feelings").
+        2.  **Clarify entity if needed** (see Ambiguity Check above).
+        3.  **Probe for descriptions**: For EACH swimlane, ask ONE brief question to get a description.
+        4.  **Confirm**: After collecting ALL descriptions, summarize: "So the rows are: [Swimlane 1]: [description], [Swimlane 2]: [description]. Are these the right layers?"
         5.  **Visual Narration**: Say "I'm adding those rows to the grid now..." to confirm tool execution.
-        6.  **Tool Call**: After "Yes", IMMEDIATELY call set_swimlanes_bulk.
+        6.  **Tool Call**: After "Yes", IMMEDIATELY call set_swimlanes_bulk with COMPLETE data (name + description for ALL).
     *   **Gate (CRITICAL)**:
         - Never call set_swimlanes_bulk without explicit "Yes" confirmation.
-        - Never call without descriptions for ALL swimlanes (auto-generated OR clarified).
-        - Do NOT ask "What does Feelings mean?" - probe ONLY for entity (whose feelings).
-        - Do NOT mention cells until this tool succeeds.`;
+        - Never call without descriptions for ALL swimlanes - MUST probe to collect them.
+        - Do NOT mention cells until this tool succeeds.
+        - Do NOT proceed to Step 9 until you see stage transition to CELL_POPULATION in next turn.`;
 }
 
 export function buildSystemInstruction(config: SessionConfig = {}, journeyState: any = null): string {
