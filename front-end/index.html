@@ -2466,22 +2466,29 @@
       } catch (error) {
         console.error('Streaming error:', error);
         removeTypingIndicator();
-        
+
         // Show error message
         if (!aiMessageEl) {
             aiMessageEl = createStreamingMessage();
             bubbleEl = aiMessageEl.querySelector('.max-message-bubble');
         }
-        
+
         bubbleEl.innerHTML = `<p>Sorry, I encountered an error: ${escapeHtml(error.message)}</p>
                              <p>Please make sure the server is running and try again.</p>`;
         aiMessageEl.classList.add('max-message--error');
-      }
+      } finally {
+        // CRITICAL: Always re-enable input, even if errors occurred
+        // Use setTimeout to ensure mobile browsers properly handle focus after disabled state change
+        state.isStreaming = false;
+        setInputEnabled(true);
 
-      // Re-enable input
-      state.isStreaming = false;
-      setInputEnabled(true);
-      chatInput.focus();
+        // Mobile-safe focus: Small delay prevents iOS/Android focus issues
+        setTimeout(() => {
+          if (!chatInput.disabled) {
+            chatInput.focus();
+          }
+        }, 100);
+      }
     }
 
     // Create message element for streaming
