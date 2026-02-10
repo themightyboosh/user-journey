@@ -3,9 +3,9 @@
 // ===========================================
 
 export const TOOLS_VERSION = {
-    version: '3.4.0',
+    version: '3.4.1',
     lastModified: '2026-02-10',
-    description: 'Code-First State Machine: Tool scoping, auto-execution, director notes'
+    description: 'Race condition fixes: Retry with backoff, complete data validation, naming conflict resolution'
 };
 
 // Tool Scoping: Define which tools are available at each stage

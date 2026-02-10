@@ -179,6 +179,45 @@ export class AIService {
         }
     }
 
+    /**
+     * STABILITY FIX: Generate with exponential backoff retry
+     * Handles 429 (Rate Limit), 500 (Model Overloaded), and network flakes
+     * Prevents "Brief Hiccup" errors from reaching the user
+     */
+    async generateWithRetry(model: any, request: any, retries = 3): Promise<any> {
+        try {
+            const result = await model.generateContent(request);
+            return result;
+        } catch (error: any) {
+            const isRetryable =
+                error.status === 429 ||
+                error.status === 500 ||
+                error.message?.includes('429') ||
+                error.message?.includes('RESOURCE_EXHAUSTED') ||
+                error.message?.includes('503') ||
+                error.message?.includes('timeout');
+
+            if (isRetryable && retries > 0) {
+                const delay = 1000 * (4 - retries); // 1s, 2s, 3s exponential backoff
+                logger.warn(`⚠️ Generation failed, retrying in ${delay}ms... (${retries} attempts left)`, {
+                    error: error.message,
+                    status: error.status
+                });
+
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return this.generateWithRetry(model, request, retries - 1);
+            }
+
+            // Final failure bubbles up
+            logger.error('❌ Generation failed after all retries', {
+                error: error.message,
+                status: error.status,
+                retriesExhausted: retries === 0
+            });
+            throw error;
+        }
+    }
+
     get ActiveModelName() {
         return this.activeModelName;
     }

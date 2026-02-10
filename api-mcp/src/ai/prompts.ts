@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.4.0',
+    version: '3.4.1',
     lastModified: '2026-02-10',
-    description: 'Code-First State Machine: Tool scoping, auto-execution, director notes'
+    description: 'Race condition fixes: Retry with backoff, complete data validation, naming conflict resolution'
 };
 
 //
@@ -950,6 +950,15 @@ function buildCurrentObjective(journeyState: any): string {
 
     switch (stage) {
         case 'IDENTITY':
+            // RACE CONDITION FIX: If we have name/role but no journey ID yet, we're in transition
+            // The user may have provided a custom journey name - prioritize that over placeholder
+            if (journeyState?.userName && journeyState?.role) {
+                return `🎯 CURRENT OBJECTIVE: User has provided Name (${journeyState.userName}) and Role (${journeyState.role}).
+ACTION: Call 'create_journey_map' immediately.
+NAMING RULE: If the user explicitly named the journey (e.g., "Call it Cat Breeders Day"), use that EXACT name.
+            Otherwise, use the placeholder "${journeyState.userName}'s Journey".
+DO NOT try to satisfy both constraints - the user's explicit name takes priority.`;
+            }
             return `🎯 CURRENT OBJECTIVE: Collect user identity (name, role) and create the journey. Call create_journey_map when you have this information.`;
 
         case 'PHASES':
