@@ -15,14 +15,14 @@ function typographicQuotes(text) {
     if (!text) return '';
     // Convert straight double quotes to curly quotes
     // Opening quote: after whitespace or at start
-    text = text.replace(/(^|[\s\(\[\{])"/g, '$1"');
+    text = text.replace(/(^|[\s\(\[\{])"/g, '$1\u201C'); // Left double quote
     // Closing quote: before whitespace, punctuation, or at end
-    text = text.replace(/"([\s\)\]\}\.,;:!?]|$)/g, '"$1');
+    text = text.replace(/"([\s\)\]\}\.,;:!?]|$)/g, '\u201D$1'); // Right double quote
     // Convert straight single quotes to curly quotes
     // Opening quote: after whitespace or at start
-    text = text.replace(/(^|[\s\(\[\{])'/g, '$1'');
+    text = text.replace(/(^|[\s\(\[\{])'/g, '$1\u2018'); // Left single quote
     // Closing quote: before whitespace, punctuation, or at end
-    text = text.replace(/'([\s\)\]\}\.,;:!?]|$)/g, ''$1');
+    text = text.replace(/'([\s\)\]\}\.,;:!?]|$)/g, '\u2019$1'); // Right single quote
     return text;
 }
 
