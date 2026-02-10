@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "default": "journey-mapper-ai-8822"
+  },
+  "targets": {
+    "journey-mapper-ai-8822": {
+      "hosting": {
+        "production": [
+          "journey-mapper-ai-8822"
+        ],
+        "staging": [
+          "journey-mapper-stage"
+        ]
+      }
+    }
+  }
+}

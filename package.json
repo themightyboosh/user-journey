@@ -1,0 +1,18 @@
+{
+  "name": "journey-mapper",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "deploy:prod": "firebase deploy --only hosting:production,functions",
+    "deploy:stage": "firebase deploy --only hosting:staging,functions",
+    "deploy:hosting:prod": "firebase deploy --only hosting:production",
+    "deploy:hosting:stage": "firebase deploy --only hosting:staging",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:all": "firebase deploy"
+  },
+  "description": "Journey Mapper - AI-powered UX research tool",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/themightyboosh/user-journey"
+  }
+}
