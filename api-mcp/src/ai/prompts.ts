@@ -45,62 +45,9 @@ export const STEP_3_DEFAULT = `3.  **Journey Setup**:
     *   **Formatting Rule**: Description must be PURE TEXT. Do NOT include variable assignments (e.g., \`name='...'\`) or JSON keys.
     *   **Gate**: Ensure journey name is meaningful (not "Draft" or "[userName]'s Journey") and description is non-empty before proceeding.`;
 
-export const STEP_5_DEFAULT = `5.  **Phase Inquiry (Horizontal Axis)**:
-    *   **Logic**: Check if "PHASES (PRE-DEFINED)" appears in the CONTEXT section below.
-    *   **Mode [FULL BYPASS]**: If phases are pre-defined WITH both 'name' and 'description' for each:
-        1.  **Signpost**: Briefly acknowledge (e.g. "I see we're mapping [X, Y, Z]—got it.").
-        2.  **Action**: Immediately call \`set_phases_bulk\` using the EXACT array from PHASES (PRE-DEFINED).
-        3.  **Transition**: JUMP directly to Step 7 (Swimlane Inquiry).
-    *   **Mode [PARTIAL PRE-FILL]**: If phases are pre-defined but some are missing descriptions:
-        1.  **Signpost**: Acknowledge the phase names (e.g. "I see we have [X, Y, Z].").
-        2.  **Probe (META-LEVEL ONLY)**: For EACH phase missing a description, ask ONE brief question to understand what this time period represents—NOT specific actions. Keep it short and meta.
-            *   ✅ **CORRECT**: "What does the [Phase Name] stage represent?" or "[Phase Name]—what's happening at that point?"
-            *   ❌ **WRONG**: "What do you do during [Phase Name]?" (too detailed, will be asked at cell level)
-            *   **Goal**: Get a 1-sentence contextual description (e.g., "Getting ready to go" or "The actual walk itself"), not detailed actions.
-        3.  **Accumulate**: Store the name + description for each phase as you collect them.
-        4.  **Confirm (SINGLE-GATE ONLY)**: Limit your summary exclusively to the phases you just collected. Ask "Does this flow look right?" Keep this confirmation focused - the journey and swimlanes will have their own confirmation moments.
-        5.  **Action**: After user confirms ("Yes"), IMMEDIATELY call \`set_phases_bulk\`. Wait for tool success. Do NOT think about or mention swimlanes until this tool succeeds.
-    *   **Mode [UNKNOWN]**: If no phases are pre-defined:
-        1.  Ask for the high-level stages or steps involved. Treat phases as "chapters" or time-blocks (e.g., "Planning", "Execution", "Review").
-        2.  **Accumulate**: Once user provides a list, acknowledge it. Then probe for description of EACH phase (one brief question per phase).
-            *   **Probe Style (META-LEVEL ONLY)**: Ask what this time period REPRESENTS, not what specific actions happen.
-            *   ✅ **CORRECT**: "What's [Phase Name] all about?" or "What does [Phase Name] mean in this context?"
-            *   ❌ **WRONG**: "What do you do during [Phase Name]?" or "What happens in [Phase Name]?" (too detailed)
-            *   **Goal**: Get a 1-sentence high-level description (e.g., "Getting everything ready" not "Put on leash, get treats, check weather").
-        3.  **Confirm (SINGLE-GATE ONLY)**: After collecting ALL phase descriptions, summarize ONLY the phases and ask "Does this flow look right?" DO NOT recap the Journey, Goal, or any other gates—confirm ONLY the phases.
-        4.  **Action**: After user confirms ("Yes"), IMMEDIATELY call \`set_phases_bulk\`. Wait for tool success. Do NOT think about or mention swimlanes until this tool succeeds.
-    *   **Gate (CRITICAL)**: Never call \`set_phases_bulk\` without explicit user confirmation ("Yes"). Never call without descriptions for ALL phases. Never bundle phases with other gates in your confirmation.`;
+// STEP_5 and STEP_7 are now dynamically built via buildStep5() and buildStep7() functions
+// This eliminates the "AI as logic engine" problem where AI evaluates conditions and can skip tool calls
 
-export const STEP_7_DEFAULT = `7.  **Swimlane Inquiry (Vertical Axis)**:
-    *   **Logic**: Check if "SWIMLANES (PRE-DEFINED)" appears in the CONTEXT section below.
-    *   **Mode [FULL BYPASS]**: If swimlanes are pre-defined WITH both 'name' and 'description' for each:
-        1.  **Signpost**: Briefly confirm (e.g. "We'll be tracking [A, B, C] across each stage.").
-        2.  **Action**: Immediately call \`set_swimlanes_bulk\` using the EXACT array from SWIMLANES (PRE-DEFINED).
-        3.  **Transition**: JUMP directly to Step 9 (Matrix Verification).
-    *   **Mode [PARTIAL PRE-FILL]**: If swimlanes are pre-defined but some are missing descriptions:
-        1.  **Signpost**: Acknowledge the swimlane names (e.g. "I see we're tracking [A, B, C].").
-        2.  **Probe (META-LEVEL ONLY)**: For EACH swimlane missing a description, ask ONE brief question to understand what this LAYER tracks—NOT specific content. Keep it short and meta.
-            *   ✅ **CORRECT**: "When you say [Swimlane Name], what does that track?" or "What kind of things go in the [Swimlane Name] layer?"
-            *   ❌ **WRONG**: "What are you feeling during this journey?" (too specific, will be asked per cell)
-            *   **Goal**: Get a 1-sentence definition of what this layer represents (e.g., "Emotional state throughout" or "Physical actions taken"), not specific content.
-        3.  **Accumulate**: Store the name + description for each swimlane as you collect them.
-        4.  **Confirm (SINGLE-GATE ONLY)**: Summarize ONLY the swimlanes and ask "Are these the right layers to track?" DO NOT recap the Journey, Goal, Phases, or any other gates—confirm ONLY the swimlanes you just collected.
-        5.  **Action**: After user confirms ("Yes"), IMMEDIATELY call \`set_swimlanes_bulk\`. Wait for tool success. Do NOT think about or mention cells until this tool succeeds.
-    *   **Mode [UNKNOWN]**: If no swimlanes are pre-defined:
-        1.  Explain that we need to define the "layers" we want to track across the *entire* journey.
-        2.  **Prompt**: "To understand this journey deeply, what layers should we track for *every* stage? Common examples: Actions (what they do), Thinking (mental state), Feeling (emotions), Pain Points, or Tools."
-        3.  **Accumulate**: Once user provides a list, acknowledge it. Then probe for description of EACH swimlane (one brief question per swimlane).
-            *   **Probe Style (META-LEVEL ONLY)**: Ask what this LAYER represents across the journey, not specific instances.
-            *   ✅ **CORRECT**: "When you say [Swimlane], what does that track for you?" or "What goes in the [Swimlane] layer?"
-            *   ❌ **WRONG**: "What do you feel during the first stage?" (too specific, that's cell-level)
-            *   **CRITICAL — Ambiguity Detection**: If the swimlane name is GENERIC (like "Feelings", "Actions", "Thoughts") and the user's answer suggests multiple entities/actors are involved (e.g., user + dog, user + customer, manager + employee), you MUST ask a CLARIFYING question:
-                - ✅ **CORRECT**: "When you say 'Feelings', whose feelings are we tracking - yours, Banner's, or both?"
-                - ✅ **CORRECT**: "For 'Actions', are we tracking what you do, what the customer does, or both?"
-                - **Rule**: Swimlane descriptions MUST specify whose perspective/entity is being tracked if multiple actors exist in the journey. Do NOT proceed without this clarity.
-            *   **Goal**: Get a 1-sentence definition that clarifies BOTH the concept AND whose perspective (e.g., "My emotional state during each stage" or "What I'm physically doing, not Banner's actions"), not specific feelings or actions.
-        4.  **Confirm (SINGLE-GATE ONLY)**: After collecting ALL swimlane descriptions, summarize ONLY the swimlanes and ask "Are these the right layers?" DO NOT recap the Journey, Goal, Phases, or any other gates—confirm ONLY the swimlanes.
-        5.  **Action**: After user confirms ("Yes"), IMMEDIATELY call \`set_swimlanes_bulk\`. Wait for tool success. Do NOT think about or mention cells until this tool succeeds.
-    *   **Gate (CRITICAL)**: Never call \`set_swimlanes_bulk\` without explicit user confirmation ("Yes"). Never call without descriptions for ALL swimlanes. Never bundle swimlanes with other gates in your confirmation.`;
 
 // Few-Shot Style Guide: Concrete examples of conversational patterns
 export const STYLE_GUIDE = `
@@ -505,6 +452,129 @@ function buildStep3(config: SessionConfig): string {
     *   **Then**: Call \`update_journey_metadata\` with name: [deduced name], description: [their answer]`;
 }
 
+/**
+ * Build Step 5 instruction using Silent Configuration pattern.
+ * If admin pre-filled phases, AI sees ONLY "call tool immediately" instruction.
+ * If admin left it blank, AI sees interview logic.
+ */
+function buildStep5(config: SessionConfig): string {
+    // 1. ADMIN MODE (Pre-filled phases)
+    if (config.phases && Array.isArray(config.phases) && config.phases.length > 0) {
+        // Check if ALL phases have descriptions
+        const allHaveDescriptions = config.phases.every(p => p.description && p.description.trim().length > 0);
+
+        if (allHaveDescriptions) {
+            // FULL BYPASS - AI has one job: Save the data
+            return `5.  **Phase Setup (Admin Defined)**:
+    *   **Context**: The Admin has strictly defined the journey phases.
+    *   **Data**: ${JSON.stringify(config.phases)}
+    *   **CRITICAL ACTION**: You MUST immediately call set_phases_bulk with the exact data above.
+    *   **Constraint**: Do NOT ask the user for confirmation. Do NOT discuss the phases. Call the tool immediately.
+    *   **Transition**: After tool success (stage advances to SWIMLANES), move to Step 7.`;
+        } else {
+            // PARTIAL PRE-FILL - Names provided, need descriptions
+            const phaseNames = config.phases.map(p => p.name).join(', ');
+            const missingDescriptions = config.phases.filter(p => !p.description || p.description.trim().length === 0).map(p => p.name);
+
+            return `5.  **Phase Setup (Partial Admin Data)**:
+    *   **Context**: Admin provided phase names: ${phaseNames}
+    *   **Missing**: Descriptions for: ${missingDescriptions.join(', ')}
+    *   **Signpost**: "I see we're mapping ${phaseNames}."
+    *   **Probe (META-LEVEL ONLY)**: For EACH phase in missing list, ask ONE brief question:
+        *   ✅ CORRECT: "What does [Phase Name] represent?" or "What's happening during [Phase Name]?"
+        *   ❌ WRONG: "What do you do in [Phase Name]?" (too specific - that's cell-level)
+        *   **Goal**: Get 1-sentence overview (e.g., "Preparation before the event").
+    *   **Accumulate**: Store name + description for each phase. Use pre-filled descriptions where they exist.
+    *   **Confirm (SINGLE-GATE ONLY)**: After collecting ALL descriptions, summarize ONLY the phases and ask "Does this flow look right?"
+    *   **Action**: After user confirms "Yes", IMMEDIATELY call set_phases_bulk with complete array.
+    *   **Gate**: Do NOT mention swimlanes until this tool succeeds.`;
+        }
+    }
+
+    // 2. USER MODE (Interview - no admin data)
+    return `5.  **Phase Discovery**:
+    *   **Ask**: "What are the high-level stages or steps involved?" Treat phases as "chapters" or time-blocks.
+    *   **Examples**: "Planning, Execution, Review" or "Preparation, Event, Wrap-up".
+    *   **Accumulate**: Once user provides list, acknowledge it. Then probe for description of EACH phase (one question per phase).
+        *   **Probe Style (META-LEVEL ONLY)**: "What's [Phase Name] all about?" or "What does [Phase Name] mean here?"
+        *   ✅ CORRECT: Ask what this time period REPRESENTS
+        *   ❌ WRONG: "What do you do during [Phase Name]?" (too specific)
+        *   **Goal**: Get 1-sentence high-level description (e.g., "Getting everything ready").
+    *   **Confirm (SINGLE-GATE ONLY)**: After collecting ALL descriptions, summarize ONLY the phases and ask "Does this flow look right?"
+    *   **Action**: After user confirms "Yes", IMMEDIATELY call set_phases_bulk.
+    *   **Gate (CRITICAL)**:
+        - Never call set_phases_bulk without explicit "Yes" confirmation.
+        - Never call without descriptions for ALL phases.
+        - Do NOT bundle phases with other gates (journey, swimlanes, etc.) in your confirmation.
+        - Do NOT mention swimlanes until this tool succeeds.`;
+}
+
+/**
+ * Build Step 7 instruction using Silent Configuration pattern.
+ * If admin pre-filled swimlanes, AI sees ONLY "call tool immediately" instruction.
+ * If admin left it blank, AI sees interview logic.
+ */
+function buildStep7(config: SessionConfig): string {
+    // 1. ADMIN MODE (Pre-filled swimlanes)
+    if (config.swimlanes && Array.isArray(config.swimlanes) && config.swimlanes.length > 0) {
+        // Check if ALL swimlanes have descriptions
+        const allHaveDescriptions = config.swimlanes.every(s => s.description && s.description.trim().length > 0);
+
+        if (allHaveDescriptions) {
+            // FULL BYPASS - AI has one job: Save the data
+            return `7.  **Swimlane Setup (Admin Defined)**:
+    *   **Context**: The Admin has strictly defined the journey swimlanes (experience layers).
+    *   **Data**: ${JSON.stringify(config.swimlanes)}
+    *   **CRITICAL ACTION**: You MUST immediately call set_swimlanes_bulk with the exact data above.
+    *   **Constraint**: Do NOT ask the user for confirmation. Do NOT discuss the swimlanes. Call the tool immediately.
+    *   **Note**: This tool automatically calls generate_matrix internally.
+    *   **Transition**: After tool success (stage advances to CELL_POPULATION), move to Step 9.`;
+        } else {
+            // PARTIAL PRE-FILL - Names provided, need descriptions
+            const swimlaneNames = config.swimlanes.map(s => s.name).join(', ');
+            const missingDescriptions = config.swimlanes.filter(s => !s.description || s.description.trim().length === 0).map(s => s.name);
+
+            return `7.  **Swimlane Setup (Partial Admin Data)**:
+    *   **Context**: Admin provided swimlane names: ${swimlaneNames}
+    *   **Missing**: Descriptions for: ${missingDescriptions.join(', ')}
+    *   **Signpost**: "We'll be tracking ${swimlaneNames} across each stage."
+    *   **Probe (META-LEVEL ONLY)**: For EACH swimlane in missing list, ask ONE brief question:
+        *   ✅ CORRECT: "What does [Swimlane] track?" or "What kind of things go in the [Swimlane] layer?"
+        *   ❌ WRONG: "What are you feeling during this journey?" (too specific - that's cell-level)
+        *   **Goal**: Get 1-sentence definition of what this LAYER represents (e.g., "Emotional state throughout").
+        *   **CRITICAL - Ambiguity Detection**: If swimlane name is generic (like "Feelings", "Actions") and user's answer suggests multiple entities/actors, ask clarifying question:
+            - ✅ CORRECT: "Whose feelings - yours, Banner's, or both?"
+            - **Rule**: Swimlane descriptions MUST specify whose perspective if multiple actors exist.
+    *   **Accumulate**: Store name + description for each swimlane. Use pre-filled descriptions where they exist.
+    *   **Confirm (SINGLE-GATE ONLY)**: After collecting ALL descriptions, summarize ONLY the swimlanes and ask "Are these the right layers?"
+    *   **Action**: After user confirms "Yes", IMMEDIATELY call set_swimlanes_bulk with complete array.
+    *   **Gate**: Do NOT mention cells or matrix until this tool succeeds.`;
+        }
+    }
+
+    // 2. USER MODE (Interview - no admin data)
+    return `7.  **Swimlane Discovery**:
+    *   **Explain**: "We need to define the 'layers' we want to track across the entire journey."
+    *   **Prompt**: "What layers should we track for every stage? Common examples: Actions (what they do), Thinking (mental state), Feeling (emotions), Pain Points, or Tools."
+    *   **Constraint**: Explain these apply to ALL phases. Don't let user define phase-specific tasks here.
+    *   **Accumulate**: Once user provides list, acknowledge it. Then probe for description of EACH swimlane (one question per swimlane).
+        *   **Probe Style (META-LEVEL ONLY)**: "When you say [Swimlane], what does that track?" or "What goes in the [Swimlane] layer?"
+        *   ✅ CORRECT: Ask what this LAYER represents across the journey
+        *   ❌ WRONG: "What do you feel during the first stage?" (too specific - that's cell-level)
+        *   **CRITICAL - Ambiguity Detection**: If swimlane name is GENERIC (like "Feelings", "Actions", "Thoughts") and user's answer suggests multiple entities/actors (e.g., user + dog, user + customer), you MUST ask clarifying question:
+            - ✅ CORRECT: "When you say 'Feelings', whose feelings - yours, Banner's, or both?"
+            - ✅ CORRECT: "For 'Actions', are we tracking what you do, what the customer does, or both?"
+            - **Rule**: Swimlane descriptions MUST specify whose perspective/entity is being tracked if multiple actors exist.
+        *   **Goal**: Get 1-sentence definition that clarifies BOTH the concept AND whose perspective (e.g., "My emotional state during each stage" not "Feelings").
+    *   **Confirm (SINGLE-GATE ONLY)**: After collecting ALL swimlane descriptions, summarize ONLY the swimlanes and ask "Are these the right layers?"
+    *   **Action**: After user confirms "Yes", IMMEDIATELY call set_swimlanes_bulk.
+    *   **Gate (CRITICAL)**:
+        - Never call set_swimlanes_bulk without explicit "Yes" confirmation.
+        - Never call without descriptions for ALL swimlanes.
+        - Do NOT bundle swimlanes with other gates (journey, phases, etc.) in your confirmation.
+        - Do NOT mention cells or matrix until this tool succeeds.`;
+}
+
 export function buildSystemInstruction(config: SessionConfig = {}, journeyState: any = null): string {
     let instruction = BASE_SYSTEM_INSTRUCTION;
 
@@ -529,83 +599,11 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
     instruction = instruction.replace('{{STEP_3}}', step3);
 
     // --- Step 5: Phase Inquiry ---
-    let step5 = STEP_5_DEFAULT;
-
-    // Check if phases are pre-populated
-    if (config.phases && Array.isArray(config.phases) && config.phases.length > 0) {
-        // Check if ALL phases have descriptions (FULL BYPASS vs PARTIAL PRE-FILL)
-        const allHaveDescriptions = config.phases.every(p => p.description && p.description.trim().length > 0);
-
-        if (allHaveDescriptions) {
-            // FULL BYPASS - All phases complete
-            step5 = `5.  **Phase Inquiry (FULL BYPASS)**:
-    *   **Pre-populated Phases**: The following phases are already defined:
-        \`\`\`json
-        ${JSON.stringify(config.phases, null, 2)}
-        \`\`\`
-    *   **Signpost**: Briefly acknowledge (e.g. "I see we're mapping [${config.phases.map(p => p.name).join(', ')}]—got it.").
-    *   **Action**: Immediately call \`set_phases_bulk\` with the EXACT array shown above.
-    *   **Transition**: After tool succeeds, JUMP directly to Step 7 (Swimlane Inquiry).`;
-        } else {
-            // PARTIAL PRE-FILL - Names provided, some descriptions missing
-            const phaseNames = config.phases.map(p => p.name).join(', ');
-            const missingDescriptions = config.phases.filter(p => !p.description || p.description.trim().length === 0).map(p => p.name);
-
-            step5 = `5.  **Phase Inquiry (PARTIAL PRE-FILL)**:
-    *   **Pre-populated Phase Names**: ${phaseNames}
-    *   **Phases with Missing Descriptions**: ${JSON.stringify(missingDescriptions)}
-    *   **Pre-populated Phases (Partial):**
-        \`\`\`json
-        ${JSON.stringify(config.phases, null, 2)}
-        \`\`\`
-    *   **Signpost**: Acknowledge the names (e.g. "I see we have ${phaseNames}.").
-    *   **Probe**: For EACH phase in the "Missing Descriptions" list, ask ONE question like "What does [Phase Name] involve?" or "What happens during [Phase Name]?"
-    *   **Accumulate**: Store name + description for each phase. Use pre-filled descriptions where they exist, collect missing ones from user.
-    *   **Confirm**: After collecting all descriptions, summarize all phases and ask "Does this flow look right?"
-    *   **Action**: Only call \`set_phases_bulk\` AFTER user confirms "Yes" AND you have complete array with ALL descriptions filled.`;
-        }
-    }
-
+    const step5 = buildStep5(config);
     instruction = instruction.replace('{{STEP_5}}', step5);
 
     // --- Step 7: Swimlane Inquiry ---
-    let step7 = STEP_7_DEFAULT;
-
-    // Check if swimlanes are pre-populated
-    if (config.swimlanes && Array.isArray(config.swimlanes) && config.swimlanes.length > 0) {
-        // Check if ALL swimlanes have descriptions (FULL BYPASS vs PARTIAL PRE-FILL)
-        const allHaveDescriptions = config.swimlanes.every(s => s.description && s.description.trim().length > 0);
-
-        if (allHaveDescriptions) {
-            // FULL BYPASS - All swimlanes complete
-            step7 = `7.  **Swimlane Inquiry (FULL BYPASS)**:
-    *   **Pre-populated Swimlanes**: The following swimlanes are already defined:
-        \`\`\`json
-        ${JSON.stringify(config.swimlanes, null, 2)}
-        \`\`\`
-    *   **Signpost**: Briefly confirm (e.g. "We'll be tracking [${config.swimlanes.map(s => s.name).join(', ')}] across each stage.").
-    *   **Action**: Immediately call \`set_swimlanes_bulk\` with the EXACT array shown above.
-    *   **Transition**: After tool succeeds (which auto-calls generate_matrix), JUMP directly to Step 9 (Matrix Verification).`;
-        } else {
-            // PARTIAL PRE-FILL - Names provided, some descriptions missing
-            const swimlaneNames = config.swimlanes.map(s => s.name).join(', ');
-            const missingDescriptions = config.swimlanes.filter(s => !s.description || s.description.trim().length === 0).map(s => s.name);
-
-            step7 = `7.  **Swimlane Inquiry (PARTIAL PRE-FILL)**:
-    *   **Pre-populated Swimlane Names**: ${swimlaneNames}
-    *   **Swimlanes with Missing Descriptions**: ${JSON.stringify(missingDescriptions)}
-    *   **Pre-populated Swimlanes (Partial):**
-        \`\`\`json
-        ${JSON.stringify(config.swimlanes, null, 2)}
-        \`\`\`
-    *   **Signpost**: Acknowledge the names (e.g. "I see we're tracking ${swimlaneNames}.").
-    *   **Probe**: For EACH swimlane in the "Missing Descriptions" list, ask ONE question like "What does [Swimlane Name] mean in this context?" or "Can you clarify [Swimlane Name]?"
-    *   **Accumulate**: Store name + description for each swimlane. Use pre-filled descriptions where they exist, collect missing ones from user.
-    *   **Confirm**: After collecting all descriptions, summarize all swimlanes and ask "Are these the right layers to track?"
-    *   **Action**: Only call \`set_swimlanes_bulk\` AFTER user confirms "Yes" AND you have complete array with ALL descriptions filled.`;
-        }
-    }
-
+    const step7 = buildStep7(config);
     instruction = instruction.replace('{{STEP_7}}', step7);
 
     // --- Persona Replacements ---
