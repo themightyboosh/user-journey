@@ -1808,8 +1808,8 @@
             onPdf: function () { exportToPdf(); }
         });
 
-        // GEN button: hidden by default, shown only for superadmin after auth
-        window.journeyViewer.hideButton('jv-gen');
+        // GEN button: Always visible for testing/demo purposes
+        window.journeyViewer.showButton('jv-gen');
 
         // Backward compat: expose panzoomInstance for any remaining refs
         Object.defineProperty(window, 'panzoomInstance', {
@@ -3558,70 +3558,197 @@ async function exportToPdf() {
     // DEBUG: Random Journey Generator
     // ===========================================
     function debugGenerateRandom() {
-        const phasesPool = ["Discovery", "Research", "Evaluation", "Purchase", "Implementation", "Onboarding", "Usage", "Expansion", "Renewal", "Advocacy"];
-        const swimlanesPool = ["Doing", "Thinking", "Feeling", "Touchpoints", "Pain Points", "Opportunities", "Data", "Systems"];
-        
-        // Random Count
-        const phaseCount = Math.floor(Math.random() * 8) + 4; // 4 to 12 phases
-        const swimlaneCount = Math.floor(Math.random() * 4) + 3; // 3 to 6 swimlanes
-        
-        // Select random subset
-        const phases = phasesPool.sort(() => 0.5 - Math.random()).slice(0, phaseCount);
-        const swimlanes = swimlanesPool.sort(() => 0.5 - Math.random()).slice(0, swimlaneCount);
-        
-        // Build Objects
-        const phaseObjs = phases.map((p, i) => ({ phaseId: `p${i}`, name: p, description: `Key phase covering ${p.toLowerCase()} activities and milestones.`, summary: `Summary for ${p}. Lorem ipsum dolor sit amet.` }));
-        const swimlaneObjs = swimlanes.map((s, i) => ({ swimlaneId: `s${i}`, name: s, description: `Captures the ${s.toLowerCase()} dimension of the user experience.`, summary: `Summary for ${s}. Consectetur adipiscing elit.` }));
-        
+        // Realistic journey templates with varied personas, roles, and content
+        const templates = [
+            {
+                userName: "Sarah Chen",
+                role: "Software Engineer",
+                journeyName: "Deploying a Production Hotfix",
+                description: "Urgently deploying a critical bug fix to production servers",
+                phases: ["Identify Bug", "Local Reproduction", "Write Fix", "Code Review", "Staging Test", "Production Deploy", "Monitor", "Post-Mortem"],
+                swimlanes: ["Actions", "Feelings", "Pain Points", "Tools"],
+                cellContent: {
+                    "Actions": ["Reading error logs", "Setting up test environment", "Coding the solution", "Creating pull request", "Running CI/CD pipeline", "Executing deploy script", "Checking dashboards", "Writing incident report"],
+                    "Feelings": ["Stressed and anxious", "Focused but worried", "Confident about fix", "Nervous awaiting review", "Relieved tests passed", "Tense during deploy", "Grateful it worked", "Tired but satisfied"],
+                    "Pain Points": ["Vague error messages", "Missing test data", "Slow local build times", "Reviewer unavailable", "Flaky integration tests", "Production access delays", "False positive alerts", "Incomplete documentation"],
+                    "Tools": ["Datadog, Slack", "Docker, VS Code", "Git, GitHub", "GitHub PR interface", "Jenkins, Kubernetes", "AWS Console, kubectl", "Grafana, PagerDuty", "Confluence, Jira"]
+                },
+                quotes: ["The logs just said 'undefined error' - not helpful at all", "I wish we had better test coverage for this module", "That moment when the deploy succeeds is such a relief"]
+            },
+            {
+                userName: "Marcus Thompson",
+                role: "Restaurant Manager",
+                journeyName: "Opening a New Location",
+                description: "Launching the third location of a farm-to-table restaurant",
+                phases: ["Site Selection", "Lease Negotiation", "Design & Build-Out", "Hiring Staff", "Training", "Soft Opening", "Grand Opening"],
+                swimlanes: ["Doing", "Thinking", "Pain Points", "Opportunities"],
+                cellContent: {
+                    "Doing": ["Touring potential spaces", "Reviewing lease terms", "Working with contractors", "Posting job listings", "Conducting staff training", "Hosting preview dinners", "Managing opening night"],
+                    "Thinking": ["Will foot traffic justify rent?", "How flexible is landlord?", "Is timeline realistic?", "Do candidates fit culture?", "Are standards being met?", "Is kitchen ready?", "Can we handle the rush?"],
+                    "Pain Points": ["Limited budget for prime locations", "Hidden costs in lease", "Permit delays", "High candidate no-show rate", "Equipment arrives late", "Menu adjustments mid-prep", "Reservation system crashes"],
+                    "Opportunities": ["Negotiate longer lease for lower rate", "Build relationship with landlord", "Document for future locations", "Partner with culinary schools", "Cross-train for flexibility", "Build local PR buzz", "Capture opening night content"]
+                },
+                quotes: ["Every location has its own personality and challenges", "The soft opening revealed issues we never would have caught", "Our team really pulled together on opening night"]
+            },
+            {
+                userName: "Dr. Amelia Rodriguez",
+                role: "Emergency Room Physician",
+                journeyName: "Managing a Trauma Case",
+                description: "Treating a patient with multiple injuries from a car accident",
+                phases: ["Initial Assessment", "Stabilization", "Diagnostic Tests", "Consultation", "Treatment", "Transfer to ICU"],
+                swimlanes: ["Actions", "Decisions", "Constraints", "Emotions"],
+                cellContent: {
+                    "Actions": ["Primary survey", "IV access, fluids", "Ordering CT scans", "Calling specialist", "Performing procedure", "Handoff to ICU team"],
+                    "Decisions": ["Which injuries are life-threatening?", "Intubate now or wait?", "Head CT or chest first?", "Surgery or conservative?", "Which medications?", "Is patient stable for transfer?"],
+                    "Constraints": ["Limited patient history", "Blood pressure dropping", "CT scanner occupied", "Surgeon in another case", "OR not immediately available", "ICU bed allocation"],
+                    "Emotions": ["Adrenaline and focus", "Concern about stability", "Frustration with delays", "Relief specialist agrees", "Tense during procedure", "Satisfied with outcome"]
+                },
+                quotes: ["In trauma, every second counts but rushing causes mistakes", "Communication with the team is everything", "You learn to trust your training even under pressure"]
+            },
+            {
+                userName: "James Park",
+                role: "Product Manager",
+                journeyName: "Launching a New Feature",
+                description: "Shipping a highly-requested collaboration feature to production",
+                phases: ["Discovery", "Roadmap Planning", "Design", "Development", "Beta Testing", "Go-to-Market", "Launch", "Iteration"],
+                swimlanes: ["Doing", "Feeling", "Pain Points", "Metrics"],
+                cellContent: {
+                    "Doing": ["User interviews", "Stakeholder alignment", "Design reviews", "Sprint planning", "QA coordination", "Marketing materials", "Rollout monitoring", "User feedback analysis"],
+                    "Feeling": ["Excited by potential", "Stressed by competing priorities", "Confident in direction", "Anxious about timeline", "Nervous about edge cases", "Energized by launch buzz", "Proud of team effort", "Eager to improve"],
+                    "Pain Points": ["Conflicting stakeholder requests", "Engineering capacity constraints", "Design-dev handoff gaps", "Sprint scope creep", "Critical bugs in beta", "Sales misaligned messaging", "Performance issues at scale", "Support ticket spike"],
+                    "Metrics": ["30 user interviews", "Q3 roadmap commitment", "3 design iterations", "12 sprints", "85% beta satisfaction", "2,500 signups day 1", "94% uptime", "22% adoption week 1"]
+                },
+                quotes: ["Everyone wants their feature to be top priority", "We had to cut scope to make the launch date", "Seeing users actually use what we built makes it all worth it"]
+            },
+            {
+                userName: "Olivia Martinez",
+                role: "Elementary School Teacher",
+                journeyName: "Planning a Science Unit",
+                description: "Designing and teaching a 4-week unit on ecosystems for 4th graders",
+                phases: ["Curriculum Review", "Lesson Planning", "Materials Prep", "Week 1 Teaching", "Week 2 Teaching", "Week 3 Teaching", "Week 4 & Assessment"],
+                swimlanes: ["Actions", "Thinking", "Challenges", "Successes"],
+                cellContent: {
+                    "Actions": ["Reading standards", "Creating lesson plans", "Ordering supplies", "Intro & vocabulary", "Habitat exploration", "Food web activity", "Final project & test"],
+                    "Thinking": ["How to make it engaging?", "Will this fit in time?", "Do I have all materials?", "Are they understanding?", "How to differentiate?", "Is pacing right?", "Did objectives get met?"],
+                    "Challenges": ["Budget for materials", "Diverse learning levels", "Late supply delivery", "Student absences", "Classroom management", "Technology glitches", "Time running short"],
+                    "Successes": ["Found free online resources", "Engaged all learning styles", "Parent volunteers help", "'Aha' moments happening", "Hands-on activity loved", "Group work effective", "Most students mastered content"]
+                },
+                quotes: ["When a struggling student finally gets it, that's why I teach", "You can plan everything perfectly and still need to adapt", "Hands-on activities work so much better than worksheets"]
+            },
+            {
+                userName: "David Kim",
+                role: "Freelance Graphic Designer",
+                journeyName: "Completing a Brand Identity Project",
+                description: "Creating a full brand identity for a new sustainable fashion startup",
+                phases: ["Client Discovery", "Research & Mood Boards", "Concept Development", "Client Presentation", "Revisions", "Final Deliverables"],
+                swimlanes: ["Doing", "Feeling", "Pain Points", "Tools"],
+                cellContent: {
+                    "Doing": ["Intake questionnaire", "Competitor analysis", "Sketching concepts", "Presenting 3 directions", "Incorporating feedback", "Packaging all files"],
+                    "Feeling": ["Excited by opportunity", "Inspired by research", "Creative flow", "Nervous about reception", "Frustrated by vague feedback", "Proud of final result"],
+                    "Pain Points": ["Client unclear on vision", "Tight timeline", "Scope creep requests", "'I'll know it when I see it'", "Multiple stakeholder opinions", "File format confusion"],
+                    "Tools": ["Google Forms, Zoom", "Pinterest, Behance", "Figma, Illustrator", "Keynote, Loom", "Figma comments", "Dropbox, PDF exports"]
+                },
+                quotes: ["The best work comes when the client trusts the process", "Revisions are part of design, but scope creep isn't", "It's so rewarding to see your work out in the world"]
+            }
+        ];
+
+        // Select random template
+        const template = templates[Math.floor(Math.random() * templates.length)];
+
+        // Random counts (3-12 phases, 2-6 lanes as requested)
+        const phaseCount = Math.min(template.phases.length, Math.floor(Math.random() * 10) + 3);
+        const swimlaneCount = Math.min(template.swimlanes.length, Math.floor(Math.random() * 5) + 2);
+
+        // Build phase objects
+        const phaseObjs = template.phases.slice(0, phaseCount).map((p, i) => ({
+            phaseId: `phase-${i}`,
+            sequence: i + 1,
+            name: p,
+            description: `The ${p.toLowerCase()} stage of ${template.journeyName.toLowerCase()}.`,
+            summary: `During ${p}, key activities and milestones shape the user experience.`
+        }));
+
+        // Build swimlane objects
+        const swimlaneObjs = template.swimlanes.slice(0, swimlaneCount).map((s, i) => ({
+            swimlaneId: `lane-${i}`,
+            sequence: i + 1,
+            name: s,
+            description: `Tracking ${s.toLowerCase()} throughout the journey.`,
+            summary: `${s} reveal important patterns across the experience.`
+        }));
+
+        // Build cells with realistic content
         const cells = [];
-        phaseObjs.forEach(p => {
-            swimlaneObjs.forEach(s => {
-                if (Math.random() > 0.2) { // 80% chance of cell
+        phaseObjs.forEach((p, pIdx) => {
+            swimlaneObjs.forEach((s, sIdx) => {
+                // 85% chance of populated cell
+                if (Math.random() > 0.15) {
+                    const content = template.cellContent[s.name];
+                    const headline = content && content[pIdx] ? content[pIdx] : `${s.name} in ${p.name}`;
+                    const descriptions = [
+                        `During this phase, ${headline.toLowerCase()}.`,
+                        `${headline}, which significantly impacts the overall experience.`,
+                        `The user experiences: ${headline.toLowerCase()}.`,
+                        `Key insight: ${headline.toLowerCase()}.`
+                    ];
+
                     cells.push({
-                        cellId: `${p.phaseId}-${s.swimlaneId}`,
+                        cellId: `cell-${p.phaseId}-${s.swimlaneId}`,
                         phaseId: p.phaseId,
                         swimlaneId: s.swimlaneId,
-                        headline: `Action in ${p.name}`,
-                        description: `User is ${s.name.toLowerCase()} something related to ${p.name.toLowerCase()}. This is a generated description to test layout width and height.`
+                        headline: headline,
+                        description: descriptions[Math.floor(Math.random() * descriptions.length)],
+                        context: ""
                     });
                 }
             });
         });
-        
+
+        // Build journey object matching API structure
         const journey = {
-            id: 'debug-' + Date.now(),
-            name: "Generated Test Journey",
-            role: "Test Persona",
-            userName: "Debug User",
-            status: "READY_FOR_REVIEW",
+            id: 'gen-' + Date.now(),
+            journeyMapId: 'gen-' + Date.now(),
+            name: template.journeyName,
+            role: template.role,
+            userName: template.userName,
+            status: "COMPLETE",
             stage: "COMPLETE",
-            description: "This is a randomly generated journey map to test the layout, fixed widths, board container, and dot grid background.",
+            description: template.description,
             phases: phaseObjs,
             swimlanes: swimlaneObjs,
             cells: cells,
-            mentalModels: "1. Model Alpha: Users think linear.\n2. Model Beta: Users jump around.\n3. Model Gamma: Price is key.",
-            summaryOfFindings: "Overall, the journey is fragmented. We need better cohesion in the purchase phase.",
-            quotes: ["This is the absolute best test quote I have ever seen."],
-            templateIcon: "activity"
+            mentalModels: `**User Context:** ${template.userName} approaches this journey with specific mental models shaped by their role as a ${template.role}. They prioritize efficiency and clarity while navigating complex systems.`,
+            summaryOfFindings: `This journey reveals key friction points in the ${template.phases[1]} and ${template.phases[template.phases.length - 2]} phases. ${template.userName} experiences the most frustration when ${template.cellContent[template.swimlanes[2]] ? template.cellContent[template.swimlanes[2]][1].toLowerCase() : 'facing unclear expectations'}. Opportunities exist to streamline the experience and provide better support during critical transitions.`,
+            quotes: template.quotes || [],
+            templateIcon: "activity",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            version: 1
         };
-        
+
+        // Set as current journey
         currentJourney = journey;
         currentJourneyId = journey.id;
-        
-        // Render
+
+        // Render to canvas
         renderMap(journey);
-        
-        // Ensure buttons show
+
+        // Show completion buttons
         document.body.classList.add('journey-complete');
-        
-        // Fit
+
+        // Fit to view after render
         setTimeout(() => {
-            if(window.panzoomInstance) {
+            if (window.panzoomInstance) {
                 performFit();
             }
-        }, 100);
-        
-        console.log("Generated Journey:", journey);
+        }, 150);
+
+        console.log("✨ Generated Realistic Journey:", {
+            persona: `${template.userName} (${template.role})`,
+            journey: template.journeyName,
+            dimensions: `${phaseCount} phases × ${swimlaneCount} swimlanes = ${cells.length} cells`,
+            data: journey
+        });
     }
   </script>
 </body>
