@@ -852,8 +852,7 @@ function buildStep7(config: SessionConfig): string {
     *   **Ambiguity Check (ONE ROUND MAX - Entity Clarification ONLY)**:
         - If user says generic term like "Likes" or "Feelings", ASK: "Whose [term] - yours, [other actor's], or both?"
         - If user says specific term like "My Frustrations" or "Banner's Energy Level", ACCEPT IT immediately.
-        - **Rule**: Do NOT ask "What does [term] mean?" Everyone knows what "Feelings" or "Actions" means.
-    *   **Probing for Descriptions (MANDATORY)**:
+    *   **Probing for Descriptions (MANDATORY - DO NOT SKIP)**:
         - After getting the swimlane NAMES, you MUST ask clarifying questions to understand what each layer represents.
         - **ONE question per swimlane MAX** to get a brief description:
             - ✅ CORRECT: "What kind of things go in the [Swimlane] layer?"
@@ -867,15 +866,16 @@ function buildStep7(config: SessionConfig): string {
     *   **Action - Description Collection**:
         1.  **Accept the list** (e.g., "Positive Feelings, Negative Feelings").
         2.  **Clarify entity if needed** (see Ambiguity Check above).
-        3.  **Probe for descriptions**: For EACH swimlane, ask ONE brief question to get a description.
+        3.  **CRITICAL - PROBE FOR DESCRIPTIONS**: For EACH swimlane, ask ONE brief question to get a description. DO NOT SKIP THIS STEP.
         4.  **Confirm**: After collecting ALL descriptions, summarize: "So the rows are: [Swimlane 1]: [description], [Swimlane 2]: [description]. Are these the right layers?"
-        5.  **Visual Narration**: Say "I'm adding those rows to the grid now..." to confirm tool execution.
-        6.  **Tool Call**: After "Yes", IMMEDIATELY call set_swimlanes_bulk with COMPLETE data (name + description for ALL).
-    *   **Gate (CRITICAL)**:
-        - Never call set_swimlanes_bulk without explicit "Yes" confirmation.
-        - Never call without descriptions for ALL swimlanes - MUST probe to collect them.
-        - Do NOT mention cells until this tool succeeds.
-        - Do NOT proceed to Step 9 until you see stage transition to CELL_POPULATION in next turn.`;
+        5.  **Visual Narration ONLY AFTER TOOL SUCCESS**: After calling the tool successfully, say "I've added those rows to the grid" to confirm.
+        6.  **Tool Call**: After "Yes" confirmation, IMMEDIATELY call set_swimlanes_bulk with COMPLETE data (name + description for ALL).
+    *   **Gate (CRITICAL - BLOCKING)**:
+        - STOP: Do NOT say "I'm adding those rows" UNTIL you have ALL descriptions collected.
+        - STOP: Never call set_swimlanes_bulk without explicit "Yes" confirmation.
+        - STOP: Never call without descriptions for ALL swimlanes (no empty strings, no null values).
+        - STOP: Do NOT mention cells until this tool succeeds and stage changes to CELL_POPULATION.
+        - STOP: Do NOT ask about cell content until you see "stage": "CELL_POPULATION" in the next context refresh.`;
 }
 
 export function buildSystemInstruction(config: SessionConfig = {}, journeyState: any = null): string {
