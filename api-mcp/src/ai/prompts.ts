@@ -1,6 +1,272 @@
 // ===========================================
-// JOURNEY MAPPER AI PROMPT SYSTEM
-// Unified Template Override Architecture
+// JOURNEY MAPPER - AI PROMPT SYSTEM
+// Code-First State Machine Architecture
+// ===========================================
+//
+// PROJECT OVERVIEW:
+// Journey Mapper is an AI-powered UX research tool that conducts structured interviews
+// to create visual journey maps. The AI guides users through a 13-step conversation
+// while building a 2D matrix on a live canvas that visualizes their experience journey.
+//
+// WHAT IS A JOURNEY MAP?
+// A journey map is a visual representation of a user's experience over time:
+// - HORIZONTAL AXIS (Phases): Time-based stages (e.g., "Open Door", "Walk", "Return Home")
+// - VERTICAL AXIS (Swimlanes): Experience layers (e.g., "Actions", "Feelings", "Pain Points")
+// - CELLS: Phase × Swimlane intersections containing specific experiences
+//
+// Example: "Walking the Dog" Journey
+// ┌──────────────┬──────────────┬──────────────┬──────────────┐
+// │              │ Open Door    │ Walk         │ Return Home  │
+// ├──────────────┼──────────────┼──────────────┼──────────────┤
+// │ Actions      │ Grab leash,  │ Navigate     │ Remove leash,│
+// │              │ put on shoes │ sidewalk     │ give treats  │
+// ├──────────────┼──────────────┼──────────────┼──────────────┤
+// │ Feelings     │ Excited,     │ Frustrated   │ Relieved,    │
+// │              │ rushed       │ when dog     │ accomplished │
+// │              │              │ pulls        │              │
+// ├──────────────┼──────────────┼──────────────┼──────────────┤
+// │ Pain Points  │ Broken door  │ Dog pulling, │ Muddy paws   │
+// │              │ mechanism    │ weather      │ on floor     │
+// └──────────────┴──────────────┴──────────────┴──────────────┘
+//
+// CANVAS FUNCTIONALITY (Frontend Real-Time Updates):
+// The frontend (index.html, js/renderer.js) renders a live canvas that updates as the
+// AI populates data via tool calls (defined in tools.ts, executed in server.ts):
+//
+// 1. JOURNEY HEADER:
+//    - Journey Name: "Walking the Dog"
+//    - Description: "Daily routine of taking Banner for neighborhood walks"
+//    - User Identity: "Scott, Dog Owner"
+//
+// 2. MATRIX GRID:
+//    - Columns: Phases (auto-generated from set_phases_bulk tool call)
+//    - Rows: Swimlanes (auto-generated from set_swimlanes_bulk tool call)
+//    - Cells: Empty grid created by generate_matrix, filled by update_cell tool calls
+//
+// 3. CELL CONTENT:
+//    - Headline: Short title (e.g., "Broken door mechanism")
+//    - Description: 2-3 sentence detail (e.g., "The door latch is sticky and hard to open.
+//      I have to jiggle it multiple times before it releases, which delays the walk.")
+//
+// 4. ARTIFACT PANEL (Step 13):
+//    - Summary of Findings: Narrative synthesis of journey insights
+//    - Mental Models: Belief frameworks extracted from responses (e.g., "Banner's happiness
+//      is worth the hassle" or "A smooth walk sets the tone for the day")
+//    - Quotes: Verbatim user quotes revealing key insights
+//
+// THE 13-STEP INTERVIEW FLOW:
+//
+// Step 1-2:   IDENTITY STAGE
+//   Goal: Capture user name and role
+//   Tool: create_journey_map(name, userName, role)
+//   Canvas Update: Journey header displays user identity
+//
+// Step 3-4:   PHASES STAGE (Journey Definition)
+//   Goal: Capture journey name and description
+//   Tool: update_journey_metadata(journeyMapId, name, description)
+//   Canvas Update: Journey header displays journey context
+//
+// Step 5-6:   PHASES STAGE (Structure Definition)
+//   Goal: Define horizontal axis (time-based stages)
+//   Tool: set_phases_bulk(journeyMapId, phases[])
+//   Canvas Update: Column headers appear with phase names
+//
+// Step 7-8:   SWIMLANES STAGE
+//   Goal: Define vertical axis (experience layers)
+//   Tool: set_swimlanes_bulk(journeyMapId, swimlanes[])
+//     → This tool AUTOMATICALLY calls generate_matrix internally
+//   Canvas Update: Row headers appear, empty cell grid generated
+//
+// Step 9:     MATRIX_GENERATION (Verification)
+//   Goal: Confirm cells exist (usually skipped - auto-created by set_swimlanes_bulk)
+//   Tool: generate_matrix(journeyMapId) [only if cells missing]
+//
+// Step 10:    CELL_POPULATION (Core Interview Loop)
+//   Goal: Populate each cell one-by-one, chronologically (Phase 1 → Phase N, Swimlane 1 → Swimlane M)
+//   Tool: update_cell(journeyMapId, cellId, headline, description) [called N×M times]
+//   Canvas Update: Each cell fills with headline + description as interview progresses
+//
+// Step 11-12: COMPLETE STAGE (Ethnographic Analysis)
+//   Goal: Ask 3 deep-dive questions (Gap Analysis, Magic Wand, Synthesis) + final check
+//   Tool: update_journey_metadata (if user adds context)
+//
+// Step 13:    COMPLETE STAGE (Artifact Generation)
+//   Goal: Synthesize all data into final deliverables
+//   Tool: generate_artifacts(journeyMapId, summary, mentalModels, quotes[])
+//   Canvas Update: Artifact panel displays final synthesis, status → READY_FOR_REVIEW
+//
+// SEPARATION OF CONCERNS:
+//
+// THIS FILE (prompts.ts):
+// - Defines the AI's "brain" - the decision-making logic for when/how to use tools
+// - Controls interview flow via 13-step state machine
+// - Implements "Silent Configuration" pattern:
+//   → Admin pre-fills are enforced by TypeScript code, not AI "understanding"
+//   → Logic evaluated BEFORE prompt is built (code-first vs prompt-first)
+//   → AI sees only valid instructions for current state (no conditional branching)
+//
+// - Key Functions:
+//   • buildStep1(config): Generates Step 1 instruction based on identity pre-fills
+//   • buildStep3(config): Generates Step 3 instruction based on journey pre-fills
+//   • buildStep5(config): Generates Step 5 instruction based on phase pre-fills
+//   • buildStep7(config): Generates Step 7 instruction based on swimlane pre-fills
+//   • buildSystemInstruction(config, journeyState): Assembles complete prompt with context
+//
+// tools.ts:
+// - Defines the AI's "hands" - the 7 function calling tools (WHAT it can do)
+// - Specifies tool schemas (parameters, required fields, descriptions)
+// - Consumed by Gemini model to understand available actions
+//
+// server.ts:
+// - HTTP/SSE endpoint handler for /api/chat
+// - Executes tool calls by invoking store.ts methods
+// - Refreshes journey state after EVERY tool call
+// - Rebuilds AI model with updated system instruction (ensures AI sees current state)
+//
+// store.ts:
+// - Database layer - manages journey state in Firestore
+// - Implements the 7 tool methods (actual business logic)
+// - Enforces stage transitions (IDENTITY → PHASES → SWIMLANES → CELL_POPULATION → COMPLETE)
+// - Calculates completion status, cell grid, metrics
+//
+// API STRUCTURE:
+//
+// 1. Chat Endpoint:
+//    POST /api/chat
+//    Body: {
+//      message: string,              // User's message
+//      sessionConfig?: SessionConfig, // Template configuration (admin pre-fills)
+//      journeyId?: string            // Resume existing journey
+//    }
+//    Response: Server-Sent Events (SSE) stream
+//      - text chunks (AI responses)
+//      - tool execution events (canvas updates)
+//
+// 2. Journey State Endpoint:
+//    GET /api/journey-state/:journeyId
+//    Response: {
+//      journeyId, name, description, stage, status,
+//      phases[], swimlanes[], cells[],
+//      completionStatus, metrics
+//    }
+//
+// 3. Firestore Schema:
+//    Collection: journey_maps
+//    Document: {
+//      journeyId: string (UUID),
+//      name: string ("Walking the Dog"),
+//      userName: string ("Scott"),
+//      role: string ("Dog Owner"),
+//      description: string ("Daily routine..."),
+//      stage: "IDENTITY" | "PHASES" | "SWIMLANES" | "CELL_POPULATION" | "COMPLETE",
+//      status: "IN_PROGRESS" | "READY_FOR_REVIEW",
+//      phases: [{ phaseId, name, description, sequence }],
+//      swimlanes: [{ swimlaneId, name, description, sequence }],
+//      cells: [{ id, phaseId, swimlaneId, headline, description }],
+//      context?: string,
+//      artifacts?: { summary, mentalModels, quotes[] },
+//      createdAt, updatedAt
+//    }
+//
+// ADMIN CAPABILITIES (Template System):
+//
+// Admins create templates via /admin UI (stored in Firestore: admin_links collection)
+// Templates pre-populate interview fields to create domain-specific experiences:
+//
+// Identity Pre-fills:
+// - name: string (user name - skips asking if provided)
+// - role: string (user role - skips asking if provided)
+//
+// Journey Pre-fills:
+// - journeyName: string (journey name - skips deduction if provided)
+// - journeyDescription: string (journey description - skips asking if provided)
+// - journeyPrompt: string (custom question to ask about the journey)
+//
+// Structure Pre-fills:
+// - phases: [{ name, description? }] (phase structure - full/partial bypass)
+// - swimlanes: [{ name, description? }] (swimlane structure - full/partial bypass)
+//
+// Persona Customization:
+// - welcomePrompt: string (custom greeting)
+// - personaFrame: string (research framing - e.g., "investigative journalist")
+// - personaLanguage: string (terminology guide - e.g., avoid "journey map" jargon)
+// - agentName: string (AI agent name - default "Max")
+//
+// Knowledge Base:
+// - ragContext: string (domain knowledge for artifact synthesis)
+//
+// Template URL: https://journey-mapper.app/?id=<templateId>
+//
+// SILENT CONFIGURATION PATTERN (Code-First Logic):
+//
+// Problem (Prompt-Based Logic Router):
+// - AI reads context, evaluates conditions ("if phases pre-defined, then..."), decides to call tool
+// - Probabilistic - AI can skip tool calls, hallucinate success, ignore admin pre-fills
+//
+// Solution (Code-First State Machine):
+// - TypeScript evaluates conditions BEFORE prompt is built
+// - AI sees only ONE instruction path tailored to current state
+// - Tool calls become COMMANDS (imperative) not CHOICES (conditional)
+//
+// Example - Step 5 (Phases):
+//
+// ADMIN MODE (Full Bypass):
+//   if (config.phases && all have descriptions) {
+//     instruction = "CRITICAL ACTION: Call set_phases_bulk with [exact data]. Do NOT ask user."
+//   }
+//   → AI physically cannot see "ask user" path - it's deleted from prompt
+//   → Zero leakage, 100% deterministic
+//
+// ADMIN MODE (Partial Pre-fill):
+//   if (config.phases && some missing descriptions) {
+//     instruction = "Admin provided: [names]. Missing: [list]. Probe for missing, then call tool."
+//   }
+//   → AI asks only for missing data, uses admin data for rest
+//
+// USER MODE (No Pre-fills):
+//   if (!config.phases) {
+//     instruction = "Ask: What are the stages? Confirm, probe for descriptions, call tool."
+//   }
+//   → Full interview logic only visible when admin left it blank
+//
+// Benefits:
+// - Admin pre-fills enforced by TypeScript, not AI "understanding"
+// - Tool calls guaranteed (command vs choice)
+// - Token efficiency (single code path vs branching logic)
+// - Testability (unit test buildStepN functions with different configs)
+//
+// PROMPT ENGINEERING PRINCIPLES (Gemini Best Practices):
+//
+// 1. Explicit > Implicit:
+//    - Show data in instructions, not just context references
+//    - "Call set_phases_bulk with ${JSON.stringify(phases)}" not "Call with phases from context"
+//
+// 2. Single Source of Truth:
+//    - One override mechanism per step (buildStepN function)
+//    - No competing systems (deleted old STEP_N_DEFAULT constants)
+//
+// 3. Strong Gates:
+//    - Explicit stage checks: "Check CURRENT STAGE in context. Only proceed when stage = X"
+//    - Tie progression to tool completion: "After tool succeeds, THEN move to next step"
+//
+// 4. Function-First Flow:
+//    - Always call tool BEFORE moving to next question
+//    - Tool success triggers state change, not AI assumption
+//
+// 5. Structured Context:
+//    - Clear sections: === CONTEXT FROM URL ===, === LIVE JOURNEY STATE ===, === NEXT TARGET CELL ===
+//    - AI can quickly locate relevant data without token-heavy searching
+//
+// 6. Positive Instructions:
+//    - Prefer "Do X" over "Do NOT do Y" (reduces priming effect)
+//    - Use prohibitions only for critical anti-patterns
+//
+// 7. Few-Shot Learning:
+//    - Concrete examples (STYLE_GUIDE) show correct vs incorrect patterns
+//    - ❌ WRONG / ✅ CORRECT format with real conversation snippets
+//
+// ===========================================
+// STEP TEMPLATES & BUILDER FUNCTIONS
 // ===========================================
 
 export const STEP_1_DEFAULT = `1.  **Welcome & Identity Check**:
