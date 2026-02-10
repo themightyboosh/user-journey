@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.1.0',
+    version: '3.2.0',
     lastModified: '2026-02-10',
-    description: 'Tool-First Protocol + AUTO mode - Strong prompts guide tool usage conversationally'
+    description: 'Conditional mode=ANY - Forces tool execution on confirmation responses'
 };
 
 //

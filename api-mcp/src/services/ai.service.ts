@@ -102,11 +102,11 @@ export class AIService {
         return 2048;
     }
 
-    async getRequestModel(config: SessionConfig, journeyState: any, overrideModel?: string) {
+    async getRequestModel(config: SessionConfig, journeyState: any, overrideModel?: string, forceToolCalling: boolean = false) {
         try {
             // AdminService is now cached, so this is fast!
             const settings = await this.adminService.getSettings();
-            
+
             // Determine which model to use:
             let targetModel = overrideModel || settings.activeModel || 'gemini-2.5-flash-lite';
             this.activeModelName = targetModel; // Update last used for logging/state compatibility
@@ -117,17 +117,22 @@ export class AIService {
                 contextInjection = `\n### ADDITIONAL CONTEXT\n${config.ragContext.trim()}\n`;
             }
 
-            const fullConfig: SessionConfig = { 
-                ...config, 
+            const fullConfig: SessionConfig = {
+                ...config,
                 agentName: settings.agentName,
                 knowledgeContext: contextInjection
             };
 
             const maxOutputTokens = this.getMaxOutputTokens(journeyState);
 
-            // Use AUTO mode (default) - allows conversational flexibility
-            // AI can ask clarifying questions, narrate results, and handle edge cases
-            // Tool-First Protocol prompts + optional schema enforce tool usage without being blunt
+            // Determine function calling mode based on context
+            // CRITICAL: During confirmation responses in PHASES/SWIMLANES stages, force tool calling
+            // to prevent hallucination where AI narrates without executing tools
+            const shouldForceTools = forceToolCalling ||
+                (journeyState?.stage && ['PHASES', 'SWIMLANES'].includes(journeyState.stage) && forceToolCalling);
+
+            const toolMode = shouldForceTools ? FunctionCallingMode.ANY : FunctionCallingMode.AUTO;
+
             const model = this.vertexAI.getGenerativeModel({
                 model: targetModel,
                 safetySettings: SAFETY_SETTINGS,
@@ -143,12 +148,13 @@ export class AIService {
                 tools: JOURNEY_TOOLS as any,
                 toolConfig: {
                     functionCallingConfig: {
-                        mode: FunctionCallingMode.AUTO // AI chooses when to call tools based on prompts/context
+                        mode: toolMode
                     }
                 }
             });
 
-            logger.info(`🔧 Tool Calling Mode: AUTO (stage: ${journeyState?.stage || 'N/A'}) - Conversational with strong prompts`);
+            const modeLabel = toolMode === FunctionCallingMode.ANY ? 'ANY (FORCED)' : 'AUTO';
+            logger.info(`🔧 Tool Calling Mode: ${modeLabel} (stage: ${journeyState?.stage || 'N/A'})${forceToolCalling ? ' - Confirmation detected' : ''}`);
 
             // Return both model and name
             return { model, modelName: targetModel };

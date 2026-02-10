@@ -210,9 +210,19 @@ server.post('/api/chat', async (request, reply) => {
           journeyState = await aiService.getJourneyState(config.journeyId);
           logger.info('Fetched journey state', { found: !!journeyState });
       }
-  
+
+      // CRITICAL: Detect confirmation responses to force tool calling
+      // Prevents AI from narrating "I'm adding..." without actually calling tools
+      const isConfirmationResponse = /^(yes|yeah|yep|yup|correct|right|sure|ok|okay|sounds good|that's right|looks good)$/i.test(message.trim());
+      const isConfirmationStage = journeyState?.stage && ['PHASES', 'SWIMLANES'].includes(journeyState.stage);
+      const shouldForceTools = isConfirmationResponse && isConfirmationStage;
+
+      if (shouldForceTools) {
+          logger.warn(`🎯 CONFIRMATION DETECTED: Forcing mode=ANY to prevent hallucination (stage: ${journeyState.stage}, message: "${message.trim()}")`);
+      }
+
       logger.info('Getting request model');
-      let modelResult = await aiService.getRequestModel(config, journeyState);
+      let modelResult = await aiService.getRequestModel(config, journeyState, undefined, shouldForceTools);
       let requestModel = modelResult.model;
       let currentModelName = modelResult.modelName;
       logger.info(`Got request model: ${currentModelName}`);
@@ -244,7 +254,8 @@ server.post('/api/chat', async (request, reply) => {
                    if (config.journeyId) {
                        freshState = await aiService.getJourneyState(config.journeyId);
                    }
-                   const newModelResult = await aiService.getRequestModel(config, freshState, nextFallbackModel);
+                   // Propagate forceToolCalling on fallback retry
+                   const newModelResult = await aiService.getRequestModel(config, freshState, nextFallbackModel, shouldForceTools);
                    
                    // Allow up to 2 retries total (original + 2 fallbacks)
                    if (retryCount < 2) {
@@ -397,7 +408,9 @@ server.post('/api/chat', async (request, reply) => {
               }
 
               // Rebuild model with fresh state so system instruction is current
-              const freshModelResult = await aiService.getRequestModel(config, journeyState, currentModelName);
+              // NOTE: After tool execution, reset to AUTO mode (don't force tools)
+              // This prevents the "mute" problem where AI can't narrate results
+              const freshModelResult = await aiService.getRequestModel(config, journeyState, currentModelName, false);
               requestModel = freshModelResult.model;
               currentModelName = freshModelResult.modelName;
 
