@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.2.0',
+    version: '3.3.0',
     lastModified: '2026-02-10',
-    description: 'Conditional mode=ANY - Forces tool execution on confirmation responses'
+    description: 'Backend validation enforces structure before artifacts - prevents AI from skipping set_phases/set_swimlanes'
 };
 
 //

@@ -320,8 +320,25 @@ export class JourneyService {
         let journey = await Store.get(id);
         if (!journey) return null;
 
+        // VALIDATION: Ensure structure exists before populating cells
+        if (journey.phases.length === 0 || journey.swimlanes.length === 0) {
+            logger.error(`🚨 [VALIDATION FAILED] Cannot update cell: structure not defined`, {
+                journeyId: id,
+                cellId: cellId,
+                phasesCount: journey.phases.length,
+                swimlanesCount: journey.swimlanes.length
+            });
+            throw new Error('Cannot update cells before phases and swimlanes are defined. Call set_phases_bulk and set_swimlanes_bulk first.');
+        }
+
         const cell = journey.cells.find(c => c.cellId === cellId);
-        if (!cell) return null;
+        if (!cell) {
+            logger.error(`🚨 [VALIDATION FAILED] Cell not found: ${cellId}`, {
+                journeyId: id,
+                availableCells: journey.cells.map(c => c.cellId)
+            });
+            return null;
+        }
 
         if (params.headline !== undefined) cell.headline = params.headline;
         if (params.description !== undefined) cell.description = params.description;
@@ -344,15 +361,48 @@ export class JourneyService {
     }
 
     async generateArtifacts(id: string, params: { summaryOfFindings?: string; mentalModels?: string; anythingElse?: string; quotes?: string[] }): Promise<JourneyMap | null> {
-        logger.info(`[JourneyService] Generating Artifacts for ${id}`, { 
+        logger.info(`[JourneyService] Generating Artifacts for ${id}`, {
             hasSummary: !!params.summaryOfFindings,
             summaryLen: params.summaryOfFindings?.length,
             hasModels: !!params.mentalModels,
             modelsLen: params.mentalModels?.length
         });
-        
+
         let journey = await Store.get(id);
         if (!journey) return null;
+
+        // CRITICAL VALIDATION: Prevent artifact generation without structure
+        // This catches the bug where AI collects phase/swimlane data conversationally
+        // but never calls set_phases_bulk/set_swimlanes_bulk before jumping to artifacts
+        if (journey.phases.length === 0) {
+            const error = `🚨 [VALIDATION FAILED] Cannot generate artifacts: phases array is empty. The AI must call set_phases_bulk before generate_artifacts.`;
+            logger.error(error, {
+                journeyId: id,
+                stage: journey.stage,
+                phasesCount: journey.phases.length,
+                swimlanesCount: journey.swimlanes.length,
+                cellsCount: journey.cells.length
+            });
+            throw new Error('Cannot generate artifacts without phases. Please define journey phases first by calling set_phases_bulk.');
+        }
+
+        if (journey.swimlanes.length === 0) {
+            const error = `🚨 [VALIDATION FAILED] Cannot generate artifacts: swimlanes array is empty. The AI must call set_swimlanes_bulk before generate_artifacts.`;
+            logger.error(error, {
+                journeyId: id,
+                stage: journey.stage,
+                phasesCount: journey.phases.length,
+                swimlanesCount: journey.swimlanes.length,
+                cellsCount: journey.cells.length
+            });
+            throw new Error('Cannot generate artifacts without swimlanes. Please define journey swimlanes first by calling set_swimlanes_bulk.');
+        }
+
+        logger.info(`✅ [VALIDATION PASSED] Structure exists`, {
+            phasesCount: journey.phases.length,
+            swimlanesCount: journey.swimlanes.length,
+            cellsCount: journey.cells.length
+        });
 
         // Flowchart (TD)
         // Subgraphs for Phases
