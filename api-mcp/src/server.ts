@@ -229,8 +229,11 @@ server.post('/api/chat', async (request, reply) => {
           // Refresh journey state after tool execution
           journeyState = await aiService.getJourneyState(config.journeyId!);
 
-          // Stream synthetic message to user
-          reply.sse({ data: JSON.stringify({ text: `I've applied the ${config.phases.length} admin-defined phases to the journey.\n\n` }) });
+          // Stream synthetic message to user (using safeSend helper defined below)
+          // Note: safeSend is defined after this block, so we'll use raw write here
+          if (!reply.raw.destroyed && reply.raw.writable) {
+              reply.raw.write(`data: ${JSON.stringify({ text: `I've applied the ${config.phases.length} admin-defined phases to the journey.\n\n` })}\n\n`);
+          }
       }
 
       // Auto-execute swimlanes if admin provided them and we're at the right stage
@@ -248,7 +251,9 @@ server.post('/api/chat', async (request, reply) => {
           journeyState = await aiService.getJourneyState(config.journeyId!);
 
           // Stream synthetic message to user
-          reply.sse({ data: JSON.stringify({ text: `I've applied the ${config.swimlanes.length} admin-defined swimlanes to the journey.\n\n` }) });
+          if (!reply.raw.destroyed && reply.raw.writable) {
+              reply.raw.write(`data: ${JSON.stringify({ text: `I've applied the ${config.swimlanes.length} admin-defined swimlanes to the journey.\n\n` })}\n\n`);
+          }
       }
 
       // CRITICAL: Detect confirmation responses to force tool calling
