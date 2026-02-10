@@ -44,9 +44,9 @@ function formatMessage(text, highlightQuotes = false) {
             html = manualFormat(processedText);
         }
 
-        // Post-process: Replace tokens with Red Text span
+        // Post-process: Replace tokens with Bold span
         if (highlightQuotes) {
-            html = html.replace(/红QSTART(.*?)红QEND/g, '<span style="color: var(--max-color-accent);">$1</span>');
+            html = html.replace(/红QSTART(.*?)红QEND/g, '<strong>$1</strong>');
         }
 
         return html;
@@ -79,7 +79,7 @@ function formatMessage(text, highlightQuotes = false) {
               const items = para.split(/\n/).map(item => `<li>${item.replace(/^\d+\.\s*/, '')}</li>`).join('');
               return `<ol>${items}</ol>`;
             }
-            return `<p style="margin-bottom: 1.5em; line-height: 1.6;">${para.replace(/\n/g, '<br>')}</p>`;
+            return `<p style="margin-bottom: 2em; line-height: 1.6;">${para.replace(/\n/g, '<br>')}</p>`;
           })
           .join('');
         return formatted;
@@ -141,7 +141,7 @@ function renderMap(journey, targetElementId) {
     // Hero Quote Logic
     if (journey.quotes && journey.quotes.length > 0) {
         const quoteText = journey.quotes[0];
-        roleDisplay += `<span style="color: var(--max-color-accent); font-weight: 400; font-style: italic; margin-left: 8px;"> — "${escapeHtml(quoteText)}"</span>`;
+        roleDisplay += `<span style="color: var(--max-color-accent); font-weight: 400; font-style: italic; margin-left: 8px;"> — ${escapeHtml(quoteText)}</span>`;
     }
 
     const maxLogoSvg = '<img src="/max_header.svg" style="height: 56px; width: auto; display: block;" alt="M.AX Journey">';
@@ -197,7 +197,7 @@ function renderMap(journey, targetElementId) {
     let quoteHtml = '';
     if (journey.quotes && journey.quotes.length > 0) {
         quoteHtml = `<div style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 64px; line-height: 1.2; color: #ffffff; max-width: 800px;">
-                    "${escapeHtml(journey.quotes[0])}"
+                    ${escapeHtml(journey.quotes[0])}
                  </div>`;
     }
 
@@ -500,7 +500,7 @@ function renderMap(journey, targetElementId) {
             <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border);">
                 <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">User Quote</h3>
                 <div style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 92px; line-height: 1.2; color: #ffffff; text-align: left;">
-                    \u201C${escapeHtml(journey.quotes[0])}\u201D
+                    ${escapeHtml(journey.quotes[0])}
                 </div>
             </div>`;
     }

@@ -72,6 +72,7 @@ const formInputs = {
     name: document.getElementById('name'),
     role: document.getElementById('role'),
     journey: document.getElementById('journey'),
+    journeyDescription: document.getElementById('journey-description'),
     welcomePrompt: document.getElementById('welcome-prompt'),
     journeyPrompt: document.getElementById('journey-prompt'),
     ragContext: document.getElementById('ragContext'),
@@ -126,7 +127,7 @@ let adminViewer = null; // JourneyViewer instance for admin
 const usersTableBody = document.getElementById('usersTableBody');
 
 // Toggle keys (order matches param rows)
-const TOGGLE_KEYS = ['name', 'role', 'journey', 'welcomePrompt', 'journeyPrompt', 'ragContext', 'personaFrame', 'personaLanguage', 'swimlanes', 'phases'];
+const TOGGLE_KEYS = ['name', 'role', 'journey', 'journeyDescription', 'welcomePrompt', 'journeyPrompt', 'ragContext', 'personaFrame', 'personaLanguage', 'swimlanes', 'phases'];
 
 // State
 let currentLinkId = null;
@@ -164,9 +165,11 @@ async function handleSignIn() {
         loginError.style.display = 'none';
         googleSignInBtn.disabled = true;
         googleSignInBtn.textContent = 'Signing in...';
-        
-        const result = await auth.signInWithPopup(googleProvider);
-        // Auth state observer will handle the rest
+
+        // Use redirect instead of popup to avoid COOP issues
+        await auth.signInWithRedirect(googleProvider);
+        // User will be redirected to Google, then back here
+        // Auth state observer will handle the rest after redirect
     } catch (err) {
         console.error('Sign-in error', err);
         loginError.textContent = err.message || 'Sign-in failed. Please try again.';
@@ -209,26 +212,38 @@ function showAdminApp() {
     initApp();
 }
 
+// Handle redirect result on page load
+auth.getRedirectResult().then((result) => {
+    if (result.user) {
+        console.log('Successfully signed in via redirect');
+    }
+}).catch((error) => {
+    console.error('Redirect sign-in error', error);
+    loginError.textContent = error.message || 'Sign-in failed. Please try again.';
+    loginError.style.display = 'block';
+    googleSignInBtn.disabled = false;
+});
+
 // Firebase auth state observer
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentUser = user;
         authToken = await user.getIdToken();
-        
+
         try {
             const res = await fetch(ME_API_URL, {
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });
-            
+
             if (res.status === 403) {
                 // Account inactive
                 googleSignInBtn.style.display = 'none';
                 loginPending.style.display = 'block';
                 return;
             }
-            
+
             if (!res.ok) throw new Error('Auth verification failed');
-            
+
             currentAppUser = await res.json();
             showAdminApp();
         } catch (err) {
@@ -476,6 +491,9 @@ function getActiveConfig() {
     }
     if (toggleStates.journey && formInputs.journey.value.trim()) {
         config.journey = formInputs.journey.value.trim();
+    }
+    if (toggleStates.journeyDescription && formInputs.journeyDescription.value.trim()) {
+        config.journeyDescription = formInputs.journeyDescription.value.trim();
     }
     if (toggleStates.welcomePrompt && formInputs.welcomePrompt.value.trim()) {
         config.welcomePrompt = formInputs.welcomePrompt.value.trim();
@@ -822,6 +840,7 @@ function loadConfiguration(link) {
     formInputs.name.value = link.name || '';
     formInputs.role.value = link.role || '';
     formInputs.journey.value = link.journey || '';
+    formInputs.journeyDescription.value = link.journeyDescription || '';
     formInputs.welcomePrompt.value = link.welcomePrompt || '';
     formInputs.journeyPrompt.value = link.journeyPrompt || '';
     formInputs.ragContext.value = link.ragContext || '';
@@ -909,6 +928,7 @@ async function saveConfiguration() {
         name: formInputs.name.value.trim(),
         role: formInputs.role.value.trim(),
         journey: formInputs.journey.value.trim(),
+        journeyDescription: formInputs.journeyDescription.value.trim(),
         welcomePrompt: formInputs.welcomePrompt.value.trim(),
         journeyPrompt: formInputs.journeyPrompt.value.trim(),
         ragContext: formInputs.ragContext.value.trim(),
@@ -1054,6 +1074,7 @@ function updateUrl() {
         if (active.name) params.set('name', active.name);
         if (active.role) params.set('role', active.role);
         if (active.journey) params.set('journey', active.journey);
+        if (active.journeyDescription) params.set('journey-description', active.journeyDescription);
         if (active.welcomePrompt) params.set('welcome-prompt', active.welcomePrompt);
         if (active.journeyPrompt) params.set('journey-prompt', active.journeyPrompt);
         // RAG & phases too large for URL; only available via ?id= link

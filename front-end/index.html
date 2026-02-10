@@ -1518,9 +1518,9 @@
         <!-- Desktop Nav Buttons -->
         <nav class="header-nav desktop-only">
             <div class="template-picker-wrapper">
-                <button id="templatePickerBtn" class="nav-btn" title="Choose a journey template">CHOOSE</button>
+                <button id="templatePickerBtn" class="nav-btn" title="Choose a journey template">CHOOSE TEMPLATE</button>
             </div>
-            <button class="nav-btn" onclick="copyTranscript(this)">COPY</button>
+            <button class="nav-btn" onclick="copyTranscript(this)">COPY CHAT</button>
             <button class="nav-btn" onclick="resetSession()" style="color: var(--max-color-status-error-default);">RESET</button>
             <button class="nav-btn" onclick="window.location.href='/admin'">CREATE</button>
             <button class="nav-btn" onclick="openAboutModal()">ABOUT</button>
@@ -1557,8 +1557,8 @@
                 <button class="mobile-menu-close" onclick="closeMobileMenu()">&times;</button>
             </div>
             <nav class="mobile-menu-nav">
-                <button class="mobile-menu-item" onclick="openTemplatePicker(); closeMobileMenu();">CHOOSE</button>
-                <button class="mobile-menu-item" onclick="copyTranscript(); closeMobileMenu();">COPY</button>
+                <button class="mobile-menu-item" onclick="openTemplatePicker(); closeMobileMenu();">CHOOSE TEMPLATE</button>
+                <button class="mobile-menu-item" onclick="copyTranscript(); closeMobileMenu();">COPY CHAT</button>
                 <button class="mobile-menu-item" onclick="resetSession(); closeMobileMenu();" style="color: var(--max-color-status-error-default);">RESET</button>
                 <button class="mobile-menu-item" onclick="window.location.href='/admin'; closeMobileMenu();">CREATE</button>
                 <button class="mobile-menu-item" onclick="openAboutModal(); closeMobileMenu();">ABOUT</button>
@@ -1915,8 +1915,14 @@
         if (!confirm("Are you sure you want to start over? This will clear your current session and all data.")) return;
         localStorage.removeItem('max_chat_history');
         localStorage.removeItem('max_journey_id');
-        // Reload fresh
-        window.location.href = window.location.pathname;
+        // Reload fresh, but preserve template ID if present
+        const params = new URLSearchParams(window.location.search);
+        const templateId = params.get('id') || params.get('config');
+        if (templateId) {
+            window.location.href = `${window.location.pathname}?id=${encodeURIComponent(templateId)}`;
+        } else {
+            window.location.href = window.location.pathname;
+        }
     }
 
     // Show Completion Button
@@ -2073,6 +2079,7 @@
                       name: use('name', linkData.name),
                       role: use('role', linkData.role),
                       journeyName: use('journey', linkData.journey),
+                      journeyDescription: use('journeyDescription', linkData.journeyDescription),
                       welcomePrompt: use('welcomePrompt', linkData.welcomePrompt),
                       journeyPrompt: use('journeyPrompt', linkData.journeyPrompt),
                       ragContext: use('ragContext', linkData.ragContext) || null,
@@ -2136,6 +2143,7 @@
           name: params.get('name') || remoteConfig.name,
           role: params.get('role') || remoteConfig.role,
           journeyName: params.get('journey') || remoteConfig.journeyName,
+          journeyDescription: params.get('journey-description') || remoteConfig.journeyDescription,
           welcomePrompt: params.get('welcome-prompt') || remoteConfig.welcomePrompt,
           journeyPrompt: params.get('journey-prompt') || remoteConfig.journeyPrompt,
           ragContext: remoteConfig.ragContext || null,

@@ -720,10 +720,10 @@ server.post('/api/logs', async (request, reply) => {
 async function authenticateRequest(request: FastifyRequest): Promise<AppUser | null> {
     const authHeader = request.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-    
+
     const token = authHeader.split('Bearer ')[1];
     if (!token) return null;
-    
+
     try {
         // Verify Firebase ID token
         const decoded = await admin.auth().verifyIdToken(token);

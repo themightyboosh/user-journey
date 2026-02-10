@@ -85,19 +85,17 @@ export const JOURNEY_TOOLS = [
             },
             {
                 name: "update_cell",
-                description: "Save content for a specific cell intersection. You can identify the cell by its ID *OR* by providing the Phase Name and Swimlane Name.",
+                description: "Save content for a specific cell intersection. You MUST identify the cell by its cellId (UUID) from the journeyState.cells array.",
                 parameters: {
                     type: "OBJECT",
                     properties: {
                         journeyMapId: { type: "STRING" },
-                        cellId: { type: "STRING", description: "The UUID of the cell (Optional if names provided)" },
-                        phaseName: { type: "STRING", description: "Name of the phase (Optional if cellId provided)" },
-                        swimlaneName: { type: "STRING", description: "Name of the swimlane (Optional if cellId provided)" },
+                        cellId: { type: "STRING", description: "The UUID of the cell from journeyState.cells (REQUIRED)" },
                         headline: { type: "STRING", description: "Succinct title/headline for the intersection (e.g. 'Data Entry')" },
                         description: { type: "STRING", description: "Detailed description of what happens based ONLY on user input. Do not Hallucinate." },
                         context: { type: "STRING", description: "Any extra spillover notes or raw details." }
                     },
-                    required: ["journeyMapId", "headline", "description"]
+                    required: ["journeyMapId", "cellId", "headline", "description"]
                 }
             },
             {

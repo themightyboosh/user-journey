@@ -4,24 +4,23 @@ import { JourneyMap } from './types';
 import * as admin from 'firebase-admin';
 import logger from './logger';
 
-// Initialize Firebase if in Cloud Environment
+// Initialize Firebase (both cloud and local with ADC)
 const isFirebase = process.env.FIREBASE_CONFIG || process.env.K_SERVICE;
 const PROJECT_ID = 'journey-mapper-ai-8822'; // Explicitly hardcode to prevent env drift
 
-if (isFirebase) {
-    try {
-        if (!admin.apps.length) {
-            admin.initializeApp({
-                projectId: PROJECT_ID,
-                credential: admin.credential.applicationDefault() // Force ADC with explicit project
-            });
-            logger.info(`Firebase Admin Initialized with explicit projectId: ${PROJECT_ID}`);
-        } else {
-            logger.info("Firebase Admin already initialized via apps check");
-        }
-    } catch (e) {
-        logger.error("Firebase Admin initialization failed", { error: e });
+// Always initialize Firebase Admin for auth verification (works with ADC in local dev)
+try {
+    if (!admin.apps.length) {
+        admin.initializeApp({
+            projectId: PROJECT_ID,
+            credential: admin.credential.applicationDefault() // Works in cloud (auto) and local (ADC)
+        });
+        logger.info(`Firebase Admin Initialized with explicit projectId: ${PROJECT_ID}`);
+    } else {
+        logger.info("Firebase Admin already initialized via apps check");
     }
+} catch (e) {
+    logger.error("Firebase Admin initialization failed", { error: e });
 }
 
 // --- Interfaces ---
