@@ -168,7 +168,7 @@ export const JOURNEY_TOOLS = [
             },
             {
                 name: "set_swimlanes_bulk",
-                description: "Set the list of actors/swimlanes.",
+                description: "Set the list of actors/swimlanes. IMPORTANT: This automatically triggers matrix generation internally. DO NOT call generate_matrix after this tool.",
                 parameters: {
                     type: "OBJECT",
                     properties: {

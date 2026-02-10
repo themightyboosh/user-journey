@@ -498,7 +498,8 @@ STATE MACHINE:
         1.  **Summary of Findings**: A comprehensive narrative summary of the journey that MUST incorporate insights from the 3 ethnographic questions. These responses are critical—they explain motivations, frustrations, and why the journey matters to the user. Do not only summarize cell data; weave in the deeper "why" from Step 11.
         2.  **Mental Models**: Identify key mental models the user exhibited (as many as relevant, 0-20). These should be derived from BOTH the cell responses AND the ethnographic responses. The deep dive questions often reveal underlying beliefs and frameworks that aren't explicit in the cell data. Format each model as a distinct paragraph or bullet point, separated by double newlines.
         3.  **Quotes**: Extract 2-5 of the most interesting direct quotes from the user that best represent their experience. Prioritize quotes from the ethnographic responses (Step 11) and final check (Step 12) as these often contain the most revealing insights.
-            *   **Constraint**: These MUST be **verbatim**, word-for-word quotes from the user's messages in the chat history. Do not paraphrase. Do not fabricate.
+            *   **Quote Extraction Protocol (CRITICAL)**: Scroll back through the ENTIRE conversation history. Search for exact phrasing used by the user. Copy text verbatim, character-for-character. If the user didn't say it exactly as written, do not include it.
+            *   **Constraint**: These MUST be **verbatim**, word-for-word quotes from the user's messages in the chat history. Do not paraphrase. Do not fabricate. Do not "clean up" grammar or phrasing.
             *   **Formatting**: Ensure there is greater line spacing (double newlines) after each paragraph in the summaries so they look like distinct blocks of text.
     *   **Action**: Call \`generate_artifacts\` with \`summaryOfFindings\`, \`mentalModels\`, \`quotes\` array, and optional \`anythingElse\`.
     *   **Constraint**: DO NOT OUTPUT CHAT TEXT. Call the tool immediately. The system will handle the closing UI.
@@ -624,9 +625,14 @@ function buildNextTargetContext(journeyState: any): string {
 * Sequence: ${nextCell.swimlane.sequence} of ${swimlanes.length}
 
 **Your Task**:
-1. Ask ONE contextual question about this specific intersection (${nextCell.phase.name} × ${nextCell.swimlane.name})
-2. Use the phase and swimlane descriptions above to craft a natural, threaded question
-3. When user responds, call update_cell with cellId: "${nextCell.id}"
+1. Context: We are in the "${nextCell.phase.name}" stage, focusing on "${nextCell.swimlane.name}".
+2. Frame a natural question that connects these two concepts (avoid repetitive naming).
+3. Ask ONE contextual question about this specific intersection.
+4. When user responds, call update_cell with cellId: "${nextCell.id}"
+
+**Format Reminder**: If user mentions multiple actors/entities in their response, save as structured format:
+   Example: "User: Feels frustrated by delay // Banner: Thrilled and excited for walk"
+   Pattern: "Actor: Perspective // Actor: Perspective"
 
 **Progress**: ${journeyState.metrics?.totalCellsCompleted || 0} of ${journeyState.metrics?.totalCellsExpected || 0} cells completed
 `;
@@ -735,7 +741,8 @@ function buildStep5(config: SessionConfig): string {
     *   **Context**: The Admin has strictly defined the journey phases.
     *   **Data**: ${JSON.stringify(config.phases)}
     *   **CRITICAL ACTION**: You MUST immediately call set_phases_bulk with the exact data above.
-    *   **Constraint**: Do NOT ask the user for confirmation. Do NOT discuss the phases. Call the tool immediately.
+    *   **Narrative Bridge**: While calling the tool, briefly inform the user in a single sentence (e.g., "I've loaded the standard phases for this journey type.") to maintain conversational flow.
+    *   **Constraint**: Do NOT ask the user for confirmation. Do NOT discuss the phases in detail. Call the tool immediately.
     *   **Transition**: After tool success (stage advances to SWIMLANES), move to Step 7.`;
         } else {
             // PARTIAL PRE-FILL - Names provided, need descriptions
@@ -792,7 +799,8 @@ function buildStep7(config: SessionConfig): string {
     *   **Context**: The Admin has strictly defined the journey swimlanes (experience layers).
     *   **Data**: ${JSON.stringify(config.swimlanes)}
     *   **CRITICAL ACTION**: You MUST immediately call set_swimlanes_bulk with the exact data above.
-    *   **Constraint**: Do NOT ask the user for confirmation. Do NOT discuss the swimlanes. Call the tool immediately.
+    *   **Narrative Bridge**: While calling the tool, briefly inform the user in a single sentence (e.g., "I've set up the experience layers we'll track across each stage.") to maintain conversational flow.
+    *   **Constraint**: Do NOT ask the user for confirmation. Do NOT discuss the swimlanes in detail. Call the tool immediately.
     *   **Note**: This tool automatically calls generate_matrix internally.
     *   **Transition**: After tool success (stage advances to CELL_POPULATION), move to Step 9.`;
         } else {
