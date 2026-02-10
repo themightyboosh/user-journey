@@ -413,13 +413,43 @@ STATE MACHINE:
             - AI: [Calls update_cell with description: "User: Feels frustrated // Banner: Thrilled and excited"] → "Got it, moving on..."
 
         *   **Rule**: ONE user response = ONE cell save, regardless of how many entities they mention. Use " // " to separate distinct actor perspectives.
-    *   **ANSWER HANDLING (CRITICAL)**: When the user responds, you MUST call \`update_cell\` IMMEDIATELY.
-        *   **Rule**: Always save immediately when the user responds. Call \`update_cell\` first, then (and only then) acknowledge and transition to the next cell.
-    *   **ID Lookup Strategy (CRITICAL)**: To find the correct \`cellId\`, look at the \`journeyState.cells\` list in the LIVE JOURNEY STATE section below. Find the object where:
-        1. \`phaseId\` matches the id of the current Phase.
-        2. \`swimlaneId\` matches the id of the current Swimlane.
-        3. Use ONLY that \`cellId\` when calling \`update_cell\`. NEVER use phase/swimlane names.
-        *   **STRICT REQUIREMENT**: The \`update_cell\` tool REQUIRES a \`cellId\`. You MUST pass the exact UUID from \`journeyState.cells\`. Do not attempt name-based lookup.
+    *   **CRITICAL — TOOL-FIRST PROTOCOL (BLOCKING REQUIREMENT)**:
+        **THIS IS THE MOST IMPORTANT RULE IN THE ENTIRE INTERVIEW PROCESS.**
+
+        When the user responds to your question about a cell, you MUST follow this EXACT sequence:
+
+        **STEP 1: STOP. DO NOT SPEAK.**
+        - The moment the user answers, you enter TOOL MODE.
+        - You are FORBIDDEN from sending ANY chat text until the tool completes.
+        - Do NOT say "Got it", "Okay", "Saved", or ANY acknowledgment yet.
+
+        **STEP 2: CALL update_cell IMMEDIATELY.**
+        - Use the exact Cell ID from the "NEXT TARGET CELL" section in context below.
+        - The context provides a ready-to-use template with the cellId pre-filled.
+        - Required parameters:
+          • journeyMapId: (from context)
+          • cellId: (EXACT UUID from NEXT TARGET CELL - copy it character-for-character)
+          • headline: (5-10 word summary of user's response)
+          • description: (2-3 sentences synthesizing their full answer in imperative/gerund form)
+
+        **STEP 3: WAIT for functionResponse.**
+        - The tool will return success or error.
+        - Do NOT proceed until you receive the response.
+
+        **STEP 4: ONLY THEN speak to the user.**
+        - IF success → Send brief acknowledgment: "Got it, moving on..." or similar
+        - IF error → Report to user: "I had trouble saving that. Let me try again."
+        - Then ask about the NEXT cell (check updated NEXT TARGET CELL context)
+
+        **ENFORCEMENT**: If you say "saved" or "got it" WITHOUT calling update_cell first, you are HALLUCINATING.
+        This is a CRITICAL ERROR that breaks the journey mapping process. The user will see empty cells on their canvas.
+
+    *   **ID Lookup Strategy**: The NEXT TARGET CELL section below provides the exact cellId as a UUID.
+        - **CORRECT**: Copy the UUID exactly as shown (e.g., "550e8400-e29b-41d4-a716-446655440000")
+        - **WRONG**: Do NOT try to look up cells by phase/swimlane names
+        - **WRONG**: Do NOT invent or hallucinate UUIDs
+        - The context provides a tool call template you can copy directly.
+
     *   **Contextual Framing (Golden Threading Enhancement)**: Before asking about a cell, reference the phase and swimlane descriptions to frame your question intelligently:
         *   **Phase Context**: Look at \`journeyState.phases\` to find the current phase's \`description\` field. Use it to understand what this stage represents.
         *   **Swimlane Context**: Look at \`journeyState.swimlanes\` to find the current swimlane's \`description\` field. Use it to understand what layer you're exploring.
@@ -429,8 +459,6 @@ STATE MACHINE:
             - **CORRECT framing**: "During the Find phase, when you're searching for the right tool, what emotions come up? Frustration? Excitement?"
             - **WRONG framing**: "What are your feelings in this phase?" (too generic, ignores context)
         *   **Goal**: Make every question feel tailored to the specific phase + swimlane intersection, not a generic template.
-    *   **Flow**: User Answer -> Call \`update_cell\` (SILENTLY) -> Wait for Tool Output -> THEN (and only then) speak to the user to confirm and ask the next question.
-    *   **Prohibition**: Do NOT say "Got it" or "Okay" before calling the tool. Call the tool first.
     *   **Prompt Style — "The Golden Thread"**: Do NOT simply ask "What about [Swimlane]?". You must **bridge** from their previous answer. Use a detail they just gave you to frame the next question.
         *   ❌ **AVOID (Mechanical/Template)**: "Got it. Now what are the Pain Points in this phase?" or "For [Swimlane] during [Phase], what happens?"
         *   ✅ **PREFER (Natural/Threaded)**: "You mentioned using Excel is tedious there. Does that frustration lead to any other specific pain points or bottlenecks in this moment?"
@@ -451,17 +479,19 @@ STATE MACHINE:
         *   ✅ **Conversational**: "So when you're getting ready for the walk, what's your mood like? Excited? Anxious?"
     *   **Phase Gate**: Do NOT proceed to the next Phase until you have captured a valid cell (headline & description) for **EVERY** swimlane in the current Phase. If a user says "nothing happens here", record that explicitly with \`update_cell\`.
     *   **Action**: Call \`update_cell\` to save. You must capture a **'headline'** (succinct title) and a **'description'** (at least 2 sentences). Only ONE \`update_cell\` call per user response.
-    *   **Probing Rule (Depth Check - CRITICAL)**: If the user's answer is brief, vague, or generic, YOU MUST probe for more detail:
-        *   **Step 1 - Store Initial Answer**: Mentally note their first answer (do NOT save yet).
-        *   **Step 2 - Ask Probe**: Ask ONE follow-up question like "Can you walk me through the specific steps?" or "What specifically makes that difficult?"
-        *   **Step 3 - Combine & Save**: After they respond to the probe, call \`update_cell\` with a description that COMBINES both the initial answer AND the probe response. Do NOT discard the initial answer.
+    *   **Depth Check (OPTIONAL - Use Sparingly)**: If the user's answer is extremely brief (1-3 words) and lacks any detail:
+        *   **Option A - Save Immediately (PREFERRED)**: Accept their brief answer and call update_cell right away. It's better to save minimal content than to probe excessively. Move to the next cell.
+        *   **Option B - Single Probe (USE ONLY if answer is < 3 words)**:
+            1. Mentally note their first answer (do NOT save yet)
+            2. Ask ONE brief follow-up: "Can you say a bit more about that?" or "What specifically happens?"
+            3. After they respond, call update_cell with COMBINED description (initial + follow-up)
+            4. If they still give a brief answer, SAVE IT ANYWAY. Do not probe twice.
+        *   **Default Strategy**: Save immediately. Only probe if the answer is so minimal it provides zero context.
         *   *Example*:
-            - Initial: "I enter data"
-            - Probe: "Can you walk me through the steps?"
-            - Response: "I open the file, find the row, type values"
-            - **CORRECT description**: "Entering data into the system by opening the file, locating the correct row, and typing in values"
-            - **WRONG description**: "Opening the file, locating the correct row, and typing in values" (loses "entering data")
-        *   *Constraint*: Limit to ONE probe per cell. If they give a short answer after the probe, accept it, combine with initial answer, save, and move on.
+            - Initial: "I enter data" ← This is enough! Save immediately.
+            - Initial: "Yep" ← Too brief. Consider ONE probe: "What does that involve?"
+            - Response: "Typing stuff" ← Still brief. SAVE IT. Do not probe again.
+        *   *Constraint*: Maximum ONE probe per cell. Prefer saving immediately over probing.
     *   **Grounding Rule**: Do NOT extrapolate, assume, or hallucinate actions the user has not explicitly stated. We never want the user to say "I didn't say that". If the user's input is minimal, the cell content must remain minimal.
     *   **Voice Rule**: Ensure the \`description\` uses an imperative or gerund style (e.g. "Entering data into the system...") and avoids "I", "He", "She", or "They".
     *   **COMPLETION GATE (CRITICAL)**: Before moving to Step 11, you MUST check the NEXT TARGET CELL section in the context below. You may ONLY proceed to Step 11 when:
@@ -533,6 +563,10 @@ CRITICAL RULES:
     *   **Example of CORRECT behavior**:
         - User: "I feel frustrated, Banner's thrilled"
         - AI: [Calls update_cell with both pieces of info] → Moves to next cell
+- **TOOL CALL BEFORE TEXT (Step 10 - ABSOLUTE REQUIREMENT)**: You are FORBIDDEN from saying "Got it", "Okay", "Saved", or ANY acknowledgment text UNTIL AFTER the update_cell tool returns success. This is NON-NEGOTIABLE.
+    *   **Enforcement**: The sequence MUST be: User responds → update_cell tool call → functionResponse received → THEN acknowledgment text
+    *   **Violation**: Saying "saved" without calling the tool is HALLUCINATION. It breaks the journey map. Empty cells will appear on the canvas.
+    *   **Use the template**: The NEXT TARGET CELL section provides a ready-to-use tool call template with cellId pre-filled. Copy it exactly.
 - **ALL CELLS BEFORE DEEP DIVE**: NEVER move to Step 11 (Deep Dive) while empty cells exist. Check NEXT TARGET CELL in context—if a Cell ID is shown, keep asking. You must visit EVERY phase and EVERY swimlane. Only proceed when context shows "ALL CELLS COMPLETE".
 - **STEPS 11-12 ARE MANDATORY (CRITICAL)**: After completing all cells (Step 10), you MUST complete Steps 11 and 12 before generating artifacts (Step 13). The workflow is FIXED:
     1. Step 10: Complete all cells
@@ -616,31 +650,43 @@ function buildNextTargetContext(journeyState: any): string {
     }
 
     // Build rich context for the next target cell
+    const phaseDesc = nextCell.phase.description || 'No description provided';
+    const swimlaneDesc = nextCell.swimlane.description || 'No description provided';
+
     return `
 === NEXT TARGET CELL ===
 
-**CRITICAL**: Use the exact Cell ID below when calling update_cell:
-* Cell ID: ${nextCell.id}
+🎯 **CRITICAL - COPY THIS EXACT CELL ID:**
+Cell ID: ${nextCell.id}
 
-**Phase Context**:
+**Phase Context** (Stage ${nextCell.phase.sequence} of ${phases.length}):
 * Name: ${nextCell.phase.name}
-* Description: ${nextCell.phase.description || 'No description provided'}
-* Sequence: ${nextCell.phase.sequence} of ${phases.length}
+* Description: ${phaseDesc}
 
-**Swimlane Context**:
+**Swimlane Context** (Layer ${nextCell.swimlane.sequence} of ${swimlanes.length}):
 * Name: ${nextCell.swimlane.name}
-* Description: ${nextCell.swimlane.description || 'No description provided'}
-* Sequence: ${nextCell.swimlane.sequence} of ${swimlanes.length}
+* Description: ${swimlaneDesc}
 
-**Your Task**:
-1. Context: We are in the "${nextCell.phase.name}" stage, focusing on "${nextCell.swimlane.name}".
-2. Frame a natural question that connects these two concepts (avoid repetitive naming).
-3. Ask ONE contextual question about this specific intersection.
-4. When user responds, call update_cell with cellId: "${nextCell.id}"
+**Your Question Strategy**:
+1. Frame a natural question that bridges "${nextCell.phase.name}" (${phaseDesc}) and "${nextCell.swimlane.name}" (${swimlaneDesc})
+2. Make it conversational, not templated. Reference specific details from their previous answers.
+3. Ask the question and wait for their response.
 
-**Format Reminder**: If user mentions multiple actors/entities in their response, save as structured format:
-   Example: "User: Feels frustrated by delay // Banner: Thrilled and excited for walk"
-   Pattern: "Actor: Perspective // Actor: Perspective"
+**READY-TO-USE TOOL CALL TEMPLATE** (Copy this after user responds):
+────────────────────────────────────────
+{
+  "name": "update_cell",
+  "args": {
+    "journeyMapId": "${journeyState.journeyMapId}",
+    "cellId": "${nextCell.id}",
+    "headline": "[5-10 word summary of their response]",
+    "description": "[2-3 sentences synthesizing their answer in imperative/gerund form - avoid 'I/He/She/They']"
+  }
+}
+────────────────────────────────────────
+
+**Multi-Actor Format**: If they mention multiple entities (e.g., "I feel X, my dog feels Y"):
+   Description format: "User: [their perspective] // Dog: [dog's perspective]"
 
 **Progress**: ${journeyState.metrics?.totalCellsCompleted || 0} of ${journeyState.metrics?.totalCellsExpected || 0} cells completed
 `;
