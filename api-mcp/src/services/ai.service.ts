@@ -126,13 +126,11 @@ export class AIService {
             const maxOutputTokens = this.getMaxOutputTokens(journeyState);
 
             // Determine function calling mode based on context
-            // CRITICAL: Force tool calling during CELL_POPULATION to prevent "Got it, moving on" without saves
-            // Also force during PHASES/SWIMLANES when confirmation detected
+            // CRITICAL: Force tool calling in two scenarios:
+            // 1. During CELL_POPULATION stage (prevent "Got it, moving on" without update_cell)
+            // 2. When confirmation response detected (prevent hallucination during structure definition)
             const isCellPopulation = journeyState?.stage === 'CELL_POPULATION';
-            const isConfirmationForced = forceToolCalling && journeyState?.stage &&
-                ['PHASES', 'SWIMLANES'].includes(journeyState.stage);
-
-            const shouldForceTools = isCellPopulation || isConfirmationForced;
+            const shouldForceTools = forceToolCalling || isCellPopulation;
 
             const toolMode = shouldForceTools ? FunctionCallingMode.ANY : FunctionCallingMode.AUTO;
 
