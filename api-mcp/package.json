@@ -1,6 +1,6 @@
 {
   "name": "api-mcp",
-  "version": "1.0.0",
+  "version": "3.5.0",
   "description": "",
   "main": "dist/firebase-entry.js",
   "engines": {
@@ -9,8 +9,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
-    "prebuild": "node scripts/prebuild.js",
-    "build": "npm run prebuild && tsc",
+    "build": "tsc",
     "mcp": "ts-node src/mcp-server.ts",
     "seed": "ts-node src/scripts/seed_journey.ts",
     "test": "jest"
