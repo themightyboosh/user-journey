@@ -2805,10 +2805,19 @@
     }
 
     // Copy Full Transcript to Clipboard
-    function copyTranscript(btn) {
+    async function copyTranscript(btn) {
         if (!state.conversationHistory || state.conversationHistory.length === 0) {
             alert("No conversation to copy yet.");
             return;
+        }
+
+        // Fetch version info
+        let versionInfo = null;
+        try {
+            const response = await fetch('/api/version');
+            versionInfo = await response.json();
+        } catch (err) {
+            console.error('Failed to fetch version info:', err);
         }
 
         const date = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -2825,7 +2834,98 @@
         text += `User: ${userName}${userRole ? ', ' + userRole : ''}\n`;
         text += `Agent: ${agentName}\n`;
         if (state.sessionConfig.userEmail) text += `Email: ${state.sessionConfig.userEmail}\n`;
-        text += `\n${'─'.repeat(40)}\n\n`;
+
+        // DEBUG HEADER - Journey State Diagnostics
+        if (currentJourney) {
+            text += `\n${'─'.repeat(40)}\n`;
+            text += `DEBUG: JOURNEY STATE DIAGNOSTICS\n`;
+            text += `${'─'.repeat(40)}\n\n`;
+
+            // Version Info
+            if (versionInfo) {
+                text += `API VERSION:\n`;
+                text += `  Build: ${versionInfo.buildTimestamp || 'N/A'}\n`;
+                text += `  Git Commit: ${versionInfo.gitCommit || 'N/A'}\n`;
+                text += `  Prompts: v${versionInfo.prompts?.version || '?'} (${versionInfo.prompts?.description || 'N/A'})\n`;
+                text += `  Tools: v${versionInfo.tools?.version || '?'} (${versionInfo.tools?.description || 'N/A'})\n`;
+                text += `\n`;
+            }
+
+            text += `Journey ID: ${currentJourney.id || 'N/A'}\n`;
+            text += `Session ID: ${currentJourney.sessionId || 'N/A'}\n`;
+            text += `Status: ${currentJourney.status || 'UNKNOWN'}\n`;
+            text += `Stage: ${currentJourney.stage || 'UNKNOWN'}\n`;
+            text += `Version: ${currentJourney.version || 0}\n`;
+            text += `Updated At: ${currentJourney.updatedAt || 'N/A'}\n\n`;
+
+            // Phases Diagnostic
+            text += `PHASES (${currentJourney.phases?.length || 0} total):\n`;
+            if (currentJourney.phases && currentJourney.phases.length > 0) {
+                currentJourney.phases.forEach((phase, i) => {
+                    text += `  ${i+1}. "${phase.name}" (ID: ${phase.phaseId.substring(0, 8)}...)\n`;
+                    text += `     Description: ${phase.description || '(empty)'}\n`;
+                });
+            } else {
+                text += `  ⚠️  NO PHASES FOUND - Grid cannot render!\n`;
+            }
+            text += `\n`;
+
+            // Swimlanes Diagnostic
+            text += `SWIMLANES (${currentJourney.swimlanes?.length || 0} total):\n`;
+            if (currentJourney.swimlanes && currentJourney.swimlanes.length > 0) {
+                currentJourney.swimlanes.forEach((lane, i) => {
+                    text += `  ${i+1}. "${lane.name}" (ID: ${lane.swimlaneId.substring(0, 8)}...)\n`;
+                    text += `     Description: ${lane.description || '(empty)'}\n`;
+                });
+            } else {
+                text += `  ⚠️  NO SWIMLANES FOUND - Grid cannot render!\n`;
+            }
+            text += `\n`;
+
+            // Cells Diagnostic
+            text += `CELLS (${currentJourney.cells?.length || 0} total):\n`;
+            const expectedCells = (currentJourney.phases?.length || 0) * (currentJourney.swimlanes?.length || 0);
+            text += `  Expected: ${expectedCells} | Present: ${currentJourney.cells?.length || 0}\n`;
+            if (currentJourney.cells && currentJourney.cells.length > 0) {
+                let populatedCells = 0;
+                currentJourney.cells.forEach(cell => {
+                    if (cell.headline && cell.headline.trim() !== '') populatedCells++;
+                });
+                text += `  Populated (with headlines): ${populatedCells}\n`;
+                text += `  Empty: ${currentJourney.cells.length - populatedCells}\n\n`;
+                text += `  Recent Cells:\n`;
+                currentJourney.cells.slice(-5).forEach(cell => {
+                    const phase = currentJourney.phases?.find(p => p.phaseId === cell.phaseId);
+                    const lane = currentJourney.swimlanes?.find(s => s.swimlaneId === cell.swimlaneId);
+                    const status = cell.headline ? '✅' : '⬜';
+                    text += `    ${status} [${phase?.name || '?'}] × [${lane?.name || '?'}]: "${cell.headline || '(empty)'}"\n`;
+                });
+            } else {
+                text += `  ⚠️  NO CELLS FOUND\n`;
+            }
+            text += `\n`;
+
+            // Rendering Diagnostic
+            text += `RENDERING STATUS:\n`;
+            text += `  Last Render: ${currentRenderedJourney ? '✅ Success' : '❌ Not rendered'}\n`;
+            if (currentRenderedJourney) {
+                text += `  Rendered Phases: ${currentRenderedJourney.phases?.length || 0}\n`;
+                text += `  Rendered Swimlanes: ${currentRenderedJourney.swimlanes?.length || 0}\n`;
+                text += `  Canvas Should Show: ${currentRenderedJourney.phases?.length || 0} columns × ${currentRenderedJourney.swimlanes?.length || 0} rows grid\n`;
+            }
+            text += `\n`;
+
+            // Full JSON Record
+            text += `${'─'.repeat(40)}\n`;
+            text += `FULL JOURNEY JSON RECORD:\n`;
+            text += `${'─'.repeat(40)}\n`;
+            text += JSON.stringify(currentJourney, null, 2);
+            text += `\n\n`;
+        }
+
+        text += `${'─'.repeat(40)}\n`;
+        text += `CONVERSATION TRANSCRIPT\n`;
+        text += `${'─'.repeat(40)}\n\n`;
 
         state.conversationHistory.forEach(msg => {
             const role = msg.role === 'user' ? userName.toUpperCase() : agentName.toUpperCase();

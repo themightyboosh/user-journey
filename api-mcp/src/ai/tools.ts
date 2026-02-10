@@ -1,6 +1,13 @@
 // ===========================================
 // JOURNEY MAPPER - AI TOOL DEFINITIONS
 // ===========================================
+
+export const TOOLS_VERSION = {
+    version: '3.1.0',
+    lastModified: '2026-02-10',
+    description: 'Schema flexibility - descriptions optional, AUTO mode for conversational flow'
+};
+
 //
 // PROJECT OVERVIEW:
 // Journey Mapper is an AI-powered UX research tool that conducts structured interviews

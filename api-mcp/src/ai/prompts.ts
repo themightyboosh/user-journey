@@ -2,6 +2,13 @@
 // JOURNEY MAPPER - AI PROMPT SYSTEM
 // Code-First State Machine Architecture
 // ===========================================
+
+export const PROMPTS_VERSION = {
+    version: '3.1.0',
+    lastModified: '2026-02-10',
+    description: 'Tool-First Protocol + AUTO mode - Strong prompts guide tool usage conversationally'
+};
+
 //
 // PROJECT OVERVIEW:
 // Journey Mapper is an AI-powered UX research tool that conducts structured interviews

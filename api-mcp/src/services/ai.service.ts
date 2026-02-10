@@ -1,4 +1,4 @@
-import { VertexAI, GenerativeModel, HarmCategory, HarmBlockThreshold } from '@google-cloud/vertexai';
+import { VertexAI, GenerativeModel, HarmCategory, HarmBlockThreshold, FunctionCallingMode } from '@google-cloud/vertexai';
 import { buildSystemInstruction, SessionConfig } from '../ai/prompts';
 import { JOURNEY_TOOLS } from '../ai/tools';
 import { JourneyService } from './journey.service';
@@ -125,6 +125,9 @@ export class AIService {
 
             const maxOutputTokens = this.getMaxOutputTokens(journeyState);
 
+            // Use AUTO mode (default) - allows conversational flexibility
+            // AI can ask clarifying questions, narrate results, and handle edge cases
+            // Tool-First Protocol prompts + optional schema enforce tool usage without being blunt
             const model = this.vertexAI.getGenerativeModel({
                 model: targetModel,
                 safetySettings: SAFETY_SETTINGS,
@@ -137,8 +140,15 @@ export class AIService {
                     role: 'system',
                     parts: [{ text: buildSystemInstruction(fullConfig, journeyState) }]
                 },
-                tools: JOURNEY_TOOLS as any
+                tools: JOURNEY_TOOLS as any,
+                toolConfig: {
+                    functionCallingConfig: {
+                        mode: FunctionCallingMode.AUTO // AI chooses when to call tools based on prompts/context
+                    }
+                }
             });
+
+            logger.info(`🔧 Tool Calling Mode: AUTO (stage: ${journeyState?.stage || 'N/A'}) - Conversational with strong prompts`);
 
             // Return both model and name
             return { model, modelName: targetModel };

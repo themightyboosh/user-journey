@@ -12,6 +12,8 @@ import { SessionConfig } from './ai/prompts';
 import { SUPER_ADMIN_EMAIL, AppUser } from './types';
 import logger from './logger';
 import { VERSION } from './version';
+import { PROMPTS_VERSION } from './ai/prompts';
+import { TOOLS_VERSION } from './ai/tools';
 
 // Log version on server start (forces redeploy on every build)
 logger.info('🚀 Journey Mapper API Starting', { version: VERSION });
@@ -135,7 +137,9 @@ server.get('/api/version', async (request, reply) => {
         ...VERSION,
         environment: process.env.NODE_ENV || 'development',
         uptime: process.uptime(),
-        serverTime: new Date().toISOString()
+        serverTime: new Date().toISOString(),
+        prompts: PROMPTS_VERSION,
+        tools: TOOLS_VERSION
     };
 });
 
