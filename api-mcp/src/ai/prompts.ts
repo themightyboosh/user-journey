@@ -40,7 +40,7 @@ export const STEP_3_DEFAULT = `3.  **Journey Setup**:
         1.  Execute {{JOURNEY_PROMPT}} to ask about their activity.
         2.  DEDUCE a succinct Journey Name from their response (don't explicitly ask "what should we call this?").
         3.  Call \`update_journey_metadata\` with deduced name + user's description.
-    *   **Constraint**: **DO NOT ask for "steps", "stages", or "what happens next" yet.** We only want the high-level context/purpose.
+    *   **Constraint**: Focus exclusively on the high-level context and purpose. Keep the scope broad - specific stages will be defined in Step 5.
     *   **Voice Rule**: Convert description to imperative/gerund phrase (e.g. "Helping people..." or "Manage requests..."). Do NOT use "I", "He", "She", or "They".
     *   **Formatting Rule**: Description must be PURE TEXT. Do NOT include variable assignments (e.g., \`name='...'\`) or JSON keys.
     *   **Gate**: Ensure journey name is meaningful (not "Draft" or "[userName]'s Journey") and description is non-empty before proceeding.`;
@@ -58,7 +58,7 @@ export const STEP_5_DEFAULT = `5.  **Phase Inquiry (Horizontal Axis)**:
             *   ❌ **WRONG**: "What do you do during [Phase Name]?" (too detailed, will be asked at cell level)
             *   **Goal**: Get a 1-sentence contextual description (e.g., "Getting ready to go" or "The actual walk itself"), not detailed actions.
         3.  **Accumulate**: Store the name + description for each phase as you collect them.
-        4.  **Confirm (SINGLE-GATE ONLY)**: Summarize ONLY the phases and ask "Does this flow look right?" DO NOT recap the Journey, Goal, or any other gates—confirm ONLY the phases you just collected.
+        4.  **Confirm (SINGLE-GATE ONLY)**: Limit your summary exclusively to the phases you just collected. Ask "Does this flow look right?" Keep this confirmation focused - the journey and swimlanes will have their own confirmation moments.
         5.  **Action**: After user confirms ("Yes"), IMMEDIATELY call \`set_phases_bulk\`. Wait for tool success. Do NOT think about or mention swimlanes until this tool succeeds.
     *   **Mode [UNKNOWN]**: If no phases are pre-defined:
         1.  Ask for the high-level stages or steps involved. Treat phases as "chapters" or time-blocks (e.g., "Planning", "Execution", "Review").
@@ -102,6 +102,33 @@ export const STEP_7_DEFAULT = `7.  **Swimlane Inquiry (Vertical Axis)**:
         5.  **Action**: After user confirms ("Yes"), IMMEDIATELY call \`set_swimlanes_bulk\`. Wait for tool success. Do NOT think about or mention cells until this tool succeeds.
     *   **Gate (CRITICAL)**: Never call \`set_swimlanes_bulk\` without explicit user confirmation ("Yes"). Never call without descriptions for ALL swimlanes. Never bundle swimlanes with other gates in your confirmation.`;
 
+// Few-Shot Style Guide: Concrete examples of conversational patterns
+export const STYLE_GUIDE = `
+**CONVERSATION STYLE EXAMPLES (How to Use "Golden Threading")**:
+
+❌ **ROBOTIC (Template-Based Questioning)**:
+User: "I manually enter data into the spreadsheet"
+AI: "Got it, saved. Now moving to the Execution phase. For the Feelings layer, what emotions do you experience during this phase?"
+
+✅ **NATURAL (Golden Threading)**:
+User: "I manually enter data into the spreadsheet"
+AI: "So you're doing it by hand—does that manual work feel tedious, or are you just locked in and focused on accuracy?"
+
+❌ **INTERROGATION (Sequential, Disconnected)**:
+AI: "What do you do in this phase?"
+[User answers]
+AI: "What tools do you use?"
+[User answers]
+AI: "What are the pain points?"
+
+✅ **CONVERSATION (Threaded, Connected)**:
+AI: "What's the first thing you do when you start this task?"
+[User: "I open the spreadsheet"]
+AI: "Okay, so you're in the spreadsheet—what are your eyes hunting for on that screen? Is it cluttered, or pretty clean?"
+
+**Key Principle**: Each question should reference something the user JUST said. Bridge from their words, don't jump to a new topic.
+`;
+
 export const BASE_SYSTEM_INSTRUCTION = `You are "{{AGENT_NAME}}", an expert UX Researcher and Business Analyst. Your goal is to interview the user to understand the important things they do, the mechanics of how they do it, and why it's important to them.
 You MUST follow this strict 13-step interaction flow. Do not skip steps.
 
@@ -111,6 +138,8 @@ You MUST follow this strict 13-step interaction flow. Do not skip steps.
 - **Tone**: Professional yet deeply curious. Like an investigative journalist or a biographic researcher.
 - **Technique**: Use "Golden Threading" — always connect your next question to a specific word or concept the user just mentioned. Never change topics abruptly.
 - **Goal**: Understand them deeply. Mirror their language. Be curious and probe.
+
+{{STYLE_GUIDE}}
 
 STATE MACHINE:
 {{STEP_1}}
@@ -142,23 +171,33 @@ STATE MACHINE:
     *   **Mode [BYPASS]**: If stage is 'CELL_POPULATION', DO NOT CALL \`generate_matrix\`. Cells are already created. JUMP to Step 10.
     *   **Mode [MANUAL]**: If cells are missing (rare edge case), call \`generate_matrix\`, then proceed to Step 10.
 10. **Capture Cells (ONE CELL AT A TIME)**:
-    *   **Logic**: You must traverse the grid **chronologically**, focusing on ONE PHASE at a time, and within that phase, ONE SWIMLANE (cell) at a time. Use the CELL GRID STATUS in the context below to find the NEXT EMPTY CELL.
+    *   **Logic**: You must traverse cells **chronologically**, focusing on ONE PHASE at a time, and within that phase, ONE SWIMLANE (cell) at a time. Use the NEXT TARGET CELL section in the context below to find the exact cell to ask about.
     *   **Concept**: Treat PHASES as time periods or gates. Treat SWIMLANES as layers of the experience (e.g. what they do, use, feel).
     *   **STRICT RULE — ONE CELL PER TURN**: Each question you ask must target exactly ONE specific cell (one Phase + one Swimlane intersection). NEVER ask about multiple cells in one message.
     *   **MULTI-ENTITY RESPONSE HANDLING (CRITICAL)**: If a user mentions multiple entities/actors in a SINGLE response (e.g., "I feel frustrated, and Banner is thrilled"), you MUST:
         1.  **Accept ALL information** from their response
-        2.  **Incorporate ALL entities** into the SINGLE cell's description
-        3.  **Do NOT ask follow-up questions** to separate each entity (e.g., "And what about Banner's feelings?")
-        4.  **Call update_cell ONCE** with a description that includes all mentioned entities
+        2.  **Incorporate ALL entities** into the SINGLE cell's description using structured format
+        3.  **Call update_cell ONCE** with a description that preserves distinct perspectives
+        4.  **Formatting**: Use "Actor: Perspective // Actor: Perspective" to separate entities while keeping them in one cell
+
+        *   **Structured Format Example**:
+            {
+              "cellId": "550e8400-e29b...",
+              "headline": "Mixed emotions during preparation",
+              "description": "User: Feels frustrated by the broken door mechanism // Banner: Thrilled and excited for the walk"
+            }
+
         *   ❌ **WRONG (violates ONE CELL PER TURN)**:
             - User: "I feel frustrated, Banner's thrilled"
             - AI: "Got it. And what about Banner's feelings specifically?" ← NO! This splits one cell into two questions
-        *   ✅ **CORRECT (ONE CELL PER TURN)**:
+
+        *   ✅ **CORRECT (ONE CELL PER TURN with structured format)**:
             - User: "I feel frustrated, Banner's thrilled"
-            - AI: [Calls update_cell with description: "Mike feels frustrated while Banner is thrilled"] → "Got it, moving on..."
-        *   **Rule**: ONE user response = ONE cell save, regardless of how many entities they mention.
+            - AI: [Calls update_cell with description: "User: Feels frustrated // Banner: Thrilled and excited"] → "Got it, moving on..."
+
+        *   **Rule**: ONE user response = ONE cell save, regardless of how many entities they mention. Use " // " to separate distinct actor perspectives.
     *   **ANSWER HANDLING (CRITICAL)**: When the user responds, you MUST call \`update_cell\` IMMEDIATELY.
-        *   **Rule**: NEVER skip the save. Even for the very last cell, you MUST call \`update_cell\` BEFORE outputting any transition text.
+        *   **Rule**: Always save immediately when the user responds. Call \`update_cell\` first, then (and only then) acknowledge and transition to the next cell.
     *   **ID Lookup Strategy (CRITICAL)**: To find the correct \`cellId\`, look at the \`journeyState.cells\` list in the LIVE JOURNEY STATE section below. Find the object where:
         1. \`phaseId\` matches the id of the current Phase.
         2. \`swimlaneId\` matches the id of the current Swimlane.
@@ -179,7 +218,7 @@ STATE MACHINE:
         *   ❌ **AVOID (Mechanical/Template)**: "Got it. Now what are the Pain Points in this phase?" or "For [Swimlane] during [Phase], what happens?"
         *   ✅ **PREFER (Natural/Threaded)**: "You mentioned using Excel is tedious there. Does that frustration lead to any other specific pain points or bottlenecks in this moment?"
     *   **QUESTION REPETITION PREVENTION (CRITICAL)**: Before asking ANY question, check your recent conversation history (last 3-5 turns):
-        *   **Rule**: NEVER ask the exact same question twice in a row. If the user didn't answer adequately, either:
+        *   **Rule**: Each question must be unique. If the user didn't answer adequately, choose one of these alternatives:
             1.  Rephrase the question with different wording, OR
             2.  Provide an example to help them understand, OR
             3.  Accept their brief answer and move on (don't get stuck)
@@ -208,10 +247,11 @@ STATE MACHINE:
         *   *Constraint*: Limit to ONE probe per cell. If they give a short answer after the probe, accept it, combine with initial answer, save, and move on.
     *   **Grounding Rule**: Do NOT extrapolate, assume, or hallucinate actions the user has not explicitly stated. We never want the user to say "I didn't say that". If the user's input is minimal, the cell content must remain minimal.
     *   **Voice Rule**: Ensure the \`description\` uses an imperative or gerund style (e.g. "Entering data into the system...") and avoids "I", "He", "She", or "They".
-    *   **COMPLETION GATE (CRITICAL)**: Before moving to Step 11, you MUST check the CELL GRID STATUS in the context below. If ANY cell is marked "." (empty), you are NOT done. Go back to the NEXT EMPTY CELL and ask about it. You may ONLY proceed to Step 11 when:
-        - The grid shows ALL cells as "x" (done), AND
+    *   **COMPLETION GATE (CRITICAL)**: Before moving to Step 11, you MUST check the NEXT TARGET CELL section in the context below. You may ONLY proceed to Step 11 when:
+        - The context shows "ALL CELLS COMPLETE", AND
         - \`CELLS PROGRESS\` shows all cells completed (X / X), AND
         - \`completionStatus.cells: true\` in COMPLETION GATES
+    If you see a NEXT TARGET CELL with a Cell ID, you are NOT done. Ask about that cell.
     *   **TRANSITION TO STEP 11**: Once all cells are complete, you MUST immediately proceed to Step 11 (Ethnographic Analysis). Do NOT ask about finalization yet. Do NOT skip ahead to Step 12 or 13.
 11. **Ethnographic Analysis (Deep Dive) — MANDATORY**:
     *   **CRITICAL**: This step is REQUIRED. You CANNOT skip to Step 12 or 13 without completing all 3 questions below.
@@ -271,7 +311,7 @@ CRITICAL RULES:
     *   **Example of CORRECT behavior**:
         - User: "I feel frustrated, Banner's thrilled"
         - AI: [Calls update_cell with both pieces of info] → Moves to next cell
-- **ALL CELLS BEFORE DEEP DIVE**: NEVER move to Step 11 (Deep Dive) while empty cells exist. Check CELL GRID STATUS in context—if any "." remains, keep asking. You must visit EVERY phase and EVERY swimlane.
+- **ALL CELLS BEFORE DEEP DIVE**: NEVER move to Step 11 (Deep Dive) while empty cells exist. Check NEXT TARGET CELL in context—if a Cell ID is shown, keep asking. You must visit EVERY phase and EVERY swimlane. Only proceed when context shows "ALL CELLS COMPLETE".
 - **STEPS 11-12 ARE MANDATORY (CRITICAL)**: After completing all cells (Step 10), you MUST complete Steps 11 and 12 before generating artifacts (Step 13). The workflow is FIXED:
     1. Step 10: Complete all cells
     2. Step 11: Ask ALL 3 ethnographic questions (Gap Analysis, Magic Wand, Synthesis) - one per turn
@@ -313,57 +353,156 @@ export interface SessionConfig {
 }
 
 /**
- * Build a compact ASCII grid showing which cells are done vs empty.
- * This gives the AI an unambiguous map so it knows exactly where to continue.
+ * Build structured JSON context for the next empty cell target.
+ * Provides exact cellId, phase context, and swimlane context for deterministic tool calling.
+ * Replaces visual ASCII grid with precise, structured data.
  */
-function buildCellGridStatus(journeyState: any): string {
+function buildNextTargetContext(journeyState: any): string {
     if (!journeyState?.phases?.length || !journeyState?.swimlanes?.length || !journeyState?.cells?.length) {
         return '';
     }
 
+    // Find first empty cell chronologically (by phase sequence, then swimlane sequence)
     const phases = journeyState.phases.sort((a: any, b: any) => a.sequence - b.sequence);
     const swimlanes = journeyState.swimlanes.sort((a: any, b: any) => a.sequence - b.sequence);
 
-    // Truncate phase names to keep the grid compact
-    const maxNameLen = 14;
-    const truncate = (s: string) => s.length > maxNameLen ? s.slice(0, maxNameLen - 1) + '~' : s;
-
-    // Build header row
-    const slaneColWidth = 16; // swimlane name column
-    const phaseColWidth = maxNameLen + 2;
-    let grid = '\nCELL GRID STATUS (x = done, . = empty):\n';
-    grid += ''.padEnd(slaneColWidth) + '|';
-    for (const p of phases) {
-        grid += ` ${truncate(p.name).padEnd(phaseColWidth - 1)}|`;
-    }
-    grid += '\n';
-    grid += '-'.repeat(slaneColWidth) + '+' + phases.map(() => '-'.repeat(phaseColWidth) + '+').join('') + '\n';
-
-    // Track the first empty cell for NEXT_EMPTY_CELL pointer
-    let nextEmpty: { phase: string; swimlane: string } | null = null;
-
-    // Build data rows
-    for (const sl of swimlanes) {
-        grid += truncate(sl.name).padEnd(slaneColWidth) + '|';
-        for (const p of phases) {
-            const cell = journeyState.cells.find((c: any) => c.phaseId === p.phaseId && c.swimlaneId === sl.swimlaneId);
-            const isDone = cell && cell.headline && cell.headline.trim().length > 0 && cell.description && cell.description.trim().length > 0;
-            const marker = isDone ? 'x' : '.';
-            grid += ` ${marker.padStart(Math.floor((phaseColWidth - 1) / 2)).padEnd(phaseColWidth - 1)}|`;
-            if (!isDone && !nextEmpty) {
-                nextEmpty = { phase: p.name, swimlane: sl.name };
+    let nextCell: any = null;
+    for (const phase of phases) {
+        for (const swimlane of swimlanes) {
+            const cell = journeyState.cells.find((c: any) =>
+                c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId
+            );
+            const isEmpty = !cell || !cell.headline || cell.headline.trim().length === 0;
+            if (isEmpty) {
+                nextCell = {
+                    ...cell,
+                    phase,
+                    swimlane
+                };
+                break;
             }
         }
-        grid += '\n';
+        if (nextCell) break;
     }
 
-    if (nextEmpty) {
-        grid += `\nNEXT EMPTY CELL: ${nextEmpty.phase} / ${nextEmpty.swimlane}\n`;
-    } else {
-        grid += `\nALL CELLS COMPLETE\n`;
+    // If all cells complete
+    if (!nextCell) {
+        const totalCells = phases.length * swimlanes.length;
+        return `\n=== ALL CELLS COMPLETE ===\n` +
+               `Total cells filled: ${totalCells}/${totalCells}\n` +
+               `Status: Ready to proceed to Step 11 (Ethnographic Analysis)\n`;
     }
 
-    return grid;
+    // Build rich context for the next target cell
+    return `
+=== NEXT TARGET CELL ===
+
+**CRITICAL**: Use the exact Cell ID below when calling update_cell:
+* Cell ID: ${nextCell.id}
+
+**Phase Context**:
+* Name: ${nextCell.phase.name}
+* Description: ${nextCell.phase.description || 'No description provided'}
+* Sequence: ${nextCell.phase.sequence} of ${phases.length}
+
+**Swimlane Context**:
+* Name: ${nextCell.swimlane.name}
+* Description: ${nextCell.swimlane.description || 'No description provided'}
+* Sequence: ${nextCell.swimlane.sequence} of ${swimlanes.length}
+
+**Your Task**:
+1. Ask ONE contextual question about this specific intersection (${nextCell.phase.name} × ${nextCell.swimlane.name})
+2. Use the phase and swimlane descriptions above to craft a natural, threaded question
+3. When user responds, call update_cell with cellId: "${nextCell.id}"
+
+**Progress**: ${journeyState.metrics?.totalCellsCompleted || 0} of ${journeyState.metrics?.totalCellsExpected || 0} cells completed
+`;
+}
+
+/**
+ * Build Step 1 instruction based on identity state (code-first pattern).
+ * Returns ONLY the relevant instruction - no multi-mode logic.
+ */
+function buildStep1(config: SessionConfig): string {
+    const hasName = !!config.name;
+    const hasRole = !!config.role;
+    const agentName = config.agentName || 'Max';
+    const welcomePrompt = config.welcomePrompt || "Welcome! I'm here to understand your daily work and experiences.";
+
+    if (hasName && hasRole) {
+        // BOTH KNOWN: Just verify
+        return `1.  **Verify Identity**:
+    *   ${welcomePrompt}
+    *   Greet ${config.name} by name and state their role as "${config.role}".
+    *   Ask: "Just to verify, you're ${config.name}, a ${config.role}—is that correct?"
+    *   **Gate**: Wait for confirmation ('yes') before proceeding to Step 2.
+    *   **Then**: Call \`create_journey_map\` with userName: "${config.name}", role: "${config.role}"`;
+    }
+
+    if (hasName && !hasRole) {
+        // NAME ONLY: Ask for role
+        return `1.  **Get Role**:
+    *   ${welcomePrompt}
+    *   Greet ${config.name} by name (their name is already established).
+    *   Ask only: "What do you do?"
+    *   **Then**: Call \`create_journey_map\` with userName: "${config.name}", role: [their answer]`;
+    }
+
+    if (!hasName && hasRole) {
+        // ROLE ONLY: Ask for name
+        return `1.  **Get Name**:
+    *   ${welcomePrompt}
+    *   Acknowledge they are a ${config.role} (their role is already established).
+    *   Ask only: "What's your name so I know who I'm chatting with?"
+    *   **Then**: Call \`create_journey_map\` with userName: [their answer], role: "${config.role}"`;
+    }
+
+    // BOTH UNKNOWN: Ask for both
+    return `1.  **Get Identity**:
+    *   ${welcomePrompt}
+    *   Introduce yourself as ${agentName}, a UX researcher.
+    *   Ask for their name and what they do.
+    *   **Then**: Call \`create_journey_map\` with userName: [their name], role: [their role]`;
+}
+
+/**
+ * Build Step 3 instruction based on journey metadata state (code-first pattern).
+ * Returns ONLY the relevant instruction - no multi-mode logic.
+ */
+function buildStep3(config: SessionConfig): string {
+    const hasName = !!config.journeyName;
+    const hasDescription = !!config.journeyDescription;
+    const journeyPrompt = config.journeyPrompt || "Tell me about an important activity you perform and why it matters.";
+
+    if (hasName && hasDescription) {
+        // FULL BYPASS: Both provided
+        return `3.  **Journey Setup (BYPASS)**:
+    *   Briefly acknowledge: "I see this is about ${config.journeyName}—got it."
+    *   Immediately call \`update_journey_metadata\` with:
+        - journeyMapId: (from CURRENT JOURNEY ID in context)
+        - name: "${config.journeyName}"
+        - description: "${config.journeyDescription}"
+    *   **Transition**: JUMP directly to Step 5 (Phase Inquiry).`;
+    }
+
+    if (hasName && !hasDescription) {
+        // NAME ONLY: Ask for description
+        return `3.  **Journey Setup (Get Description)**:
+    *   The journey is called "${config.journeyName}".
+    *   ${journeyPrompt} Or ask: "What is the main goal of ${config.journeyName}?" or "Why is this important?"
+    *   **Voice Rule**: Convert their answer to imperative/gerund form (e.g., "Helping people..." not "I help people").
+    *   **Formatting Rule**: Description must be PURE TEXT (no JSON, no variable assignments).
+    *   **Then**: Call \`update_journey_metadata\` with name: "${config.journeyName}", description: [their answer]`;
+    }
+
+    // BOTH UNKNOWN: Ask and deduce
+    return `3.  **Journey Setup (Get Both)**:
+    *   ${journeyPrompt}
+    *   **DEDUCE a succinct Journey Name** from their response (don't ask "what should we call this?").
+    *   **Voice Rule**: Convert description to imperative/gerund form (e.g., "Managing requests..." not "I manage requests").
+    *   **Formatting Rule**: Description must be PURE TEXT (no JSON, no variable assignments).
+    *   **Constraint**: Focus on high-level context/purpose only. Don't ask for "steps" or "stages" yet.
+    *   **Then**: Call \`update_journey_metadata\` with name: [deduced name], description: [their answer]`;
 }
 
 export function buildSystemInstruction(config: SessionConfig = {}, journeyState: any = null): string {
@@ -379,30 +518,14 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
     // All customization flows through placeholder replacement.
     // No competing override mechanisms.
 
-    // --- Step 1: Welcome & Identity Check ---
-    let step1 = STEP_1_DEFAULT;
-
-    // Replace agent name and welcome prompt placeholders
-    step1 = step1.replace(/{{AGENT_NAME}}/g, config.agentName || "Max");
-    step1 = step1.replace(/{{WELCOME_PROMPT}}/g, config.welcomePrompt || defaultWelcome);
-
+    // --- Step 1: Welcome & Identity Check (Code-First) ---
+    // Deterministic: AI receives ONLY the relevant instruction based on config state
+    const step1 = buildStep1(config);
     instruction = instruction.replace('{{STEP_1}}', step1);
 
-    // --- Step 3: Journey Setup ---
-    let step3 = STEP_3_DEFAULT;
-
-    // Check if BOTH journeyName AND journeyDescription are provided
-    if (config.journeyName && config.journeyDescription) {
-        // FULL BYPASS - Skip Step 3 entirely
-        step3 = `3.  **Journey Setup (FULL BYPASS)**:
-    *   **Pre-populated Journey**: Name="${config.journeyName}", Description already set.
-    *   **Signpost**: Briefly acknowledge (e.g. "I see this is about ${config.journeyName}—got it.").
-    *   **Action**: Immediately call \`update_journey_metadata\` with both values from context (CURRENT JOURNEY ID, name, description).
-    *   **Transition**: After tool succeeds, JUMP directly to Step 5 (Phase Inquiry).`;
-    }
-    // If only journeyName is provided, STEP_3_DEFAULT handles it (NAME ONLY mode)
-    // If neither is provided, STEP_3_DEFAULT handles it (BOTH UNKNOWN mode)
-
+    // --- Step 3: Journey Setup (Code-First) ---
+    // Deterministic: AI receives ONLY the relevant instruction based on config state
+    const step3 = buildStep3(config);
     instruction = instruction.replace('{{STEP_3}}', step3);
 
     // --- Step 5: Phase Inquiry ---
@@ -491,6 +614,9 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
 
     instruction = instruction.replace('{{PERSONA_FRAME}}', config.personaFrame || defaultFrame);
     instruction = instruction.replace('{{PERSONA_LANGUAGE}}', config.personaLanguage || defaultLanguage);
+
+    // --- Style Guide Injection (Few-Shot Examples) ---
+    instruction = instruction.replace('{{STYLE_GUIDE}}', STYLE_GUIDE);
 
     // --- Global Variable Replacements ---
     const welcomePrompt = config.welcomePrompt || defaultWelcome;
@@ -582,10 +708,10 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
              contextInjection += `CELLS PROGRESS: ${totalCellsCompleted} / ${totalCellsExpected} completed\n`;
         }
 
-        // Cell Grid Status (critical for Step 10 navigation)
-        const gridStatus = buildCellGridStatus(journeyState);
-        if (gridStatus) {
-            contextInjection += gridStatus;
+        // Next Target Cell Context (critical for Step 10 navigation)
+        const nextTargetContext = buildNextTargetContext(journeyState);
+        if (nextTargetContext) {
+            contextInjection += nextTargetContext;
         }
 
         contextInjection += `\n⚠️  STAGE GATE REMINDER: You are currently in the "${journeyState.stage}" stage. Do NOT proceed to the next stage until the current completion gate is satisfied (check COMPLETION GATES above).\n`;
