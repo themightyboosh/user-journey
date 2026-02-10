@@ -10,8 +10,25 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Helper: Convert straight quotes to typographic (curly) quotes
+function typographicQuotes(text) {
+    if (!text) return '';
+    // Convert straight double quotes to curly quotes
+    // Opening quote: after whitespace or at start
+    text = text.replace(/(^|[\s\(\[\{])"/g, '$1"');
+    // Closing quote: before whitespace, punctuation, or at end
+    text = text.replace(/"([\s\)\]\}\.,;:!?]|$)/g, '"$1');
+    // Convert straight single quotes to curly quotes
+    // Opening quote: after whitespace or at start
+    text = text.replace(/(^|[\s\(\[\{])'/g, '$1'');
+    // Closing quote: before whitespace, punctuation, or at end
+    text = text.replace(/'([\s\)\]\}\.,;:!?]|$)/g, ''$1');
+    return text;
+}
+
 // Make globally available
 window.escapeHtml = escapeHtml;
+window.typographicQuotes = typographicQuotes;
 
 // Helper: Format Markdown-like text
 function formatMessage(text, highlightQuotes = false) {
@@ -514,11 +531,12 @@ function renderMap(journey, targetElementId) {
  
     // --- USER QUOTE (Very Bottom) ---
     if (journey.quotes && journey.quotes.length > 0) {
+        const quoteText = typographicQuotes(escapeHtml(journey.quotes[0]));
         html += `
             <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--max-color-border);">
                 <h3 style="color: var(--max-color-accent); margin-bottom: 24px; font-size: 24px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">User Quote</h3>
                 <div style="font-family: 'Sorts Mill Goudy', serif; font-weight: 400; font-style: italic; font-size: 92px; line-height: 1.2; color: #ffffff; text-align: left;">
-                    ${escapeHtml(journey.quotes[0])}
+                    ${quoteText}
                 </div>
             </div>`;
     }

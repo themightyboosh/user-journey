@@ -3,9 +3,9 @@
 // ===========================================
 
 export const TOOLS_VERSION = {
-    version: '3.3.0',
+    version: '3.3.1',
     lastModified: '2026-02-10',
-    description: 'Backend validation enforces structure before artifacts - prevents AI from skipping set_phases/set_swimlanes'
+    description: 'Force mode=ANY during CELL_POPULATION to prevent "Got it, moving on" without update_cell calls'
 };
 
 //
