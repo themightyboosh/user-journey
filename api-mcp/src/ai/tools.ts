@@ -3,9 +3,19 @@
 // ===========================================
 
 export const TOOLS_VERSION = {
-    version: '3.3.1',
+    version: '3.4.0',
     lastModified: '2026-02-10',
-    description: 'Force mode=ANY during CELL_POPULATION to prevent "Got it, moving on" without update_cell calls'
+    description: 'Code-First State Machine: Tool scoping, auto-execution, director notes'
+};
+
+// Tool Scoping: Define which tools are available at each stage
+// This prevents the AI from calling irrelevant tools (e.g., update_cell during IDENTITY)
+export const TOOL_SCOPES: Record<string, string[]> = {
+    'IDENTITY': ['create_journey_map', 'update_journey_metadata'],
+    'PHASES': ['update_journey_metadata', 'set_phases_bulk'],
+    'SWIMLANES': ['update_journey_metadata', 'set_swimlanes_bulk', 'generate_matrix'],
+    'CELL_POPULATION': ['update_cell', 'update_journey_metadata'],
+    'COMPLETE': ['generate_artifacts', 'update_journey_metadata']
 };
 
 //

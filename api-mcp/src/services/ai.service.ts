@@ -1,6 +1,6 @@
 import { VertexAI, GenerativeModel, HarmCategory, HarmBlockThreshold, FunctionCallingMode } from '@google-cloud/vertexai';
 import { buildSystemInstruction, SessionConfig } from '../ai/prompts';
-import { JOURNEY_TOOLS } from '../ai/tools';
+import { JOURNEY_TOOLS, TOOL_SCOPES } from '../ai/tools';
 import { JourneyService } from './journey.service';
 import { AdminService } from './admin.service';
 import logger from '../logger';
@@ -125,6 +125,19 @@ export class AIService {
 
             const maxOutputTokens = this.getMaxOutputTokens(journeyState);
 
+            // PHASE 4: Tool Scoping ("Blinders Strategy")
+            // Filter available tools based on current stage to prevent impossible operations
+            const currentStage = journeyState?.stage || 'IDENTITY';
+            const allowedToolNames = TOOL_SCOPES[currentStage] || Object.keys(TOOL_SCOPES).flatMap(k => TOOL_SCOPES[k]);
+
+            const scopedTools = JOURNEY_TOOLS.map(toolGroup => ({
+                functionDeclarations: toolGroup.functionDeclarations.filter(
+                    (tool: any) => allowedToolNames.includes(tool.name)
+                )
+            })).filter(toolGroup => toolGroup.functionDeclarations.length > 0);
+
+            logger.info(`🔍 Tool Scoping: Stage=${currentStage}, Allowed=[${allowedToolNames.join(', ')}]`);
+
             // Determine function calling mode based on context
             // CRITICAL: Force tool calling in two scenarios:
             // 1. During CELL_POPULATION stage (prevent "Got it, moving on" without update_cell)
@@ -146,7 +159,7 @@ export class AIService {
                     role: 'system',
                     parts: [{ text: buildSystemInstruction(fullConfig, journeyState) }]
                 },
-                tools: JOURNEY_TOOLS as any,
+                tools: scopedTools as any,
                 toolConfig: {
                     functionCallingConfig: {
                         mode: toolMode

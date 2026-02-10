@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.3.1',
+    version: '3.4.0',
     lastModified: '2026-02-10',
-    description: 'Force mode=ANY during CELL_POPULATION to prevent "Got it, moving on" without update_cell calls'
+    description: 'Code-First State Machine: Tool scoping, auto-execution, director notes'
 };
 
 //
@@ -943,8 +943,50 @@ function buildStep7(config: SessionConfig): string {
         - STOP: Do NOT ask about cell content until you see "stage": "CELL_POPULATION" in the next context refresh.`;
 }
 
+// PHASE 2: Build Current Objective (Director's Note)
+// Provides clear, stage-specific guidance at the top of every system instruction
+function buildCurrentObjective(journeyState: any): string {
+    const stage = journeyState?.stage || 'IDENTITY';
+
+    switch (stage) {
+        case 'IDENTITY':
+            return `🎯 CURRENT OBJECTIVE: Collect user identity (name, role) and create the journey. Call create_journey_map when you have this information.`;
+
+        case 'PHASES':
+            if (journeyState.phases?.length === 0) {
+                return `🎯 CURRENT OBJECTIVE: Interview user to get a list of high-level phases/stages for their journey. Confirm with user, then call set_phases_bulk.`;
+            }
+            return `🎯 CURRENT OBJECTIVE: Phases are set (${journeyState.phases.length} phases). Ask about swimlanes/layers next.`;
+
+        case 'SWIMLANES':
+            if (journeyState.swimlanes?.length === 0) {
+                return `🎯 CURRENT OBJECTIVE: Interview user to get a list of swimlanes/layers (e.g., Actions, Feelings, Pain Points). Confirm with user, then call set_swimlanes_bulk.`;
+            }
+            return `🎯 CURRENT OBJECTIVE: Swimlanes are set (${journeyState.swimlanes.length} swimlanes). The matrix will be generated automatically.`;
+
+        case 'CELL_POPULATION':
+            const cellsCompleted = journeyState.cells?.filter((c: any) => c.headline).length || 0;
+            const cellsTotal = journeyState.cells?.length || 0;
+            const cellsRemaining = cellsTotal - cellsCompleted;
+
+            if (cellsRemaining > 0) {
+                return `🎯 CURRENT OBJECTIVE: Populate cell content. ${cellsCompleted}/${cellsTotal} cells complete. Focus ONLY on getting content for the next empty cell. Call update_cell for each response. DO NOT ask about multiple cells at once.`;
+            }
+            return `🎯 CURRENT OBJECTIVE: All cells populated (${cellsCompleted}/${cellsTotal}). Conduct ethnographic deep-dive questions, then call generate_artifacts.`;
+
+        case 'COMPLETE':
+            return `🎯 CURRENT OBJECTIVE: Journey is complete. Ask if user wants to add anything else.`;
+
+        default:
+            return `🎯 CURRENT OBJECTIVE: Continue the interview process based on journey state.`;
+    }
+}
+
 export function buildSystemInstruction(config: SessionConfig = {}, journeyState: any = null): string {
-    let instruction = BASE_SYSTEM_INSTRUCTION;
+    // PHASE 2: Director's Note - Add clear objective at the very top
+    const directorNote = buildCurrentObjective(journeyState);
+
+    let instruction = `${directorNote}\n\n${BASE_SYSTEM_INSTRUCTION}`;
 
     // Default Prompts
     const defaultWelcome = "Welcome the user by name if known, introduce yourself as a researcher here to understand their daily work and experiences.";

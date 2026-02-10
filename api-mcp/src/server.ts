@@ -211,6 +211,46 @@ server.post('/api/chat', async (request, reply) => {
           logger.info('Fetched journey state', { found: !!journeyState });
       }
 
+      // PHASE 3: Auto-Execution Pattern (Bypass LLM for Admin Defaults)
+      // If admin provided full structure, execute tools directly with zero hallucination risk
+      const currentStage = journeyState?.stage || 'IDENTITY';
+
+      // Auto-execute phases if admin provided them and we're ready
+      if (currentStage === 'IDENTITY' && config.phases && config.phases.length > 0 && journeyState) {
+          logger.info(`🚀 [AUTO-EXEC] Admin phases detected, bypassing LLM`, {
+              phases: config.phases.map((p: any) => p.name)
+          });
+
+          await aiService.executeTool(config.journeyId!, {
+              name: 'set_phases_bulk',
+              args: { journeyMapId: config.journeyId, phases: config.phases }
+          });
+
+          // Refresh journey state after tool execution
+          journeyState = await aiService.getJourneyState(config.journeyId!);
+
+          // Stream synthetic message to user
+          reply.sse({ data: JSON.stringify({ text: `I've applied the ${config.phases.length} admin-defined phases to the journey.\n\n` }) });
+      }
+
+      // Auto-execute swimlanes if admin provided them and we're at the right stage
+      if (currentStage === 'PHASES' && config.swimlanes && config.swimlanes.length > 0 && journeyState) {
+          logger.info(`🚀 [AUTO-EXEC] Admin swimlanes detected, bypassing LLM`, {
+              swimlanes: config.swimlanes.map((s: any) => s.name)
+          });
+
+          await aiService.executeTool(config.journeyId!, {
+              name: 'set_swimlanes_bulk',
+              args: { journeyMapId: config.journeyId, swimlanes: config.swimlanes }
+          });
+
+          // Refresh journey state after tool execution
+          journeyState = await aiService.getJourneyState(config.journeyId!);
+
+          // Stream synthetic message to user
+          reply.sse({ data: JSON.stringify({ text: `I've applied the ${config.swimlanes.length} admin-defined swimlanes to the journey.\n\n` }) });
+      }
+
       // CRITICAL: Detect confirmation responses to force tool calling
       // Prevents AI from narrating "I'm adding..." without actually calling tools
       const isConfirmationResponse = /^(yes|yeah|yep|yup|correct|right|sure|ok|okay|sounds good|that's right|looks good)$/i.test(message.trim());
@@ -231,42 +271,67 @@ server.post('/api/chat', async (request, reply) => {
       const maxTurns = 10;
       let finalDone = false;
   
-      // Helper for generation with 429 handling + backoff retry
-      const generateSafe = async (model: any, params: any, modelName: string, retryCount = 0): Promise<any> => {
+      // PHASE 5: Enhanced retry with mode fallback
+      const generateSafe = async (model: any, params: any, modelName: string, retryCount = 0, forcedToolMode = shouldForceTools): Promise<any> => {
           try {
               const result = await model.generateContent(params);
               const response = await result.response;
-              return { response, model, modelName }; 
+              return { response, model, modelName };
           } catch (e: any) {
+              // Handle rate limiting (429)
               if (e.message?.includes('429') || e.status === 429 || e.code === 429 || e.message?.includes('RESOURCE_EXHAUSTED')) {
                    logger.warn(`⚠️ 429 RESOURCE EXHAUSTED for ${modelName} (attempt ${retryCount + 1})`);
-                   
+
                    // Backoff: wait before retrying (1s first, 3s second)
                    const backoffMs = retryCount === 0 ? 1000 : 3000;
                    await sleep(backoffMs);
 
                    // Get the next fallback model name
                    const nextFallbackModel = aiService.getNextFallback(modelName);
-                   
-                   // Re-create the request model using the FALLBACK name
+
                    // Re-fetch journey state so the fallback model gets fresh context
                    let freshState = journeyState;
                    if (config.journeyId) {
                        freshState = await aiService.getJourneyState(config.journeyId);
                    }
+
                    // Propagate forceToolCalling on fallback retry
-                   const newModelResult = await aiService.getRequestModel(config, freshState, nextFallbackModel, shouldForceTools);
-                   
+                   const newModelResult = await aiService.getRequestModel(config, freshState, nextFallbackModel, forcedToolMode);
+
                    // Allow up to 2 retries total (original + 2 fallbacks)
                    if (retryCount < 2) {
-                       return generateSafe(newModelResult.model, params, newModelResult.modelName, retryCount + 1);
+                       return generateSafe(newModelResult.model, params, newModelResult.modelName, retryCount + 1, forcedToolMode);
                    }
-                   
+
                    // Final attempt without recursion
                    const result = await newModelResult.model.generateContent(params);
                    const response = await result.response;
-                   return { response, model: newModelResult.model, modelName: newModelResult.modelName }; 
+                   return { response, model: newModelResult.model, modelName: newModelResult.modelName };
               }
+
+              // Handle tool calling errors with mode fallback (400, 500)
+              if ((e.status === 400 || e.status === 500) && forcedToolMode && retryCount === 0) {
+                  logger.warn(`⚠️ Tool calling error with mode=ANY, falling back to mode=AUTO`, {
+                      error: e.message,
+                      status: e.status
+                  });
+
+                  // Wait 500ms and retry with mode=AUTO
+                  await sleep(500);
+
+                  // Re-fetch journey state
+                  let freshState = journeyState;
+                  if (config.journeyId) {
+                      freshState = await aiService.getJourneyState(config.journeyId);
+                  }
+
+                  // Rebuild model WITHOUT forcing tools (mode=AUTO)
+                  const autoModelResult = await aiService.getRequestModel(config, freshState, modelName, false);
+
+                  // Retry once with mode=AUTO
+                  return generateSafe(autoModelResult.model, params, autoModelResult.modelName, retryCount + 1, false);
+              }
+
               throw e;
           }
       };
