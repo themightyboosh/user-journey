@@ -11,6 +11,10 @@ import { Store } from './store';
 import { SessionConfig } from './ai/prompts';
 import { SUPER_ADMIN_EMAIL, AppUser } from './types';
 import logger from './logger';
+import { VERSION } from './version';
+
+// Log version on server start (forces redeploy on every build)
+logger.info('🚀 Journey Mapper API Starting', { version: VERSION });
 
 export const server: FastifyInstance = Fastify({ 
     logger: false, // Use our own logger
@@ -118,10 +122,20 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 server.get('/api/health', async (request, reply) => {
     const settings = await adminService.getSettings();
-    return { 
-        status: 'ok', 
+    return {
+        status: 'ok',
         model: aiService.ActiveModelName || 'Initializing...',
         location: process.env.VERTEX_AI_LOCATION || 'us-central1'
+    };
+});
+
+// Version endpoint - check deployed version
+server.get('/api/version', async (request, reply) => {
+    return {
+        ...VERSION,
+        environment: process.env.NODE_ENV || 'development',
+        uptime: process.uptime(),
+        serverTime: new Date().toISOString()
     };
 });
 
