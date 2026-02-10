@@ -332,14 +332,21 @@ server.post('/api/chat', async (request, reply) => {
                   const fn = call.functionCall;
                   if (!fn) continue;
 
+                  // Send tool execution event to frontend for visibility
+                  safeSend({ tool: fn.name, status: 'executing', args: fn.args });
+
                   logger.info(`⚙️ Executing tool: ${fn.name}`, { journeyId: config.journeyId });
                   const toolResult: any = await aiService.executeTool(fn.name, fn.args);
-                  
+
                   // Log tool outcome for observability
                   if (toolResult?.error) {
                       logger.error(`❌ Tool "${fn.name}" returned error`, { error: toolResult.error, args: JSON.stringify(fn.args).substring(0, 500) });
+                      // Send error to frontend
+                      safeSend({ tool: fn.name, status: 'error', error: toolResult.error });
                   } else {
                       logger.info(`✅ Tool "${fn.name}" succeeded`, { journeyId: config.journeyId });
+                      // Send success to frontend
+                      safeSend({ tool: fn.name, status: 'success' });
                   }
                   
                   functionResponseParts.push({

@@ -165,7 +165,7 @@ export class JourneyService {
             phaseId: uuidv4(),
             sequence: index + 1,
             name: p.name,
-            description: p.description,
+            description: p.description || '',  // Fallback to empty string if not provided
             context: p.context || ''
         }));
 
@@ -257,20 +257,12 @@ export class JourneyService {
             return null;
         }
 
-        // Validate that ALL swimlanes have descriptions
-        const missingDescriptions = swimlanes.filter(s => !s.description || s.description.trim().length === 0);
-        if (missingDescriptions.length > 0) {
-            logger.error(`[JourneyService] setSwimlanesBulk FAILED: Swimlanes missing descriptions`, {
-                missingNames: missingDescriptions.map(s => s.name)
-            });
-            throw new Error(`Swimlanes missing descriptions: ${missingDescriptions.map(s => s.name).join(', ')}. All swimlanes must have descriptions before saving.`);
-        }
-
+        // Note: Descriptions are now optional (handled with fallback to empty string)
         journey.swimlanes = swimlanes.map((s, index) => ({
             swimlaneId: uuidv4(),
             sequence: index + 1,
             name: s.name,
-            description: s.description,
+            description: s.description || '',  // Fallback to empty string if not provided
             context: s.context || ''
         }));
 

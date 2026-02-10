@@ -2366,6 +2366,83 @@
     }
 
     // ===========================================
+    // Tool Execution Indicator (Debugging/Visibility)
+    // ===========================================
+    function showToolIndicator(toolName, status, error = null) {
+      // Remove existing indicator if present
+      hideToolIndicator();
+
+      const indicator = document.createElement('div');
+      indicator.id = 'toolIndicator';
+      indicator.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        background: ${status === 'error' ? '#dc2626' : status === 'success' ? '#16a34a' : '#f59e0b'};
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-family: var(--max-font-family-mono);
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: slideInRight 0.2s ease-out;
+      `;
+
+      const icon = status === 'executing' ? '⚙️' : status === 'success' ? '✅' : '❌';
+      const text = status === 'executing' ? `Calling ${toolName}...` :
+                   status === 'success' ? `${toolName} succeeded` :
+                   `${toolName} failed${error ? ': ' + error : ''}`;
+
+      indicator.innerHTML = `<span>${icon}</span><span>${text}</span>`;
+      document.body.appendChild(indicator);
+
+      // Also log to console for debugging
+      console.log(`%c[TOOL] ${toolName} - ${status}`, `color: ${status === 'error' ? 'red' : status === 'success' ? 'green' : 'orange'}; font-weight: bold;`, error || '');
+    }
+
+    function hideToolIndicator() {
+      const indicator = document.getElementById('toolIndicator');
+      if (indicator) {
+        indicator.style.animation = 'slideOutRight 0.2s ease-in';
+        setTimeout(() => indicator.remove(), 200);
+      }
+    }
+
+    // Add animations for tool indicator
+    if (!document.getElementById('tool-indicator-animations')) {
+      const style = document.createElement('style');
+      style.id = 'tool-indicator-animations';
+      style.textContent = `
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes slideOutRight {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // ===========================================
     // Message Handling
     // ===========================================
     async function sendMessage(isSystemStart = false) {
@@ -2454,7 +2531,23 @@
                 if (data.error) {
                   throw new Error(data.error);
                 }
-                
+
+                // Handle tool execution events (for debugging/visibility)
+                if (data.tool) {
+                  console.log(`[TOOL] ${data.tool} - ${data.status}`, data.args || data.error || '');
+
+                  // Show visual indicator for tool execution
+                  if (data.status === 'executing') {
+                    showToolIndicator(data.tool, 'executing');
+                  } else if (data.status === 'success') {
+                    showToolIndicator(data.tool, 'success');
+                    setTimeout(() => hideToolIndicator(), 1000);
+                  } else if (data.status === 'error') {
+                    showToolIndicator(data.tool, 'error', data.error);
+                    setTimeout(() => hideToolIndicator(), 3000);
+                  }
+                }
+
                 // If we get text and haven't created the bubble yet, do it now
                 if (data.text) {
                   // Don't create new messages after completion button is shown

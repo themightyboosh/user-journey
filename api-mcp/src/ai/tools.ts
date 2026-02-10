@@ -146,7 +146,7 @@ export const JOURNEY_TOOLS = [
             },
             {
                 name: "set_phases_bulk",
-                description: "Set the list of high-level phases (steps) for the journey.",
+                description: "Set the list of high-level phases (steps) for the journey. Description is optional - backend will handle empty descriptions.",
                 parameters: {
                     type: "OBJECT",
                     properties: {
@@ -159,7 +159,7 @@ export const JOURNEY_TOOLS = [
                                     name: { type: "STRING" },
                                     description: { type: "STRING" }
                                 },
-                                required: ["name", "description"]
+                                required: ["name"]  // ← Description now optional
                             }
                         }
                     },
@@ -168,7 +168,7 @@ export const JOURNEY_TOOLS = [
             },
             {
                 name: "set_swimlanes_bulk",
-                description: "Set the list of actors/swimlanes. IMPORTANT: This automatically triggers matrix generation internally. DO NOT call generate_matrix after this tool.",
+                description: "Set the list of actors/swimlanes. Description is optional - backend will handle empty descriptions. IMPORTANT: This automatically triggers matrix generation internally. DO NOT call generate_matrix after this tool.",
                 parameters: {
                     type: "OBJECT",
                     properties: {
@@ -181,7 +181,7 @@ export const JOURNEY_TOOLS = [
                                     name: { type: "STRING" },
                                     description: { type: "STRING" }
                                 },
-                                required: ["name", "description"]
+                                required: ["name"]  // ← Description now optional
                             }
                         }
                     },
