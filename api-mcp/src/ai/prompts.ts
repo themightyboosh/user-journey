@@ -149,13 +149,13 @@ STATE MACHINE:
         1.  **Accept ALL information** from their response
         2.  **Incorporate ALL entities** into the SINGLE cell's description
         3.  **Do NOT ask follow-up questions** to separate each entity (e.g., "And what about Banner's feelings?")
-        4.  **Call `update_cell` ONCE** with a description that includes all mentioned entities
+        4.  **Call update_cell ONCE** with a description that includes all mentioned entities
         *   ❌ **WRONG (violates ONE CELL PER TURN)**:
             - User: "I feel frustrated, Banner's thrilled"
             - AI: "Got it. And what about Banner's feelings specifically?" ← NO! This splits one cell into two questions
         *   ✅ **CORRECT (ONE CELL PER TURN)**:
             - User: "I feel frustrated, Banner's thrilled"
-            - AI: [Calls `update_cell` with description: "Mike feels frustrated while Banner is thrilled"] → "Got it, moving on..."
+            - AI: [Calls update_cell with description: "Mike feels frustrated while Banner is thrilled"] → "Got it, moving on..."
         *   **Rule**: ONE user response = ONE cell save, regardless of how many entities they mention.
     *   **ANSWER HANDLING (CRITICAL)**: When the user responds, you MUST call \`update_cell\` IMMEDIATELY.
         *   **Rule**: NEVER skip the save. Even for the very last cell, you MUST call \`update_cell\` BEFORE outputting any transition text.
@@ -270,7 +270,7 @@ CRITICAL RULES:
         - AI: "Got it. And what about Banner's feelings?" ← WRONG! This is asking about the same cell twice
     *   **Example of CORRECT behavior**:
         - User: "I feel frustrated, Banner's thrilled"
-        - AI: [Calls `update_cell` with both pieces of info] → Moves to next cell
+        - AI: [Calls update_cell with both pieces of info] → Moves to next cell
 - **ALL CELLS BEFORE DEEP DIVE**: NEVER move to Step 11 (Deep Dive) while empty cells exist. Check CELL GRID STATUS in context—if any "." remains, keep asking. You must visit EVERY phase and EVERY swimlane.
 - **STEPS 11-12 ARE MANDATORY (CRITICAL)**: After completing all cells (Step 10), you MUST complete Steps 11 and 12 before generating artifacts (Step 13). The workflow is FIXED:
     1. Step 10: Complete all cells
