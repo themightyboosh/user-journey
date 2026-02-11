@@ -641,21 +641,57 @@ CRITICAL RULES:
 `;
 
 // --- SessionConfig Interface ---
+export type ConfirmationMode = 'CONFIRM' | 'BYPASS';
+export type ProbeMode = 'ALWAYS_PROBE' | 'NEVER_PROBE' | 'AUTO_PROBE';
+
+export interface ConfigItem<T> {
+    value: T;
+    confirmationMode: ConfirmationMode;
+}
+
+export interface GateConfig<T> {
+    data: T;
+    probeMode: ProbeMode;
+    probeThreshold?: number; // 0.0 - 1.0 (default 1.0)
+}
+
 export interface SessionConfig {
-    name?: string;                       // Pre-filled user name
-    role?: string;                       // Pre-filled user role
-    journeyName?: string;                // Pre-filled journey name
-    journeyDescription?: string;         // Pre-filled journey description (NEW)
-    journeyPrompt?: string;              // Custom prompt for journey capture
-    welcomePrompt?: string;              // Custom welcome greeting
-    ragContext?: string;                 // Knowledge base text
-    personaFrame?: string;               // Custom research framing
-    personaLanguage?: string;            // Custom terminology guide
-    phases?: Array<{ name: string; description?: string }>;    // Phases (description optional)
-    swimlanes?: Array<{ name: string; description?: string }>; // Swimlanes (description optional)
-    journeyId?: string;                  // Linked journey ID
-    agentName?: string;                  // AI agent name
-    knowledgeContext?: string;           // Processed knowledge (internal)
+    // Identity Group
+    identity?: {
+        name?: ConfigItem<string>;
+        role?: ConfigItem<string>;
+    };
+    
+    // Journey Context Group
+    journey?: {
+        name?: ConfigItem<string>;
+        description?: ConfigItem<string>;
+        prompt?: string; // Custom prompt override
+    };
+
+    // Structure Group
+    structure?: {
+        phases?: GateConfig<Array<{ name: string; description?: string }>>;
+        swimlanes?: GateConfig<Array<{ name: string; description?: string }>>;
+    };
+
+    // Global Settings
+    agentName?: string;
+    welcomePrompt?: string;
+    ragContext?: string;
+    knowledgeContext?: string;
+    personaFrame?: string;
+    personaLanguage?: string;
+    journeyId?: string;
+
+    // --- Legacy Fields (Deprecated but supported for migration) ---
+    name?: string;
+    role?: string;
+    journeyName?: string;
+    journeyDescription?: string;
+    journeyPrompt?: string;
+    phases?: Array<{ name: string; description?: string }>;
+    swimlanes?: Array<{ name: string; description?: string }>;
 }
 
 /**
@@ -746,43 +782,59 @@ Cell ID: ${nextCell.id}
 
 /**
  * Build Step 1 instruction based on identity state (code-first pattern).
- * Returns ONLY the relevant instruction - no multi-mode logic.
+ * Respects confirmationMode ('CONFIRM' | 'BYPASS').
  */
 function buildStep1(config: SessionConfig): string {
-    const hasName = !!config.name;
-    const hasRole = !!config.role;
+    // Flatten config for easier access (support both new and legacy)
+    const name = config.identity?.name?.value || config.name;
+    const role = config.identity?.role?.value || config.role;
+    const nameMode = config.identity?.name?.confirmationMode || 'BYPASS';
+    const roleMode = config.identity?.role?.confirmationMode || 'BYPASS';
+    
+    const hasName = !!name;
+    const hasRole = !!role;
     const agentName = config.agentName || 'Max';
     const welcomePrompt = config.welcomePrompt || "Welcome! I'm here to understand your daily work and experiences.";
 
+    // CASE 1: Both Known
     if (hasName && hasRole) {
-        // BOTH KNOWN: Just verify
+        // BYPASS Mode (Silent Trust)
+        if (nameMode === 'BYPASS' && roleMode === 'BYPASS') {
+            return `1.  **Identity Established (BYPASS)**:
+    *   **Context**: Identity is pre-verified as ${name} (${role}).
+    *   **Action**: Call \`create_journey_map\` IMMEDIATELY with name: "${name}Draft", userName: "${name}", role: "${role}".
+    *   **Narrative**: Do NOT ask for confirmation. Just say: "${welcomePrompt} I see you're ${name}, a ${role}. Let's jump in."
+    *   **Transition**: Move directly to Step 2/3.`;
+        }
+        
+        // CONFIRM Mode (Verify)
         return `1.  **Verify Identity**:
     *   ${welcomePrompt}
-    *   Greet ${config.name} by name and state their role as "${config.role}".
-    *   Ask: "Just to verify, you're ${config.name}, a ${config.role}—is that correct?"
-    *   **Gate**: Wait for confirmation ('yes') before proceeding to Step 2.
-    *   **Then**: Call \`create_journey_map\` with name: "${config.name}Draft", userName: "${config.name}", role: "${config.role}"`;
+    *   Greet ${name} by name and state their role as "${role}".
+    *   Ask: "Just to verify, you're ${name}, a ${role}—is that correct?"
+    *   **Gate**: Wait for confirmation ('yes') before proceeding.
+    *   **Then**: Call \`create_journey_map\` with name: "${name}Draft", userName: "${name}", role: "${role}"`;
     }
 
+    // CASE 2: Name Only
     if (hasName && !hasRole) {
-        // NAME ONLY: Ask for role
         return `1.  **Get Role**:
     *   ${welcomePrompt}
-    *   Greet ${config.name} by name (their name is already established).
+    *   Greet ${name} by name.
     *   Ask only: "What do you do?"
-    *   **Then**: Call \`create_journey_map\` with name: "${config.name}Draft", userName: "${config.name}", role: [their answer]`;
+    *   **Then**: Call \`create_journey_map\` with name: "${name}Draft", userName: "${name}", role: [their answer]`;
     }
 
+    // CASE 3: Role Only
     if (!hasName && hasRole) {
-        // ROLE ONLY: Ask for name
         return `1.  **Get Name**:
     *   ${welcomePrompt}
-    *   Acknowledge they are a ${config.role} (their role is already established).
+    *   Acknowledge they are a ${role}.
     *   Ask only: "What's your name so I know who I'm chatting with?"
-    *   **Then**: Call \`create_journey_map\` with name: "[their answer]Draft", userName: [their answer], role: "${config.role}"`;
+    *   **Then**: Call \`create_journey_map\` with name: "[their answer]Draft", userName: [their answer], role: "${role}"`;
     }
 
-    // BOTH UNKNOWN: Ask for both
+    // CASE 4: Both Unknown
     return `1.  **Get Identity**:
     *   ${welcomePrompt}
     *   Introduce yourself as ${agentName}, a UX researcher.
@@ -792,32 +844,46 @@ function buildStep1(config: SessionConfig): string {
 
 /**
  * Build Step 3 instruction based on journey metadata state (code-first pattern).
- * Returns ONLY the relevant instruction - no multi-mode logic.
+ * Respects confirmationMode.
  */
 function buildStep3(config: SessionConfig): string {
-    const hasName = !!config.journeyName;
-    const hasDescription = !!config.journeyDescription;
-    const journeyPrompt = config.journeyPrompt || "Tell me about an important activity you perform and why it matters.";
+    const name = config.journey?.name?.value || config.journeyName;
+    const description = config.journey?.description?.value || config.journeyDescription;
+    const nameMode = config.journey?.name?.confirmationMode || 'BYPASS';
+    const descMode = config.journey?.description?.confirmationMode || 'BYPASS';
+    
+    const hasName = !!name;
+    const hasDescription = !!description;
+    const journeyPrompt = config.journey?.prompt || config.journeyPrompt || "Tell me about an important activity you perform and why it matters.";
 
     if (hasName && hasDescription) {
-        // FULL BYPASS: Both provided
-        return `3.  **Journey Setup (BYPASS)**:
-    *   Briefly acknowledge: "I see this is about ${config.journeyName}—got it."
-    *   Immediately call \`update_journey_metadata\` with:
+        // FULL BYPASS Mode
+        if (nameMode === 'BYPASS' && descMode === 'BYPASS') {
+            return `3.  **Journey Setup (BYPASS)**:
+    *   **Context**: Journey is pre-defined as "${name}" - "${description}".
+    *   **Action**: Call \`update_journey_metadata\` IMMEDIATELY with:
         - journeyMapId: (from CURRENT JOURNEY ID in context)
-        - name: "${config.journeyName}"
-        - description: "${config.journeyDescription}"
+        - name: "${name}"
+        - description: "${description}"
+    *   **Narrative**: Briefly acknowledge: "I see this is about ${name}—got it."
     *   **Transition**: JUMP directly to Step 5 (Phase Inquiry).`;
+        }
+        
+        // CONFIRM Mode
+        return `3.  **Journey Setup (Verify)**:
+    *   **Context**: Admin proposes "${name}" - "${description}".
+    *   **Action**: Ask: "I understand we're mapping '${name}': ${description}. Is that the right focus?"
+    *   **Gate**: Wait for confirmation ('yes') before calling tool.`;
     }
 
     if (hasName && !hasDescription) {
         // NAME ONLY: Ask for description
         return `3.  **Journey Setup (Get Description)**:
-    *   The journey is called "${config.journeyName}".
-    *   ${journeyPrompt} Or ask: "What is the main goal of ${config.journeyName}?" or "Why is this important?"
+    *   The journey is called "${name}".
+    *   ${journeyPrompt} Or ask: "What is the main goal of ${name}?" or "Why is this important?"
     *   **Voice Rule**: Convert their answer to imperative/gerund form (e.g., "Helping people..." not "I help people").
     *   **Formatting Rule**: Description must be PURE TEXT (no JSON, no variable assignments).
-    *   **Then**: Call \`update_journey_metadata\` with journeyMapId: [from CURRENT JOURNEY ID in context], name: "${config.journeyName}", description: [their answer]`;
+    *   **Then**: Call \`update_journey_metadata\` with journeyMapId: [from CURRENT JOURNEY ID in context], name: "${name}", description: [their answer]`;
     }
 
     // BOTH UNKNOWN: Ask and deduce
@@ -831,42 +897,59 @@ function buildStep3(config: SessionConfig): string {
 }
 
 /**
- * Build Step 5 instruction using Silent Configuration pattern.
- * If admin pre-filled phases, AI sees ONLY "call tool immediately" instruction.
- * If admin left it blank, AI sees interview logic.
+ * Build Step 5 instruction using Silent Configuration pattern & Probe Modes.
  */
 function buildStep5(config: SessionConfig): string {
+    const phasesData = config.structure?.phases?.data || config.phases;
+    const probeMode = config.structure?.phases?.probeMode || 'NEVER_PROBE';
+    const probeThreshold = config.structure?.phases?.probeThreshold || 1.0;
+
     // 1. ADMIN MODE (Pre-filled phases)
-    if (config.phases && Array.isArray(config.phases) && config.phases.length > 0) {
-        // Check if ALL phases have descriptions
-        const allHaveDescriptions = config.phases.every(p => p.description && p.description.trim().length > 0);
-
-        if (allHaveDescriptions) {
-            // FULL BYPASS - AI has one job: Save the data
-            return `5.  **Phase Setup (Admin Defined)**:
+    if (phasesData && Array.isArray(phasesData) && phasesData.length > 0) {
+        
+        // --- NEVER_PROBE (Trust Admin) ---
+        if (probeMode === 'NEVER_PROBE') {
+            return `5.  **Phase Setup (Admin Defined - TRUST)**:
     *   **Context**: The Admin has strictly defined the journey phases.
-    *   **Data**: ${JSON.stringify(config.phases)}
+    *   **Data**: ${JSON.stringify(phasesData)}
     *   **CRITICAL ACTION**: You MUST immediately call set_phases_bulk with the exact data above.
-    *   **Narrative Bridge**: While calling the tool, briefly inform the user in a single sentence (e.g., "I've loaded the standard phases for this journey type.") to maintain conversational flow.
+    *   **Narrative Bridge**: "I've loaded the standard phases for this journey type."
     *   **Constraint**: Do NOT ask the user for confirmation. Do NOT discuss the phases in detail. Call the tool immediately.
-    *   **Transition**: After tool success (stage advances to SWIMLANES), move to Step 7.`;
-        } else {
-            // PARTIAL PRE-FILL - Names provided, need descriptions
-            const phaseNames = config.phases.map(p => p.name).join(', ');
-            const missingDescriptions = config.phases.filter(p => !p.description || p.description.trim().length === 0).map(p => p.name);
+    *   **Transition**: After tool success, move to Step 7.`;
+        }
 
+        // --- ALWAYS_PROBE (Deep Dive) ---
+        if (probeMode === 'ALWAYS_PROBE') {
+            const phaseNames = phasesData.map(p => p.name).join(', ');
+            return `5.  **Phase Setup (Admin Defined - VERIFY)**:
+    *   **Context**: Admin proposes these phases: ${phaseNames}.
+    *   **Instruction**: You MUST verify these with the user using "Golden Threading".
+    *   **Opening**: "I see we usually break this into: ${phaseNames}. Does that match your mental model?"
+    *   **Deep Dive**: For EACH phase, ask ONE specific question to flesh out the description:
+        - "For [Phase], what exactly triggers this stage?"
+        - "What is the primary goal of [Phase]?"
+    *   **Action**: Accumulate their answers. Use admin descriptions as a base, but override with user insights.
+    *   **Tool Call**: Only call set_phases_bulk AFTER the user has confirmed the list and you have descriptions for all.`;
+        }
+
+        // --- AUTO_PROBE (Smart) ---
+        // Check if ALL phases have descriptions
+        const allHaveDescriptions = phasesData.every(p => p.description && p.description.trim().length > 0);
+        
+        if (allHaveDescriptions) {
+            // Treat as NEVER_PROBE if complete
+            return `5.  **Phase Setup (Admin Defined - AUTO COMPLETE)**:
+    *   **Context**: Admin data is complete.
+    *   **Data**: ${JSON.stringify(phasesData)}
+    *   **Action**: Call set_phases_bulk immediately. Do not ask.`;
+        } else {
+            // Partial data - Ask about missing items
+            const missing = phasesData.filter(p => !p.description || p.description.trim().length === 0).map(p => p.name);
             return `5.  **Phase Setup (Partial Admin Data)**:
-    *   **Context**: Admin provided phase names: ${phaseNames}
-    *   **Missing**: Descriptions for: ${missingDescriptions.join(', ')}
-    *   **Signpost**: "I see we're mapping ${phaseNames}."
-    *   **Probe (META-LEVEL ONLY)**: For EACH phase in missing list, ask ONE brief question:
-        *   ✅ CORRECT: "What does [Phase Name] represent?" or "What's happening during [Phase Name]?"
-        *   ❌ WRONG: "What do you do in [Phase Name]?" (too specific - that's cell-level)
-        *   **Goal**: Get 1-sentence overview (e.g., "Preparation before the event").
-    *   **Accumulate**: Store name + description for each phase. Use pre-filled descriptions where they exist.
-    *   **Confirm (SINGLE-GATE ONLY)**: After collecting ALL descriptions, summarize ONLY the phases and ask "Does this flow look right?"
-    *   **Action**: After user confirms "Yes", IMMEDIATELY call set_phases_bulk with complete array.
-    *   **Gate**: Do NOT mention swimlanes until this tool succeeds.`;
+    *   **Context**: Admin provided names but missing descriptions for: ${missing.join(', ')}.
+    *   **Action**: "I see the stages are ${phasesData.map(p => p.name).join(', ')}. Let's clarify a few of them."
+    *   **Probe**: Ask ONLY about the missing ones: "What happens during the [Missing Phase] stage?"
+    *   **Then**: Call set_phases_bulk with the complete list.`;
         }
     }
 
@@ -875,105 +958,77 @@ function buildStep5(config: SessionConfig): string {
     *   **Goal**: Get the horizontal timeline (columns) quickly without over-probing.
     *   **Ask**: "What are the high-level steps? List them out (e.g., Prepare, Walk, Return)."
     *   **Action - AUTO-DESCRIBE PATTERN**:
-        1.  **Accept the list** the user provides (e.g., "Find Leash, Go Outside").
-        2.  **AUTO-DESCRIBE self-explanatory terms**: If a phase name is obvious (like "Find Leash", "Go Outside", "Prepare Breakfast"), DO NOT ask the user to describe it. Write a brief 1-sentence description yourself based on common sense.
-            *   ✅ CORRECT (Self-Explanatory): "Find Leash" → Auto-describe as "Locating and retrieving the leash before heading out"
-            *   ✅ CORRECT (Self-Explanatory): "Go Outside" → Auto-describe as "Exiting the home to begin the outdoor activity"
-            *   ❌ ASK FOR CLARIFICATION (Cryptic): "Phase X", "The Ritual", "Step 3" → These need user explanation
-        3.  **Probe ONLY if cryptic**: If a phase name is unclear, vague, or uses jargon, ask ONE brief question: "What happens during [Phase Name]?"
-        4.  **Confirm**: "So we have [Phase 1], [Phase 2], [Phase 3]. Does that timeline look right?"
-        5.  **Visual Narration**: Say "I'm drawing those columns on the canvas now..." to confirm the tool is executing.
-        6.  **Tool Call**: After user confirms "Yes", IMMEDIATELY call set_phases_bulk with complete array (name + auto-described or user-provided descriptions).
-    *   **Gate (CRITICAL)**:
-        - Never call set_phases_bulk without explicit "Yes" confirmation.
-        - Never call without descriptions for ALL phases (auto-generated OR user-provided).
-        - Do NOT ask "What does [Phase] mean?" unless the term is genuinely cryptic.
-        - Do NOT mention swimlanes until this tool succeeds.`;
+        1.  **Accept the list** the user provides.
+        2.  **AUTO-DESCRIBE self-explanatory terms**: If a phase name is obvious, write a 1-sentence description yourself.
+        3.  **Probe ONLY if cryptic**: If a phase name is unclear, ask ONE brief question.
+        4.  **Confirm**: "So we have [Phase 1], [Phase 2]... Does that timeline look right?"
+        5.  **Tool Call**: After user confirms "Yes", IMMEDIATELY call set_phases_bulk.`;
 }
 
 /**
- * Build Step 7 instruction using Silent Configuration pattern.
- * If admin pre-filled swimlanes, AI sees ONLY "call tool immediately" instruction.
- * If admin left it blank, AI sees interview logic.
+ * Build Step 7 instruction using Silent Configuration pattern & Probe Modes.
  */
 function buildStep7(config: SessionConfig): string {
+    const swimlanesData = config.structure?.swimlanes?.data || config.swimlanes;
+    const probeMode = config.structure?.swimlanes?.probeMode || 'NEVER_PROBE';
+    const probeThreshold = config.structure?.swimlanes?.probeThreshold || 1.0;
+
     // 1. ADMIN MODE (Pre-filled swimlanes)
-    if (config.swimlanes && Array.isArray(config.swimlanes) && config.swimlanes.length > 0) {
-        // Check if ALL swimlanes have descriptions
-        const allHaveDescriptions = config.swimlanes.every(s => s.description && s.description.trim().length > 0);
-
-        if (allHaveDescriptions) {
-            // FULL BYPASS - AI has one job: Save the data
-            return `7.  **Swimlane Setup (Admin Defined)**:
-    *   **Context**: The Admin has strictly defined the journey swimlanes (experience layers).
-    *   **Data**: ${JSON.stringify(config.swimlanes)}
+    if (swimlanesData && Array.isArray(swimlanesData) && swimlanesData.length > 0) {
+        
+        // --- NEVER_PROBE (Trust Admin) ---
+        if (probeMode === 'NEVER_PROBE') {
+            return `7.  **Swimlane Setup (Admin Defined - TRUST)**:
+    *   **Context**: The Admin has strictly defined the journey swimlanes.
+    *   **Data**: ${JSON.stringify(swimlanesData)}
     *   **CRITICAL ACTION**: You MUST immediately call set_swimlanes_bulk with the exact data above.
-    *   **Narrative Bridge**: While calling the tool, briefly inform the user in a single sentence (e.g., "I've set up the experience layers we'll track across each stage.") to maintain conversational flow.
-    *   **Constraint**: Do NOT ask the user for confirmation. Do NOT discuss the swimlanes in detail. Call the tool immediately.
-    *   **Note**: This tool automatically calls generate_matrix internally.
-    *   **Transition**: After tool success (stage advances to CELL_POPULATION), move to Step 9.`;
-        } else {
-            // PARTIAL PRE-FILL - Names provided, need descriptions
-            const swimlaneNames = config.swimlanes.map(s => s.name).join(', ');
-            const missingDescriptions = config.swimlanes.filter(s => !s.description || s.description.trim().length === 0).map(s => s.name);
+    *   **Narrative Bridge**: "I've set up the experience layers we'll track across each stage."
+    *   **Constraint**: Do NOT ask the user for confirmation. Call the tool immediately.
+    *   **Transition**: After tool success, move to Step 9.`;
+        }
 
+        // --- ALWAYS_PROBE (Deep Dive) ---
+        if (probeMode === 'ALWAYS_PROBE') {
+            const swimlaneNames = swimlanesData.map(s => s.name).join(', ');
+            return `7.  **Swimlane Setup (Admin Defined - VERIFY)**:
+    *   **Context**: Admin proposes these layers: ${swimlaneNames}.
+    *   **Instruction**: Verify these with "Golden Threading".
+    *   **Opening**: "We'll be tracking ${swimlaneNames}. Before we start, let's align on definitions."
+    *   **Deep Dive**: For EACH swimlane, ask:
+        - "When we track [Swimlane], whose perspective is this? Yours, the team's, or the user's?" (Entity Clarification)
+        - "What specific data points go into [Swimlane]?"
+    *   **Action**: Accumulate answers. Ensure descriptions specify the *Perspective* (e.g., "User's emotions" vs "System status").
+    *   **Tool Call**: Only call set_swimlanes_bulk AFTER user confirmation.`;
+        }
+
+        // --- AUTO_PROBE (Smart) ---
+        const allHaveDescriptions = swimlanesData.every(s => s.description && s.description.trim().length > 0);
+        
+        if (allHaveDescriptions) {
+            return `7.  **Swimlane Setup (Admin Defined - AUTO COMPLETE)**:
+    *   **Context**: Admin data is complete.
+    *   **Data**: ${JSON.stringify(swimlanesData)}
+    *   **Action**: Call set_swimlanes_bulk immediately. Do not ask.`;
+        } else {
+            const missing = swimlanesData.filter(s => !s.description || s.description.trim().length === 0).map(s => s.name);
             return `7.  **Swimlane Setup (Partial Admin Data)**:
-    *   **Context**: Admin provided swimlane names: ${swimlaneNames}
-    *   **Missing**: Descriptions for: ${missingDescriptions.join(', ')}
-    *   **Signpost**: "We'll be tracking ${swimlaneNames} across each stage."
-    *   **Probe (MANDATORY - ONE QUESTION PER MISSING DESCRIPTION)**: For EACH swimlane in missing list, ask ONE brief question:
-        *   ✅ CORRECT: "What does [Swimlane] track?" or "So [Swimlane] captures what exactly?"
-        *   ❌ WRONG: "What are you feeling during this journey?" (too specific - that's cell-level)
-        *   **Goal**: Get 1-2 sentence definition of what this LAYER represents across all stages.
-        *   **Examples**:
-            - "Feelings" → "Your emotional state throughout the process"
-            - "Actions" → "What you physically do at each stage"
-        *   **CRITICAL - Ambiguity Detection**: If swimlane name is generic (like "Feelings", "Actions") and user's answer suggests multiple entities/actors, ask clarifying question:
-            - ✅ CORRECT: "Whose feelings - yours, Banner's, or both?"
-            - **Rule**: Swimlane descriptions MUST specify whose perspective if multiple actors exist.
-    *   **Accumulate**: Store name + description for each swimlane. Use pre-filled descriptions where they exist.
-    *   **Confirm (SINGLE-GATE ONLY)**: After collecting ALL descriptions, summarize with descriptions: "[Swimlane 1]: [desc], [Swimlane 2]: [desc]. Are these the right layers?"
-    *   **Action**: After user confirms "Yes", IMMEDIATELY call set_swimlanes_bulk with complete array (all swimlanes must have descriptions).
-    *   **Gate (CRITICAL)**:
-        - Do NOT call set_swimlanes_bulk until ALL swimlanes have descriptions (no empty strings allowed).
-        - Do NOT mention cells or matrix until this tool succeeds.
-        - Do NOT proceed to Step 9 until you see stage transition to CELL_POPULATION.`;
+    *   **Context**: Admin provided names but missing descriptions for: ${missing.join(', ')}.
+    *   **Action**: "We're tracking ${swimlanesData.map(s => s.name).join(', ')}. Let's define the ones I'm unsure about."
+    *   **Probe**: Ask ONLY about: ${missing.join(', ')}. "What exactly does [Swimlane] capture?"
+    *   **Then**: Call set_swimlanes_bulk with the complete list.`;
         }
     }
 
     // 2. USER MODE (Interview - no admin data)
-    return `7.  **Swimlane Discovery (The Rows - "Columns vs Rows" Analogy)**:
-    *   **Transition Script (CRITICAL - Prevent "I thought we already had?!" confusion)**:
-        "Great! I've drawn those stages as the **Columns** of our map. Now we need the **Rows** (the layers we'll track across each stage)."
+    return `7.  **Swimlane Discovery (The Rows)**:
+    *   **Transition**: "Great! I've drawn those stages as the **Columns**. Now we need the **Rows** (experience layers)."
     *   **Prompt**: "What layers should we track? Common examples: Actions, Feelings, Pain Points, Tools."
-    *   **Constraint**: These apply to ALL columns. Don't let user define column-specific details here (that's cell-level).
-    *   **Ambiguity Check (ONE ROUND MAX - Entity Clarification ONLY)**:
-        - If user says generic term like "Likes" or "Feelings", ASK: "Whose [term] - yours, [other actor's], or both?"
-        - If user says specific term like "My Frustrations" or "Banner's Energy Level", ACCEPT IT immediately.
-    *   **Probing for Descriptions (MANDATORY - DO NOT SKIP)**:
-        - After getting the swimlane NAMES, you MUST ask clarifying questions to understand what each layer represents.
-        - **ONE question per swimlane MAX** to get a brief description:
-            - ✅ CORRECT: "What kind of things go in the [Swimlane] layer?"
-            - ✅ CORRECT: "So [Swimlane] tracks what exactly?"
-            - ❌ WRONG: "What are you feeling during this journey?" (too specific - that's cell-level)
-        - **Goal**: Get 1-2 sentence definition of what this LAYER represents across ALL stages.
-        - **Examples**:
-            - "Positive Feelings" → "Positive emotions you experience during each stage"
-            - "Actions" → "What you physically do in each stage"
-            - "Pain Points" → "Frustrations or difficulties you encounter"
-    *   **Action - Description Collection**:
-        1.  **Accept the list** (e.g., "Positive Feelings, Negative Feelings").
-        2.  **Clarify entity if needed** (see Ambiguity Check above).
-        3.  **CRITICAL - PROBE FOR DESCRIPTIONS**: For EACH swimlane, ask ONE brief question to get a description. DO NOT SKIP THIS STEP.
-        4.  **Confirm**: After collecting ALL descriptions, summarize: "So the rows are: [Swimlane 1]: [description], [Swimlane 2]: [description]. Are these the right layers?"
-        5.  **Visual Narration ONLY AFTER TOOL SUCCESS**: After calling the tool successfully, say "I've added those rows to the grid" to confirm.
-        6.  **Tool Call**: After "Yes" confirmation, IMMEDIATELY call set_swimlanes_bulk with COMPLETE data (name + description for ALL).
-    *   **Gate (CRITICAL - BLOCKING)**:
-        - STOP: Do NOT say "I'm adding those rows" UNTIL you have ALL descriptions collected.
-        - STOP: Never call set_swimlanes_bulk without explicit "Yes" confirmation.
-        - STOP: Never call without descriptions for ALL swimlanes (no empty strings, no null values).
-        - **HARD STOP**: After calling \`set_swimlanes_bulk\`, you MUST END YOUR TURN. Do NOT ask about the first cell yet. Wait for the system to generate the matrix and transition the stage to 'CELL_POPULATION'.
-        - **Prohibition**: Do NOT attempt to fill any cells in the same response as defining swimlanes.`;
+    *   **Action**:
+        1.  **Accept list**: e.g., "Actions, Feelings".
+        2.  **Clarify Entity**: "Whose feelings? Yours or the user's?" (CRITICAL).
+        3.  **Probe for Descriptions**: Ask ONE question per layer to define it.
+        4.  **Confirm**: "So the rows are: [List]. Correct?"
+        5.  **Tool Call**: After "Yes", call set_swimlanes_bulk.`;
 }
 
 // PHASE 2: Build Current Objective (Director's Note)
@@ -1090,7 +1145,7 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
 
     // --- Global Variable Replacements ---
     const welcomePrompt = config.welcomePrompt || defaultWelcome;
-    const journeyPrompt = config.journeyPrompt || defaultJourney;
+    const journeyPrompt = config.journey?.prompt || config.journeyPrompt || defaultJourney;
     const agentName = config.agentName || "Max";
 
     instruction = instruction.replace(/{{AGENT_NAME}}/g, agentName);
@@ -1112,28 +1167,34 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
     contextInjection += `- AGENT NAME: ${agentName}\n`;
 
     // Identity (appears ONCE, not three times)
-    if (config.name) contextInjection += `- User Name: ${config.name}\n`;
-    if (config.role) contextInjection += `- User Role: ${config.role}\n`;
+    const name = config.identity?.name?.value || config.name;
+    const role = config.identity?.role?.value || config.role;
+    if (name) contextInjection += `- User Name: ${name}\n`;
+    if (role) contextInjection += `- User Role: ${role}\n`;
 
     // Journey metadata
-    if (config.journeyName) {
-        contextInjection += `- Journey Name: ${config.journeyName}\n`;
+    const journeyName = config.journey?.name?.value || config.journeyName;
+    const journeyDescription = config.journey?.description?.value || config.journeyDescription;
+    if (journeyName) {
+        contextInjection += `- Journey Name: ${journeyName}\n`;
     }
-    if (config.journeyDescription) {
-        contextInjection += `- Journey Description: ${config.journeyDescription}\n`;
+    if (journeyDescription) {
+        contextInjection += `- Journey Description: ${journeyDescription}\n`;
     }
 
     // Pre-defined structure (explicit JSON for bypass modes)
-    if (config.phases && Array.isArray(config.phases) && config.phases.length > 0) {
-        const allPhaseDescriptions = config.phases.every(p => p.description && p.description.trim().length > 0);
+    const phasesData = config.structure?.phases?.data || config.phases;
+    if (phasesData && Array.isArray(phasesData) && phasesData.length > 0) {
+        const allPhaseDescriptions = phasesData.every(p => p.description && p.description.trim().length > 0);
         const statusLabel = allPhaseDescriptions ? '(COMPLETE)' : '(PARTIAL - some descriptions missing)';
-        contextInjection += `- PHASES (PRE-DEFINED) ${statusLabel}: ${JSON.stringify(config.phases)}\n`;
+        contextInjection += `- PHASES (PRE-DEFINED) ${statusLabel}: ${JSON.stringify(phasesData)}\n`;
     }
 
-    if (config.swimlanes && Array.isArray(config.swimlanes) && config.swimlanes.length > 0) {
-        const allSwimlaneDescriptions = config.swimlanes.every(s => s.description && s.description.trim().length > 0);
+    const swimlanesData = config.structure?.swimlanes?.data || config.swimlanes;
+    if (swimlanesData && Array.isArray(swimlanesData) && swimlanesData.length > 0) {
+        const allSwimlaneDescriptions = swimlanesData.every(s => s.description && s.description.trim().length > 0);
         const statusLabel = allSwimlaneDescriptions ? '(COMPLETE)' : '(PARTIAL - some descriptions missing)';
-        contextInjection += `- SWIMLANES (PRE-DEFINED) ${statusLabel}: ${JSON.stringify(config.swimlanes)}\n`;
+        contextInjection += `- SWIMLANES (PRE-DEFINED) ${statusLabel}: ${JSON.stringify(swimlanesData)}\n`;
     }
 
     // Journey ID for tool calls

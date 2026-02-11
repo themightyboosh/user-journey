@@ -219,81 +219,106 @@ server.post('/api/chat', async (request, reply) => {
           logger.info('Fetched journey state', { found: !!journeyState });
       }
 
-      // PHASE 3: Auto-Execution Pattern (Bypass LLM for Admin Defaults)
-      // CRITICAL: Only bypass if COMPLETE data is present (name + description)
-      // Partial data (names only) goes through AI for probing
+// PHASE 3: Auto-Execution Logic (Refactored for Granular Control)
       const currentStage = journeyState?.stage || 'IDENTITY';
 
-      // Auto-execute phases if admin provided COMPLETE data and we're AT the phases stage
-      if (currentStage === 'PHASES' && config.phases && config.phases.length > 0 && journeyState) {
-          // Check if ALL phases have descriptions (complete data)
-          const hasCompleteData = config.phases.every((p: any) =>
-              p.name && p.description && p.description.trim().length > 0
+      // --- Helper: Auto-Execution Decision Engine ---
+      const shouldAutoExecute = (
+          stage: string, 
+          configGroup: any, // e.g., config.structure.phases or legacy config.phases
+          dataArray: any[]
+      ): boolean => {
+          if (!dataArray || dataArray.length === 0) return false;
+
+          // 1. Check Completeness (Data Quality)
+          const allHaveDescriptions = dataArray.every((item: any) => 
+              item.name && item.description && item.description.trim().length > 0
           );
 
-          if (hasCompleteData) {
-              logger.info(`🚀 [AUTO-EXEC] Admin phases with COMPLETE data detected, bypassing LLM`, {
-                  phases: config.phases.map((p: any) => p.name)
-              });
+          // 2. Determine Probe Mode
+          // Support both new nested config and legacy flat config
+          let probeMode = 'NEVER_PROBE'; // Default: Trust admin data
+          if (configGroup?.probeMode) {
+              probeMode = configGroup.probeMode;
+          }
 
+          logger.info(`[AutoExec] Evaluating ${stage}`, { 
+              probeMode, 
+              itemCount: dataArray.length, 
+              allHaveDescriptions 
+          });
+
+          // 3. Evaluate Logic
+          if (probeMode === 'ALWAYS_PROBE') {
+              logger.info(`[AutoExec] ${stage}: Skipped (ALWAYS_PROBE is active)`);
+              return false; // Force AI to ask questions
+          }
+
+          if (probeMode === 'AUTO_PROBE') {
+              if (allHaveDescriptions) {
+                  logger.info(`[AutoExec] ${stage}: Approved (AUTO_PROBE + Complete Data)`);
+                  return true;
+              } else {
+                  logger.info(`[AutoExec] ${stage}: Skipped (AUTO_PROBE + Missing Descriptions)`);
+                  return false; // Let AI probe missing items
+              }
+          }
+
+          // NEVER_PROBE (Default)
+          // If data is complete, execute. 
+          // If data is partial, we MUST let AI probe (otherwise we save empty descriptions)
+          if (allHaveDescriptions) {
+              logger.info(`[AutoExec] ${stage}: Approved (NEVER_PROBE + Complete Data)`);
+              return true;
+          }
+          
+          logger.info(`[AutoExec] ${stage}: Skipped (Data Incomplete)`);
+          return false;
+      };
+
+      // --- Phases Auto-Execution ---
+      const phasesData = config.structure?.phases?.data || config.phases;
+      const phasesConfig = config.structure?.phases || {};
+      
+      if (currentStage === 'PHASES' && phasesData && journeyState) {
+          if (shouldAutoExecute('PHASES', phasesConfig, phasesData)) {
+              logger.info(`🚀 [AUTO-EXEC] Executing set_phases_bulk`);
               await aiService.executeTool(config.journeyId!, {
                   name: 'set_phases_bulk',
-                  args: { journeyMapId: config.journeyId, phases: config.phases }
+                  args: { journeyMapId: config.journeyId, phases: phasesData }
               });
 
-              // Refresh journey state after tool execution
               journeyState = await aiService.getJourneyState(config.journeyId!);
-
-              // Stream synthetic message to user
+              
               if (!reply.raw.destroyed && reply.raw.writable) {
-                  reply.raw.write(`data: ${JSON.stringify({ text: `I've applied the ${config.phases.length} standard phases for this template.\n\n` })}\n\n`);
-              }
-
-              // IMPORTANT: Return early to skip AI processing for this turn
-              // The frontend will poll and get the updated journey state
-              if (!reply.raw.destroyed && reply.raw.writable) {
+                  reply.raw.write(`data: ${JSON.stringify({ text: `I've applied the ${phasesData.length} standard phases for this template.\n\n` })}\n\n`);
                   reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
                   reply.raw.end();
               }
               return;
-          } else {
-              logger.info(`ℹ️ Admin phases present but INCOMPLETE (missing descriptions), sending to AI for probing`);
           }
       }
 
-      // Auto-execute swimlanes if admin provided COMPLETE data and we're AT the swimlanes stage
-      if (currentStage === 'SWIMLANES' && config.swimlanes && config.swimlanes.length > 0 && journeyState) {
-          // Check if ALL swimlanes have descriptions (complete data)
-          const hasCompleteData = config.swimlanes.every((s: any) =>
-              s.name && s.description && s.description.trim().length > 0
-          );
+      // --- Swimlanes Auto-Execution ---
+      const swimlanesData = config.structure?.swimlanes?.data || config.swimlanes;
+      const swimlanesConfig = config.structure?.swimlanes || {};
 
-          if (hasCompleteData) {
-              logger.info(`🚀 [AUTO-EXEC] Admin swimlanes with COMPLETE data detected, bypassing LLM`, {
-                  swimlanes: config.swimlanes.map((s: any) => s.name)
-              });
-
+      if (currentStage === 'SWIMLANES' && swimlanesData && journeyState) {
+          if (shouldAutoExecute('SWIMLANES', swimlanesConfig, swimlanesData)) {
+              logger.info(`🚀 [AUTO-EXEC] Executing set_swimlanes_bulk`);
               await aiService.executeTool(config.journeyId!, {
                   name: 'set_swimlanes_bulk',
-                  args: { journeyMapId: config.journeyId, swimlanes: config.swimlanes }
+                  args: { journeyMapId: config.journeyId, swimlanes: swimlanesData }
               });
 
-              // Refresh journey state after tool execution
               journeyState = await aiService.getJourneyState(config.journeyId!);
 
-              // Stream synthetic message to user
               if (!reply.raw.destroyed && reply.raw.writable) {
-                  reply.raw.write(`data: ${JSON.stringify({ text: `I've set up the ${config.swimlanes.length} standard layers. Let's get started.\n\n` })}\n\n`);
-              }
-
-              // IMPORTANT: Return early to skip AI processing
-              if (!reply.raw.destroyed && reply.raw.writable) {
+                  reply.raw.write(`data: ${JSON.stringify({ text: `I've set up the ${swimlanesData.length} standard layers. Let's get started.\n\n` })}\n\n`);
                   reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
                   reply.raw.end();
               }
               return;
-          } else {
-              logger.info(`ℹ️ Admin swimlanes present but INCOMPLETE (missing descriptions), sending to AI for probing`);
           }
       }
 

@@ -69,15 +69,28 @@ const modules = {
 
 // DOM Elements - Template Module
 const formInputs = {
+    // Identity
     name: document.getElementById('name'),
     role: document.getElementById('role'),
+    
+    // Journey Context
     journey: document.getElementById('journey'),
     journeyDescription: document.getElementById('journey-description'),
+    
+    // Prompts
     welcomePrompt: document.getElementById('welcome-prompt'),
     journeyPrompt: document.getElementById('journey-prompt'),
     ragContext: document.getElementById('ragContext'),
     personaFrame: document.getElementById('personaFrame'),
-    personaLanguage: document.getElementById('personaLanguage')
+    personaLanguage: document.getElementById('personaLanguage'),
+
+    // Mode Selectors (New)
+    nameMode: document.getElementById('name-mode'),
+    roleMode: document.getElementById('role-mode'),
+    journeyMode: document.getElementById('journey-mode'),
+    journeyDescriptionMode: document.getElementById('journeyDescription-mode'),
+    phasesProbeMode: document.getElementById('phases-probe-mode'),
+    swimlanesProbeMode: document.getElementById('swimlanes-probe-mode')
 };
 const configNameInput = document.getElementById('configName');
 const templateDescriptionInput = document.getElementById('templateDescription');
@@ -310,6 +323,14 @@ function initApp() {
         });
     });
 
+    // Listeners for mode selectors
+    if (formInputs.nameMode) formInputs.nameMode.addEventListener('change', updateUrl);
+    if (formInputs.roleMode) formInputs.roleMode.addEventListener('change', updateUrl);
+    if (formInputs.journeyMode) formInputs.journeyMode.addEventListener('change', updateUrl);
+    if (formInputs.journeyDescriptionMode) formInputs.journeyDescriptionMode.addEventListener('change', updateUrl);
+    if (formInputs.phasesProbeMode) formInputs.phasesProbeMode.addEventListener('change', updateUrl);
+    if (formInputs.swimlanesProbeMode) formInputs.swimlanesProbeMode.addEventListener('change', updateUrl);
+
     // Swimlane & Phase buttons
     addSwimlaneBtn.addEventListener('click', () => addSwimlane());
     addPhaseBtn.addEventListener('click', () => addPhase());
@@ -481,36 +502,92 @@ function applyToggleUI(key) {
 
 function getActiveConfig() {
     // Returns only the fields that have their toggles ON
-    const config = {};
+    const config = {
+        // Initialize nested structure
+        identity: {},
+        journey: {},
+        structure: {}
+    };
 
+    // --- Identity ---
     if (toggleStates.name && formInputs.name.value.trim()) {
-        config.name = formInputs.name.value.trim();
+        config.identity.name = {
+            value: formInputs.name.value.trim(),
+            confirmationMode: formInputs.nameMode ? formInputs.nameMode.value : 'BYPASS'
+        };
+        // Backwards compatibility
+        config.name = config.identity.name.value;
     }
     if (toggleStates.role && formInputs.role.value.trim()) {
-        config.role = formInputs.role.value.trim();
+        config.identity.role = {
+            value: formInputs.role.value.trim(),
+            confirmationMode: formInputs.roleMode ? formInputs.roleMode.value : 'BYPASS'
+        };
+        // Backwards compatibility
+        config.role = config.identity.role.value;
     }
+
+    // --- Journey Context ---
     if (toggleStates.journey && formInputs.journey.value.trim()) {
-        config.journey = formInputs.journey.value.trim();
+        config.journey.name = {
+            value: formInputs.journey.value.trim(),
+            confirmationMode: formInputs.journeyMode ? formInputs.journeyMode.value : 'BYPASS'
+        };
+        // Backwards compatibility
+        config.journeyName = config.journey.name.value;
     }
     if (toggleStates.journeyDescription && formInputs.journeyDescription.value.trim()) {
-        config.journeyDescription = formInputs.journeyDescription.value.trim();
+        config.journey.description = {
+            value: formInputs.journeyDescription.value.trim(),
+            confirmationMode: formInputs.journeyDescriptionMode ? formInputs.journeyDescriptionMode.value : 'BYPASS'
+        };
+        // Backwards compatibility
+        config.journeyDescription = config.journey.description.value;
     }
+
+    // --- Global Settings ---
     if (toggleStates.welcomePrompt && formInputs.welcomePrompt.value.trim()) {
         config.welcomePrompt = formInputs.welcomePrompt.value.trim();
     }
     if (toggleStates.journeyPrompt && formInputs.journeyPrompt.value.trim()) {
-        config.journeyPrompt = formInputs.journeyPrompt.value.trim();
+        config.journey.prompt = formInputs.journeyPrompt.value.trim(); // New location
+        config.journeyPrompt = formInputs.journeyPrompt.value.trim();  // Legacy location
     }
     if (toggleStates.ragContext && formInputs.ragContext.value.trim()) {
         config.ragContext = formInputs.ragContext.value.trim();
+        config.knowledgeContext = formInputs.ragContext.value.trim(); // Server expects this too
+    }
+    if (toggleStates.personaFrame && formInputs.personaFrame.value.trim()) {
+        config.personaFrame = formInputs.personaFrame.value.trim();
+    }
+    if (toggleStates.personaLanguage && formInputs.personaLanguage.value.trim()) {
+        config.personaLanguage = formInputs.personaLanguage.value.trim();
+    }
+
+    // --- Structure (Phases & Swimlanes) ---
+    if (toggleStates.phases) {
+        const ph = getPhasesFromDOM();
+        if (ph.length > 0) {
+            config.structure.phases = {
+                data: ph,
+                probeMode: formInputs.phasesProbeMode ? formInputs.phasesProbeMode.value : 'NEVER_PROBE',
+                probeThreshold: 1.0 // Default
+            };
+            // Backwards compatibility
+            config.phases = ph;
+        }
     }
     if (toggleStates.swimlanes) {
         const sw = getSwimlanesFromDOM();
-        if (sw.length > 0) config.swimlanes = sw;
-    }
-    if (toggleStates.phases) {
-        const ph = getPhasesFromDOM();
-        if (ph.length > 0) config.phases = ph;
+        if (sw.length > 0) {
+            config.structure.swimlanes = {
+                data: sw,
+                probeMode: formInputs.swimlanesProbeMode ? formInputs.swimlanesProbeMode.value : 'NEVER_PROBE',
+                probeThreshold: 1.0 // Default
+            };
+            // Backwards compatibility
+            config.swimlanes = sw;
+        }
     }
 
     return config;
@@ -837,27 +914,41 @@ function loadConfiguration(link) {
     selectIcon(link.icon || 'file-text');
 
     // Load field values (always load, regardless of toggle state)
-    formInputs.name.value = link.name || '';
-    formInputs.role.value = link.role || '';
-    formInputs.journey.value = link.journey || '';
-    formInputs.journeyDescription.value = link.journeyDescription || '';
+    formInputs.name.value = link.name || (link.identity?.name?.value) || '';
+    if (link.identity?.name?.confirmationMode && formInputs.nameMode) formInputs.nameMode.value = link.identity.name.confirmationMode;
+
+    formInputs.role.value = link.role || (link.identity?.role?.value) || '';
+    if (link.identity?.role?.confirmationMode && formInputs.roleMode) formInputs.roleMode.value = link.identity.role.confirmationMode;
+
+    formInputs.journey.value = link.journey || (link.journey?.name?.value) || '';
+    if (link.journey?.name?.confirmationMode && formInputs.journeyMode) formInputs.journeyMode.value = link.journey.name.confirmationMode;
+
+    formInputs.journeyDescription.value = link.journeyDescription || (link.journey?.description?.value) || '';
+    if (link.journey?.description?.confirmationMode && formInputs.journeyDescriptionMode) formInputs.journeyDescriptionMode.value = link.journey.description.confirmationMode;
+
+    // Load Probing Modes
+    if (link.structure?.phases?.probeMode && formInputs.phasesProbeMode) formInputs.phasesProbeMode.value = link.structure.phases.probeMode;
+    if (link.structure?.swimlanes?.probeMode && formInputs.swimlanesProbeMode) formInputs.swimlanesProbeMode.value = link.structure.swimlanes.probeMode;
+
     formInputs.welcomePrompt.value = link.welcomePrompt || '';
-    formInputs.journeyPrompt.value = link.journeyPrompt || '';
+    formInputs.journeyPrompt.value = link.journeyPrompt || (link.journey?.prompt) || '';
     formInputs.ragContext.value = link.ragContext || '';
     formInputs.personaFrame.value = link.personaFrame || '';
     formInputs.personaLanguage.value = link.personaLanguage || '';
     updateRagCharCount();
 
-    // Load swimlanes
+    // Load swimlanes (Support both legacy flat array and new nested structure)
     swimlanesContainer.innerHTML = '';
-    if (link.swimlanes && Array.isArray(link.swimlanes)) {
-        link.swimlanes.forEach(sl => addSwimlane(sl.name, sl.description));
+    const swimlanesData = link.structure?.swimlanes?.data || link.swimlanes;
+    if (swimlanesData && Array.isArray(swimlanesData)) {
+        swimlanesData.forEach(sl => addSwimlane(sl.name, sl.description));
     }
 
     // Load phases
     phasesContainer.innerHTML = '';
-    if (link.phases && Array.isArray(link.phases)) {
-        link.phases.forEach(ph => addPhase(ph.name, ph.description));
+    const phasesData = link.structure?.phases?.data || link.phases;
+    if (phasesData && Array.isArray(phasesData)) {
+        phasesData.forEach(ph => addPhase(ph.name, ph.description));
     }
 
     // Load toggle states
@@ -886,6 +977,11 @@ function resetForm() {
 
     Object.values(formInputs).forEach(input => {
         if (input && input.value !== undefined) input.value = '';
+        // Reset selectors to defaults
+        if (input && input.tagName === 'SELECT') {
+            if (input.id.includes('probe')) input.value = 'NEVER_PROBE'; // Default: Trust admin
+            else input.value = 'BYPASS'; // Default: Silent
+        }
     });
 
     swimlanesContainer.innerHTML = '';
@@ -919,23 +1015,48 @@ async function saveConfiguration() {
     }
 
     // Save ALL values (even if toggle is off) so they persist for toggling
+    // Uses getActiveConfig() logic but without the toggle check to save everything
     const payload = {
         configName,
         description,
         icon: selectedIcon,
         global: globalToggle.checked,
         requireAuth: requireAuthToggle ? requireAuthToggle.checked : false,
+        
+        // Use the nested structure directly
+        identity: {
+            name: { value: formInputs.name.value.trim(), confirmationMode: formInputs.nameMode ? formInputs.nameMode.value : 'BYPASS' },
+            role: { value: formInputs.role.value.trim(), confirmationMode: formInputs.roleMode ? formInputs.roleMode.value : 'BYPASS' }
+        },
+        journey: {
+            name: { value: formInputs.journey.value.trim(), confirmationMode: formInputs.journeyMode ? formInputs.journeyMode.value : 'BYPASS' },
+            description: { value: formInputs.journeyDescription.value.trim(), confirmationMode: formInputs.journeyDescriptionMode ? formInputs.journeyDescriptionMode.value : 'BYPASS' },
+            prompt: formInputs.journeyPrompt.value.trim()
+        },
+        structure: {
+            phases: { 
+                data: getPhasesFromDOM(), 
+                probeMode: formInputs.phasesProbeMode ? formInputs.phasesProbeMode.value : 'NEVER_PROBE'
+            },
+            swimlanes: { 
+                data: getSwimlanesFromDOM(), 
+                probeMode: formInputs.swimlanesProbeMode ? formInputs.swimlanesProbeMode.value : 'NEVER_PROBE'
+            }
+        },
+
+        // Legacy Flat Fields (for backward compatibility with old clients/viewers)
         name: formInputs.name.value.trim(),
         role: formInputs.role.value.trim(),
         journey: formInputs.journey.value.trim(),
         journeyDescription: formInputs.journeyDescription.value.trim(),
-        welcomePrompt: formInputs.welcomePrompt.value.trim(),
         journeyPrompt: formInputs.journeyPrompt.value.trim(),
+        phases: getPhasesFromDOM(),
+        swimlanes: getSwimlanesFromDOM(),
+
+        welcomePrompt: formInputs.welcomePrompt.value.trim(),
         ragContext: formInputs.ragContext.value.trim(),
         personaFrame: formInputs.personaFrame.value.trim(),
         personaLanguage: formInputs.personaLanguage.value.trim(),
-        swimlanes: getSwimlanesFromDOM(),
-        phases: getPhasesFromDOM(),
         toggles: { ...toggleStates }
     };
 
@@ -1071,15 +1192,27 @@ function updateUrl() {
         const params = new URLSearchParams();
         const active = getActiveConfig();
 
-        if (active.name) params.set('name', active.name);
-        if (active.role) params.set('role', active.role);
-        if (active.journey) params.set('journey', active.journey);
-        if (active.journeyDescription) params.set('journey-description', active.journeyDescription);
+        // Support new nested structure
+        if (active.identity?.name?.value) params.set('name', active.identity.name.value);
+        if (active.identity?.role?.value) params.set('role', active.identity.role.value);
+        if (active.journey?.name?.value) params.set('journey', active.journey.name.value);
+        if (active.journey?.description?.value) params.set('journey-description', active.journey.description.value);
+        if (active.journey?.prompt) params.set('journey-prompt', active.journey.prompt);
+        
+        // Legacy fallback
+        if (!active.identity && active.name) params.set('name', active.name);
+        if (!active.identity && active.role) params.set('role', active.role);
+        if (!active.journey && active.journeyName) params.set('journey', active.journeyName);
+        if (!active.journey && active.journeyDescription) params.set('journey-description', active.journeyDescription);
+
         if (active.welcomePrompt) params.set('welcome-prompt', active.welcomePrompt);
-        if (active.journeyPrompt) params.set('journey-prompt', active.journeyPrompt);
+        
         // RAG & phases too large for URL; only available via ?id= link
-        if (active.swimlanes) params.set('swimlanes', JSON.stringify(active.swimlanes));
-        if (active.phases) params.set('phases', JSON.stringify(active.phases));
+        const swimlanesData = active.structure?.swimlanes?.data || active.swimlanes;
+        if (swimlanesData) params.set('swimlanes', JSON.stringify(swimlanesData));
+        
+        const phasesData = active.structure?.phases?.data || active.phases;
+        if (phasesData) params.set('phases', JSON.stringify(phasesData));
 
         const queryString = params.toString();
         finalUrl = queryString ? `${BASE_URL}?${queryString}` : BASE_URL;

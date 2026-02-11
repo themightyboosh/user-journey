@@ -309,6 +309,13 @@
                                 <div class="param-content">
                                     <input type="text" id="name" placeholder="e.g. Alice">
                                     <div class="help-text">The user's first name.</div>
+                                    <div class="mode-selector">
+                                        <label>Confirmation Mode:</label>
+                                        <select id="name-mode">
+                                            <option value="BYPASS">Silent (Bypass)</option>
+                                            <option value="CONFIRM">Ask Verification</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -327,6 +334,13 @@
                                 <div class="param-content">
                                     <input type="text" id="role" placeholder="e.g. Product Manager">
                                     <div class="help-text">The user's job title or role.</div>
+                                    <div class="mode-selector">
+                                        <label>Confirmation Mode:</label>
+                                        <select id="role-mode">
+                                            <option value="BYPASS">Silent (Bypass)</option>
+                                            <option value="CONFIRM">Ask Verification</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -344,7 +358,14 @@
                                 </div>
                                 <div class="param-content">
                                     <input type="text" id="journey" placeholder="e.g. Onboarding Flow">
-                                    <div class="help-text">Pre-defines the journey name, skipping the inquiry gate.</div>
+                                    <div class="help-text">Pre-defines the journey name.</div>
+                                    <div class="mode-selector">
+                                        <label>Confirmation Mode:</label>
+                                        <select id="journey-mode">
+                                            <option value="BYPASS">Silent (Bypass)</option>
+                                            <option value="CONFIRM">Ask Verification</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -362,7 +383,14 @@
                                 </div>
                                 <div class="param-content">
                                     <textarea id="journey-description" rows="3" placeholder="e.g. Planning and executing a new product release"></textarea>
-                                    <div class="help-text">Pre-fills the journey description. When combined with Journey Name, completely skips Step 3 (Full Bypass).</div>
+                                    <div class="help-text">Pre-fills the journey description.</div>
+                                    <div class="mode-selector">
+                                        <label>Confirmation Mode:</label>
+                                        <select id="journeyDescription-mode">
+                                            <option value="BYPASS">Silent (Bypass)</option>
+                                            <option value="CONFIRM">Ask Verification</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -459,33 +487,6 @@
                                 </div>
                             </div>
 
-                            <!-- Swimlanes -->
-                            <div class="param-row" data-param="swimlanes">
-                                <div class="param-header">
-                                    <div class="param-label-group">
-                                        <span class="param-label">Swimlanes</span>
-                                        <span class="param-status">Provided by User</span>
-                                    </div>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" data-toggle="swimlanes">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                                <div class="param-content">
-                                    <div class="list-header">
-                                        <div class="help-text" style="margin: 0;">Pre-define swimlanes to bypass the setup gate.</div>
-                                        <button type="button" id="addSwimlaneBtn" class="secondary-btn small-btn">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;">
-                                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                                            </svg>
-                                            Add
-                                        </button>
-                                    </div>
-                                    <div id="swimlanesContainer" class="swimlanes-list"></div>
-                                </div>
-                            </div>
-
                             <!-- Phases -->
                             <div class="param-row" data-param="phases">
                                 <div class="param-header">
@@ -500,16 +501,57 @@
                                 </div>
                                 <div class="param-content">
                                     <div class="list-header">
-                                        <div class="help-text" style="margin: 0;">Pre-define phases to bypass the phase inquiry gate.</div>
-                                        <button type="button" id="addPhaseBtn" class="secondary-btn small-btn">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;">
-                                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                                            </svg>
-                                            Add
-                                        </button>
+                                        <div class="help-text" style="margin: 0;">Pre-define phases.</div>
+                                        <div class="list-controls">
+                                            <select id="phases-probe-mode" class="small-select" title="Probing Strategy">
+                                                <option value="NEVER_PROBE">Trust Admin (Fast)</option>
+                                                <option value="AUTO_PROBE">Auto Probe (Smart)</option>
+                                                <option value="ALWAYS_PROBE">Always Probe (Deep)</option>
+                                            </select>
+                                            <button type="button" id="addPhaseBtn" class="secondary-btn small-btn">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;">
+                                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                                </svg>
+                                                Add
+                                            </button>
+                                        </div>
                                     </div>
                                     <div id="phasesContainer" class="swimlanes-list"></div>
+                                </div>
+                            </div>
+
+                            <!-- Swimlanes -->
+                            <div class="param-row" data-param="swimlanes">
+                                <div class="param-header">
+                                    <div class="param-label-group">
+                                        <span class="param-label">Swimlanes</span>
+                                        <span class="param-status">Provided by User</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" data-toggle="swimlanes">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="param-content">
+                                    <div class="list-header">
+                                        <div class="help-text" style="margin: 0;">Pre-define swimlanes.</div>
+                                        <div class="list-controls">
+                                            <select id="swimlanes-probe-mode" class="small-select" title="Probing Strategy">
+                                                <option value="NEVER_PROBE">Trust Admin (Fast)</option>
+                                                <option value="AUTO_PROBE">Auto Probe (Smart)</option>
+                                                <option value="ALWAYS_PROBE">Always Probe (Deep)</option>
+                                            </select>
+                                            <button type="button" id="addSwimlaneBtn" class="secondary-btn small-btn">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;">
+                                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                                </svg>
+                                                Add
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="swimlanesContainer" class="swimlanes-list"></div>
                                 </div>
                             </div>
                         </div>
