@@ -2067,7 +2067,7 @@ body {
 }
 
 .max-animation-toast-exit {
-  animation: max-animation-toast-exit var(--max-animation-duration-standard) var(--max-animation-easing-accelerate) forwards;
+  animation: max-animation-toast-exit var(--max-animation-duration-moderate) var(--max-animation-easing-standard) forwards;
 }
 
 /* ==========================================================================

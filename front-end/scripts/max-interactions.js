@@ -895,7 +895,7 @@ const MaxToastController = {
     setTimeout(() => {
       element.remove();
       this.activeToasts.delete(toastId);
-    }, MAX_CONFIG.ANIMATION_DURATION.STANDARD);
+    }, MAX_CONFIG.ANIMATION_DURATION.MODERATE);
   },
   
   /**

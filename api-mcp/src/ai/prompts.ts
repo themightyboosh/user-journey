@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.4.1',
-    lastModified: '2026-02-10',
-    description: 'Race condition fixes: Retry with backoff, complete data validation, naming conflict resolution'
+    version: '3.6.0',
+    lastModified: '2026-02-11',
+    description: 'Universal tool-first enforcement: AI MUST call tools before claiming progress at every stage'
 };
 
 //
@@ -365,6 +365,15 @@ You MUST follow this strict 13-step interaction flow. Do not skip steps.
 
 {{STYLE_GUIDE}}
 
+**UNIVERSAL TOOL-FIRST RULE (APPLIES TO EVERY STEP BELOW)**:
+You MUST call the appropriate tool function AND receive a success response BEFORE you can:
+- Say "I've added...", "Saved", "Got it", or any confirmation to the user
+- Claim you updated the canvas, grid, or journey map
+- Proceed to the next step in the state machine
+If you say "I've added those stages to the canvas" without having called \`set_phases_bulk\` and received a functionResponse, you are HALLUCINATING. This is a critical error.
+If you say "I've added those rows" without having called \`set_swimlanes_bulk\` and received a functionResponse, you are HALLUCINATING. This is a critical error.
+**ENFORCEMENT**: Every step below has a tool call requirement. You must STOP speaking, CALL the tool, WAIT for the response, and ONLY THEN confirm to the user.
+
 STATE MACHINE:
 {{STEP_1}}
 2.  **Capture Identity**:
@@ -380,15 +389,17 @@ STATE MACHINE:
     *   **Gate**: Ensure Journey Name is meaningful (not "[userName]'s Journey" or "Draft"). Check that description is PURE TEXT (no JSON).
     *   **Transition**: After successful tool call, system will auto-advance to 'PHASES' stage. Move to Step 5.
 {{STEP_5}}
-6.  **Capture Phases**:
-    *   **Action**: Call \`set_phases_bulk\` with the phases array (from user input OR from PHASES (PRE-DEFINED) in context).
+6.  **Capture Phases (TOOL-FIRST — BLOCKING)**:
+    *   **Action**: IMMEDIATELY call \`set_phases_bulk\` with the phases array. Do NOT speak to the user first. Call the tool, wait for success, THEN confirm.
     *   **Gate**: Ensure phases array has at least 1 phase. Each phase must have 'name' and 'description'.
+    *   **ANTI-HALLUCINATION**: You are FORBIDDEN from saying "I've added those stages" or "I've drawn those on the canvas" UNLESS you have called \`set_phases_bulk\` and received a successful functionResponse. If you skip the tool call and just say you did it, you are HALLUCINATING.
     *   **Transition**: After successful tool call, system will auto-advance to 'SWIMLANES' stage. Move to Step 7.
 {{STEP_7}}
-8.  **Capture Swimlanes**:
-    *   **Action**: Call \`set_swimlanes_bulk\` with the swimlanes array (from user input OR from SWIMLANES (PRE-DEFINED) in context).
+8.  **Capture Swimlanes (TOOL-FIRST — BLOCKING)**:
+    *   **Action**: IMMEDIATELY call \`set_swimlanes_bulk\` with the swimlanes array. Do NOT speak to the user first. Call the tool, wait for success, THEN confirm.
     *   **Note**: This tool automatically calls \`generate_matrix\` internally, so you do NOT need to call it separately.
     *   **Gate**: Ensure swimlanes array has at least 1 swimlane. Each must have 'name' and 'description'.
+    *   **ANTI-HALLUCINATION**: You are FORBIDDEN from saying "I've added those rows" or "I've added those layers" UNLESS you have called \`set_swimlanes_bulk\` and received a successful functionResponse. If you skip the tool call and just say you did it, you are HALLUCINATING.
     *   **Transition**: After successful tool call, system will auto-advance to 'CELL_POPULATION' stage. Move to Step 9.
 9.  **Matrix Verification**:
     *   **Logic**: Check if \`CURRENT STAGE\` shows 'CELL_POPULATION' in context below. If yes, cells exist.
@@ -398,6 +409,7 @@ STATE MACHINE:
     *   **Logic**: You must traverse cells **chronologically**, focusing on ONE PHASE at a time, and within that phase, ONE SWIMLANE (cell) at a time. Use the NEXT TARGET CELL section in the context below to find the exact cell to ask about.
     *   **Concept**: Treat PHASES as time periods or gates. Treat SWIMLANES as layers of the experience (e.g. what they do, use, feel).
     *   **STRICT RULE — ONE CELL PER TURN**: Each question you ask must target exactly ONE specific cell (one Phase + one Swimlane intersection). NEVER ask about multiple cells in one message.
+    *   **ANTI-HALLUCINATION RULE**: You are FORBIDDEN from iterating through the cells array yourself. You must rely *strictly* on the "NEXT TARGET CELL" provided in the context. If you try to guess the next cell ID or fill multiple cells, you will break the journey.
     *   **MULTI-ENTITY RESPONSE HANDLING (CRITICAL)**: If a user mentions multiple entities/actors in a SINGLE response (e.g., "I feel frustrated, and Banner is thrilled"), you MUST:
         1.  **Accept ALL information** from their response
         2.  **Incorporate ALL entities** into the SINGLE cell's description using structured format
@@ -675,7 +687,7 @@ function buildNextTargetContext(journeyState: any): string {
     return `
 === NEXT TARGET CELL ===
 
-🎯 **CRITICAL - COPY THIS EXACT CELL ID:**
+🎯 **CRITICAL - FOCUS ONLY ON THIS ONE CELL:**
 Cell ID: ${nextCell.id}
 
 **Phase Context** (Stage ${nextCell.phase.sequence} of ${phases.length}):
@@ -690,6 +702,8 @@ Cell ID: ${nextCell.id}
 1. Frame a natural question that bridges "${nextCell.phase.name}" (${phaseDesc}) and "${nextCell.swimlane.name}" (${swimlaneDesc})
 2. Make it conversational, not templated. Reference specific details from their previous answers.
 3. Ask the question and wait for their response.
+
+**CONSTRAINT**: You are strictly forbidden from asking about or updating any OTHER cells until this one is complete. Do not "look ahead".
 
 **READY-TO-USE TOOL CALL TEMPLATE** (Copy this after user responds):
 ────────────────────────────────────────
@@ -939,8 +953,8 @@ function buildStep7(config: SessionConfig): string {
         - STOP: Do NOT say "I'm adding those rows" UNTIL you have ALL descriptions collected.
         - STOP: Never call set_swimlanes_bulk without explicit "Yes" confirmation.
         - STOP: Never call without descriptions for ALL swimlanes (no empty strings, no null values).
-        - STOP: Do NOT mention cells until this tool succeeds and stage changes to CELL_POPULATION.
-        - STOP: Do NOT ask about cell content until you see "stage": "CELL_POPULATION" in the next context refresh.`;
+        - **HARD STOP**: After calling \`set_swimlanes_bulk\`, you MUST END YOUR TURN. Do NOT ask about the first cell yet. Wait for the system to generate the matrix and transition the stage to 'CELL_POPULATION'.
+        - **Prohibition**: Do NOT attempt to fill any cells in the same response as defining swimlanes.`;
 }
 
 // PHASE 2: Build Current Objective (Director's Note)
@@ -950,14 +964,24 @@ function buildCurrentObjective(journeyState: any): string {
 
     switch (stage) {
         case 'IDENTITY':
-            // RACE CONDITION FIX: If we have name/role but no journey ID yet, we're in transition
-            // The user may have provided a custom journey name - prioritize that over placeholder
+            // Check if journey already exists (journeyMapId present) — need to advance via update_journey_metadata
+            if (journeyState?.journeyMapId && journeyState?.userName && journeyState?.role) {
+                // Journey was created but stage didn't advance — likely missing description
+                if (!journeyState?.description || journeyState.description.trim().length === 0) {
+                    return `🎯 CURRENT OBJECTIVE: Journey exists (ID: ${journeyState.journeyMapId}) but description is EMPTY.
+ACTION: Ask the user about their activity, then call 'update_journey_metadata' with a meaningful name and description.
+The journey will auto-advance to PHASES stage after this tool call succeeds.
+DO NOT call create_journey_map again — the journey already exists.`;
+                }
+                return `🎯 CURRENT OBJECTIVE: Journey exists with name/role/description. Call 'update_journey_metadata' to finalize and advance to PHASES stage.
+DO NOT call create_journey_map again — the journey already exists.`;
+            }
+            // No journey yet — need to create one
             if (journeyState?.userName && journeyState?.role) {
                 return `🎯 CURRENT OBJECTIVE: User has provided Name (${journeyState.userName}) and Role (${journeyState.role}).
 ACTION: Call 'create_journey_map' immediately.
-NAMING RULE: If the user explicitly named the journey (e.g., "Call it Cat Breeders Day"), use that EXACT name.
-            Otherwise, use the placeholder "${journeyState.userName}'s Journey".
-DO NOT try to satisfy both constraints - the user's explicit name takes priority.`;
+NAMING RULE: If the user explicitly named the journey, use that EXACT name.
+            Otherwise, use the placeholder "${journeyState.userName}'s Journey".`;
             }
             return `🎯 CURRENT OBJECTIVE: Collect user identity (name, role) and create the journey. Call create_journey_map when you have this information.`;
 
@@ -1131,7 +1155,8 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
             contextInjection += nextTargetContext;
         }
 
-        contextInjection += `\n⚠️  STAGE GATE REMINDER: You are currently in the "${journeyState.stage}" stage. Do NOT proceed to the next stage until the current completion gate is satisfied (check COMPLETION GATES above).\n`;
+        contextInjection += `\n⚠️  STAGE GATE REMINDER: You are currently in the "${journeyState.stage}" stage. Do NOT proceed to the next stage until the current completion gate is satisfied (check COMPLETION GATES above).`;
+        contextInjection += `\n⚠️  TOOL-FIRST REMINDER: You MUST call the required tool function AND receive a successful functionResponse BEFORE claiming you saved, added, or updated anything. Saying "I've added those stages" without calling set_phases_bulk is HALLUCINATION.\n`;
     }
 
     return instruction + contextInjection;
