@@ -1770,7 +1770,7 @@
     }
 
     function renderCurrentView() {
-        console.log('[RENDER] renderCurrentView called', {
+        console.debug('[RENDER] renderCurrentView called', {
           hasJourney: !!currentJourney,
           currentView: state.currentView,
           journeyName: currentJourney?.name,
@@ -1778,18 +1778,18 @@
         });
 
         if (!currentJourney) {
-          console.warn('[RENDER] No current journey, skipping render');
+          console.debug('[RENDER] No current journey, skipping render');
           return;
         }
 
         if (state.currentView === 'map') {
-            console.log('[RENDER] Rendering map view');
+            console.debug('[RENDER] Rendering map view');
             // During streaming, render directly (no auto-fit).
             // journeyRendered event handles fit logic separately.
             renderMap(currentJourney);
-            console.log('[RENDER] Map render complete');
+            console.debug('[RENDER] Map render complete');
         } else {
-            console.log('[RENDER] Rendering JSON view');
+            console.debug('[RENDER] Rendering JSON view');
             renderJson(currentJourney);
         }
     }
@@ -1979,18 +1979,18 @@
 
     async function pollJourneyState() {
       if (!currentJourneyId) {
-        console.log('[POLL] Skipped: No current journey ID');
+        console.debug('[POLL] Skipped: No current journey ID');
         return;
       }
 
       // Skip polling for client-side debug journeys
       if (currentJourneyId.startsWith('debug-')) {
-        console.log('[POLL] Skipped: Debug journey');
+        console.debug('[POLL] Skipped: Debug journey');
         return;
       }
 
       try {
-        console.log('[POLL] Fetching journey state:', currentJourneyId);
+        console.debug('[POLL] Fetching journey state:', currentJourneyId);
         const response = await fetch(`/api/journey-state/${currentJourneyId}`);
         if (!response.ok) {
           console.warn('[POLL] Response not OK:', response.status);
@@ -1998,7 +1998,7 @@
         }
 
         const journey = await response.json();
-        console.log('[POLL] Journey received:', {
+        console.debug('[POLL] Journey received:', {
           id: journey.journeyMapId,
           name: journey.name,
           stage: journey.stage,
@@ -2010,7 +2010,7 @@
 
         if (journey) {
           const versionChanged = lastJourneyVersion !== journey.version;
-          console.log('[POLL] Version check:', {
+          console.debug('[POLL] Version check:', {
             previous: lastJourneyVersion,
             current: journey.version,
             changed: versionChanged
@@ -2028,9 +2028,9 @@
                   showCompletionButton();
               }
           }
-          console.log('[POLL] Calling renderCurrentView()');
+          console.debug('[POLL] Calling renderCurrentView()');
           renderCurrentView();
-          console.log('[POLL] renderCurrentView() complete');
+          console.debug('[POLL] renderCurrentView() complete');
         }
       } catch (e) {
         console.error("[POLL] Error:", e);
