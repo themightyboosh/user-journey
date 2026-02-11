@@ -2826,7 +2826,7 @@
         const userName = state.sessionConfig.name || (currentJourney ? currentJourney.userName : 'User');
         const userRole = currentJourney ? currentJourney.role : (state.sessionConfig.role || '');
         const agentName = state.sessionConfig.agentName || 'MAX';
-
+        
         let text = `JOURNEY MAP TRANSCRIPT\n`;
         text += `======================\n\n`;
         text += `Date: ${date} at ${time}\n`;
@@ -2836,10 +2836,31 @@
         if (state.sessionConfig.userEmail) text += `Email: ${state.sessionConfig.userEmail}\n`;
 
         // DEBUG HEADER - Journey State Diagnostics
-        if (currentJourney) {
+        if (currentJourney || state.conversationHistory.length > 0) {
             text += `\n${'─'.repeat(40)}\n`;
             text += `DEBUG: JOURNEY STATE DIAGNOSTICS\n`;
             text += `${'─'.repeat(40)}\n\n`;
+
+            // CLIENT INFO
+            text += `CLIENT INFO:\n`;
+            text += `  User Agent: ${navigator.userAgent}\n`;
+            text += `  Language: ${navigator.language}\n`;
+            text += `  Platform: ${navigator.platform}\n`;
+            text += `  Window Size: ${window.innerWidth}x${window.innerHeight}\n`;
+            text += `  Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone} (Offset: ${new Date().getTimezoneOffset()})\n`;
+            text += `  URL: ${window.location.href}\n`;
+            
+            // Performance/Nav info
+            if (window.performance && window.performance.navigation) {
+                const navTypes = ['Navigate', 'Reload', 'Back/Forward', 'Reserved'];
+                text += `  Nav Type: ${navTypes[window.performance.navigation.type] || 'Unknown'}\n`;
+            }
+             // Local Storage Keys
+            try {
+                const keys = Object.keys(localStorage);
+                text += `  LocalStorage Keys: ${keys.length > 0 ? keys.join(', ') : '(empty)'}\n`;
+            } catch (e) { text += `  LocalStorage: Access Denied\n`; }
+            text += `\n`;
 
             // Version Info
             if (versionInfo) {
@@ -2849,78 +2870,84 @@
                 text += `  Prompts: v${versionInfo.prompts?.version || '?'} (${versionInfo.prompts?.description || 'N/A'})\n`;
                 text += `  Tools: v${versionInfo.tools?.version || '?'} (${versionInfo.tools?.description || 'N/A'})\n`;
                 text += `\n`;
-            }
-
-            text += `Journey ID: ${currentJourney.id || 'N/A'}\n`;
-            text += `Session ID: ${currentJourney.sessionId || 'N/A'}\n`;
-            text += `Status: ${currentJourney.status || 'UNKNOWN'}\n`;
-            text += `Stage: ${currentJourney.stage || 'UNKNOWN'}\n`;
-            text += `Version: ${currentJourney.version || 0}\n`;
-            text += `Updated At: ${currentJourney.updatedAt || 'N/A'}\n\n`;
-
-            // Phases Diagnostic
-            text += `PHASES (${currentJourney.phases?.length || 0} total):\n`;
-            if (currentJourney.phases && currentJourney.phases.length > 0) {
-                currentJourney.phases.forEach((phase, i) => {
-                    text += `  ${i+1}. "${phase.name}" (ID: ${phase.phaseId.substring(0, 8)}...)\n`;
-                    text += `     Description: ${phase.description || '(empty)'}\n`;
-                });
             } else {
-                text += `  ⚠️  NO PHASES FOUND - Grid cannot render!\n`;
+                 text += `API VERSION: Unreachable (Fetch failed)\n\n`;
             }
-            text += `\n`;
 
-            // Swimlanes Diagnostic
-            text += `SWIMLANES (${currentJourney.swimlanes?.length || 0} total):\n`;
-            if (currentJourney.swimlanes && currentJourney.swimlanes.length > 0) {
-                currentJourney.swimlanes.forEach((lane, i) => {
-                    text += `  ${i+1}. "${lane.name}" (ID: ${lane.swimlaneId.substring(0, 8)}...)\n`;
-                    text += `     Description: ${lane.description || '(empty)'}\n`;
-                });
+            if (currentJourney) {
+                text += `Journey ID: ${currentJourney.id || 'N/A'}\n`;
+                text += `Session ID: ${currentJourney.sessionId || 'N/A'}\n`;
+                text += `Status: ${currentJourney.status || 'UNKNOWN'}\n`;
+                text += `Stage: ${currentJourney.stage || 'UNKNOWN'}\n`;
+                text += `Version: ${currentJourney.version || 0}\n`;
+                text += `Updated At: ${currentJourney.updatedAt || 'N/A'}\n\n`;
+
+                // Phases Diagnostic
+                text += `PHASES (${currentJourney.phases?.length || 0} total):\n`;
+                if (currentJourney.phases && currentJourney.phases.length > 0) {
+                    currentJourney.phases.forEach((phase, i) => {
+                        text += `  ${i+1}. "${phase.name}" (ID: ${phase.phaseId.substring(0, 8)}...)\n`;
+                        text += `     Description: ${phase.description || '(empty)'}\n`;
+                    });
+                } else {
+                    text += `  ⚠️  NO PHASES FOUND - Grid cannot render!\n`;
+                }
+                text += `\n`;
+
+                // Swimlanes Diagnostic
+                text += `SWIMLANES (${currentJourney.swimlanes?.length || 0} total):\n`;
+                if (currentJourney.swimlanes && currentJourney.swimlanes.length > 0) {
+                    currentJourney.swimlanes.forEach((lane, i) => {
+                        text += `  ${i+1}. "${lane.name}" (ID: ${lane.swimlaneId.substring(0, 8)}...)\n`;
+                        text += `     Description: ${lane.description || '(empty)'}\n`;
+                    });
+                } else {
+                    text += `  ⚠️  NO SWIMLANES FOUND - Grid cannot render!\n`;
+                }
+                text += `\n`;
+
+                // Cells Diagnostic
+                text += `CELLS (${currentJourney.cells?.length || 0} total):\n`;
+                const expectedCells = (currentJourney.phases?.length || 0) * (currentJourney.swimlanes?.length || 0);
+                text += `  Expected: ${expectedCells} | Present: ${currentJourney.cells?.length || 0}\n`;
+                if (currentJourney.cells && currentJourney.cells.length > 0) {
+                    let populatedCells = 0;
+                    currentJourney.cells.forEach(cell => {
+                        if (cell.headline && cell.headline.trim() !== '') populatedCells++;
+                    });
+                    text += `  Populated (with headlines): ${populatedCells}\n`;
+                    text += `  Empty: ${currentJourney.cells.length - populatedCells}\n\n`;
+                    text += `  Recent Cells:\n`;
+                    currentJourney.cells.slice(-5).forEach(cell => {
+                        const phase = currentJourney.phases?.find(p => p.phaseId === cell.phaseId);
+                        const lane = currentJourney.swimlanes?.find(s => s.swimlaneId === cell.swimlaneId);
+                        const status = cell.headline ? '✅' : '⬜';
+                        text += `    ${status} [${phase?.name || '?'}] × [${lane?.name || '?'}]: "${cell.headline || '(empty)'}"\n`;
+                    });
+                } else {
+                    text += `  ⚠️  NO CELLS FOUND\n`;
+                }
+                text += `\n`;
+
+                // Rendering Diagnostic
+                text += `RENDERING STATUS:\n`;
+                text += `  Last Render: ${currentRenderedJourney ? '✅ Success' : '❌ Not rendered'}\n`;
+                if (currentRenderedJourney) {
+                    text += `  Rendered Phases: ${currentRenderedJourney.phases?.length || 0}\n`;
+                    text += `  Rendered Swimlanes: ${currentRenderedJourney.swimlanes?.length || 0}\n`;
+                    text += `  Canvas Should Show: ${currentRenderedJourney.phases?.length || 0} columns × ${currentRenderedJourney.swimlanes?.length || 0} rows grid\n`;
+                }
+                text += `\n`;
+
+                // Full JSON Record
+                text += `${'─'.repeat(40)}\n`;
+                text += `FULL JOURNEY JSON RECORD:\n`;
+                text += `${'─'.repeat(40)}\n`;
+                text += JSON.stringify(currentJourney, null, 2);
+                text += `\n\n`;
             } else {
-                text += `  ⚠️  NO SWIMLANES FOUND - Grid cannot render!\n`;
+                text += `NO JOURNEY DATA AVAILABLE (Session Init Only)\n\n`;
             }
-            text += `\n`;
-
-            // Cells Diagnostic
-            text += `CELLS (${currentJourney.cells?.length || 0} total):\n`;
-            const expectedCells = (currentJourney.phases?.length || 0) * (currentJourney.swimlanes?.length || 0);
-            text += `  Expected: ${expectedCells} | Present: ${currentJourney.cells?.length || 0}\n`;
-            if (currentJourney.cells && currentJourney.cells.length > 0) {
-                let populatedCells = 0;
-                currentJourney.cells.forEach(cell => {
-                    if (cell.headline && cell.headline.trim() !== '') populatedCells++;
-                });
-                text += `  Populated (with headlines): ${populatedCells}\n`;
-                text += `  Empty: ${currentJourney.cells.length - populatedCells}\n\n`;
-                text += `  Recent Cells:\n`;
-                currentJourney.cells.slice(-5).forEach(cell => {
-                    const phase = currentJourney.phases?.find(p => p.phaseId === cell.phaseId);
-                    const lane = currentJourney.swimlanes?.find(s => s.swimlaneId === cell.swimlaneId);
-                    const status = cell.headline ? '✅' : '⬜';
-                    text += `    ${status} [${phase?.name || '?'}] × [${lane?.name || '?'}]: "${cell.headline || '(empty)'}"\n`;
-                });
-            } else {
-                text += `  ⚠️  NO CELLS FOUND\n`;
-            }
-            text += `\n`;
-
-            // Rendering Diagnostic
-            text += `RENDERING STATUS:\n`;
-            text += `  Last Render: ${currentRenderedJourney ? '✅ Success' : '❌ Not rendered'}\n`;
-            if (currentRenderedJourney) {
-                text += `  Rendered Phases: ${currentRenderedJourney.phases?.length || 0}\n`;
-                text += `  Rendered Swimlanes: ${currentRenderedJourney.swimlanes?.length || 0}\n`;
-                text += `  Canvas Should Show: ${currentRenderedJourney.phases?.length || 0} columns × ${currentRenderedJourney.swimlanes?.length || 0} rows grid\n`;
-            }
-            text += `\n`;
-
-            // Full JSON Record
-            text += `${'─'.repeat(40)}\n`;
-            text += `FULL JOURNEY JSON RECORD:\n`;
-            text += `${'─'.repeat(40)}\n`;
-            text += JSON.stringify(currentJourney, null, 2);
-            text += `\n\n`;
         }
 
         text += `${'─'.repeat(40)}\n`;
