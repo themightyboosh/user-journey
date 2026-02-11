@@ -247,23 +247,27 @@ auth.onAuthStateChanged(async (user) => {
             const res = await fetch(ME_API_URL, {
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });
+            
+            // Debug Log
+            console.log('Auth check response:', res.status, res.statusText);
 
             if (res.status === 403) {
                 // Account inactive
-                googleSignInBtn.style.display = 'none';
-                loginPending.style.display = 'block';
-                return;
+                throw new Error('Account inactive or unauthorized (403)');
             }
 
-            if (!res.ok) throw new Error('Auth verification failed');
+            if (!res.ok) {
+                throw new Error(`Auth verification failed with status: ${res.status}`);
+            }
 
             currentAppUser = await res.json();
             showAdminApp();
         } catch (err) {
             console.error('Auth verification error', err);
-            loginError.textContent = 'Authentication failed. Please try again.';
+            // Don't sign out automatically during debug
+            loginError.textContent = `Auth verification failed: ${err.message}. Status: ${err.cause ? err.cause : 'Unknown'}`;
             loginError.style.display = 'block';
-            await auth.signOut();
+            // await auth.signOut(); // Disabled for debugging
         }
     } else {
         // Not signed in - show login
