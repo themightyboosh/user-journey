@@ -3,16 +3,16 @@
 // ===========================================
 
 export const TOOLS_VERSION = {
-    version: '3.5.1',
+    version: '3.5.2',
     lastModified: '2026-02-11',
-    description: 'CRITICAL FIX: Added JOURNEY_DEFINITION scope to fix Identity->Phases transition bug.'
+    description: 'CRITICAL FIX: Added set_phases_bulk to JOURNEY_DEFINITION scope to fix premature phase definition error.'
 };
 
 // Tool Scoping: Define which tools are available at each stage
 // This prevents the AI from calling irrelevant tools (e.g., update_cell during IDENTITY)
 export const TOOL_SCOPES: Record<string, string[]> = {
     'IDENTITY': ['create_journey_map', 'update_journey_metadata'],
-    'JOURNEY_DEFINITION': ['update_journey_metadata'], // Added to handle description capture
+    'JOURNEY_DEFINITION': ['update_journey_metadata', 'set_phases_bulk'], // Added set_phases_bulk to allow early phase definition
     'PHASES': ['update_journey_metadata', 'set_phases_bulk'],
     'SWIMLANES': ['update_journey_metadata', 'set_swimlanes_bulk', 'generate_matrix'],
     'CELL_POPULATION': ['update_cell', 'update_journey_metadata'],
