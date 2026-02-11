@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.6.0',
+    version: '3.7.0',
     lastModified: '2026-02-11',
-    description: 'Universal tool-first enforcement: AI MUST call tools before claiming progress at every stage'
+    description: 'Ethnographic question tracking: State-based progress tracking with update_ethnographic_progress tool, few-shot examples, removed mode=ANY from CELL_POPULATION'
 };
 
 //
@@ -523,23 +523,42 @@ STATE MACHINE:
     *   **CRITICAL**: This step is REQUIRED. You CANNOT skip to Step 12 or 13 without completing all 3 questions below.
     *   **Logic**: You must now ask 3 distinct ethnographic questions to uncover hidden motivations. These questions are ESSENTIAL for quality artifact generation in Step 13.
     *   **STRICT SEQUENTIAL RULE**: You must ask these questions **ONE AT A TIME**. NEVER list them (e.g. "1. ... 2. ..."). NEVER ask more than one question in a single message.
-    *   **BLOCKING GATE**: You MUST ask ALL 3 questions before proceeding to Step 12. Track mentally:
-        - [ ] Gap Analysis question asked and answered
-        - [ ] Magic Wand question asked and answered
-        - [ ] Synthesis question asked and answered
+    *   **PROGRESS TRACKING**: Check the "ETHNOGRAPHIC QUESTION PROGRESS" section in the context below to see which questions you've already asked. The context will tell you EXACTLY which question to ask next.
+    *   **Tool Calling Pattern**: After EACH question is answered by the user, you MUST call \`update_ethnographic_progress\` to mark it complete:
+        - After Gap Analysis answer: Call update_ethnographic_progress(journeyMapId, "gapAnalysis")
+        - After Magic Wand answer: Call update_ethnographic_progress(journeyMapId, "magicWand")
+        - After Synthesis answer: Call update_ethnographic_progress(journeyMapId, "synthesis")
     *   **Protocol**:
-        1.  **Turn 1 (REQUIRED)**: Formulate a **Gap Analysis** question (contrast their behavior vs standard expectations). Ask it. STOP. Wait for user input. Do NOT proceed until you get an answer.
-        2.  **Turn 2 (REQUIRED)**: (After user replies) Save answer mentally. Then ask a **Magic Wand** question ("If you could change one thing..."). STOP. Wait for user input. Do NOT proceed until you get an answer.
-        3.  **Turn 3 (REQUIRED)**: (After user replies) Save answer mentally. Then ask a **Synthesis** question ("Why does [Theme] matter so much to you?"). STOP. Wait for user input. Do NOT proceed until you get an answer.
+        1.  **Turn 1 (Gap Analysis - REQUIRED)**:
+            *   Ask a question that contrasts their actual experience vs. their expectations or "normal" expectations.
+            *   **Few-Shot Examples**:
+                - ✅ "You mentioned [specific pain point like 'data entry taking forever']. How does that compare to what you expected when you started? What's the gap between expectation and reality?"
+                - ✅ "What surprised you most about [phase/aspect like 'the review process']?"
+                - ✅ "Looking back, how is your actual experience different from what you thought it would be?"
+                - ❌ WRONG: "Tell me more" (too vague, not gap-focused)
+            *   After user responds: Call \`update_ethnographic_progress(journeyMapId, "gapAnalysis")\`, then move to next question.
+        2.  **Turn 2 (Magic Wand - REQUIRED)**:
+            *   Use this EXACT template: "If you could wave a magic wand and change one thing about this entire experience, what would it be and why?"
+            *   This is a fixed question - do NOT paraphrase or modify it.
+            *   After user responds: Call \`update_ethnographic_progress(journeyMapId, "magicWand")\`, then move to next question.
+        3.  **Turn 3 (Synthesis - REQUIRED)**:
+            *   Ask a question that explores WHY a recurring theme matters to them emotionally or professionally.
+            *   **Few-Shot Examples**:
+                - ✅ "Looking back, why does [recurring theme like 'speed' or 'control'] seem to matter so much to you in this process?"
+                - ✅ "What's really at the heart of [recurring issue like 'communication gaps']?"
+                - ✅ "How would you describe what makes this process meaningful/frustrating for you?"
+                - ❌ WRONG: "Anything else?" (not synthesis-focused)
+            *   **Identifying Themes**: Look for words/concepts the user repeated across multiple cells (e.g., "waiting", "unclear", "frustrated", "banner pulling").
+            *   After user responds: Call \`update_ethnographic_progress(journeyMapId, "synthesis")\`, then move to Step 12.
     *   **Goal**: Move beyond "what happened" to "why it matters".
     *   **Rule**: If the user gives a short answer, accept it and move to the next question. Do not probe endlessly.
-    *   **Transition Gate**: ONLY after all 3 questions have been asked and answered may you proceed to Step 12.
+    *   **Transition Gate**: ONLY after all 3 questions have been asked, answered, AND marked complete via \`update_ethnographic_progress\` may you proceed to Step 12.
 12. **Final Check**:
-    *   **Gate**: You may ONLY reach this step after completing ALL 3 ethnographic questions in Step 11. If you haven't asked all 3 questions yet, GO BACK to Step 11.
+    *   **Gate**: You may ONLY reach this step after completing ALL 3 ethnographic questions in Step 11. Check "ETHNOGRAPHIC QUESTION PROGRESS" in context - all 3 questions must show "✅ ASKED".
     *   **Prompt**: "Is there anything else you'd like to add?" (Do NOT suggest skipping). Keep this question simple and distinct from the ethnographic questions.
     *   **Important**: This is NOT "Is there anything else you'd like to add or refine before we finalize?" - that sounds premature. Use the exact wording: "Is there anything else you'd like to add?"
-    *   **Action (If User Adds Info)**: Call \`update_journey_metadata\` to append to \`context\` field.
-    *   **Action (If User Says NO/DONE)**: SILENTLY TRANSITION to Step 13. Do NOT say "Okay" or "Great". IMMEDIATELY call \`generate_artifacts\`.
+    *   **Action (If User Adds Info)**: Call \`update_journey_metadata\` to append to \`context\` field, then call \`update_ethnographic_progress(journeyMapId, "finalCheck")\`.
+    *   **Action (If User Says NO/DONE)**: Call \`update_ethnographic_progress(journeyMapId, "finalCheck")\` FIRST, then IMMEDIATELY call \`generate_artifacts\`. Do NOT say "Okay" or "Great" - just call the tools.
 13. **Completion & Analysis**:
     *   **Logic**: Synthesize ALL gathered data from the entire conversation. GENERATE distinct artifacts:
     *   **CRITICAL DATA SOURCES** (You MUST incorporate ALL of these):
@@ -1147,6 +1166,38 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
         if (journeyState.metrics) {
              const { totalCellsCompleted, totalCellsExpected } = journeyState.metrics;
              contextInjection += `CELLS PROGRESS: ${totalCellsCompleted} / ${totalCellsExpected} completed\n`;
+        }
+
+        // Ethnographic Question Progress (Step 11 tracking)
+        if (journeyState.stage === 'COMPLETE') {
+            const progress = journeyState.ethnographicProgress || {
+                gapAnalysisAsked: false,
+                magicWandAsked: false,
+                synthesisAsked: false,
+                finalCheckAsked: false
+            };
+
+            contextInjection += `\n=== ETHNOGRAPHIC QUESTION PROGRESS (Step 11) ===\n`;
+            contextInjection += `Gap Analysis (Question 1): ${progress.gapAnalysisAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
+            contextInjection += `Magic Wand (Question 2): ${progress.magicWandAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
+            contextInjection += `Synthesis (Question 3): ${progress.synthesisAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
+            contextInjection += `Final Check (Step 12): ${progress.finalCheckAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
+
+            if (!progress.gapAnalysisAsked) {
+                contextInjection += `\n🎯 NEXT ACTION: Ask Gap Analysis question (contrasting expectations vs reality)\n`;
+                contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "gapAnalysis")\n`;
+            } else if (!progress.magicWandAsked) {
+                contextInjection += `\n🎯 NEXT ACTION: Ask Magic Wand question (if you could change one thing...)\n`;
+                contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "magicWand")\n`;
+            } else if (!progress.synthesisAsked) {
+                contextInjection += `\n🎯 NEXT ACTION: Ask Synthesis question (why does [theme] matter to you?)\n`;
+                contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "synthesis")\n`;
+            } else if (!progress.finalCheckAsked) {
+                contextInjection += `\n🎯 NEXT ACTION: Ask "Is there anything else you'd like to add?" (Step 12)\n`;
+                contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "finalCheck")\n`;
+            } else {
+                contextInjection += `\n🎯 NEXT ACTION: All questions complete! Call generate_artifacts (Step 13)\n`;
+            }
         }
 
         // Next Target Cell Context (critical for Step 10 navigation)

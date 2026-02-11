@@ -67,6 +67,12 @@ export const MermaidObjectSchema = z.object({
     code: z.string()
 });
 
+export const EthnographicProgressSchema = z.object({
+    gapAnalysisAsked: z.boolean().default(false),
+    magicWandAsked: z.boolean().default(false),
+    synthesisAsked: z.boolean().default(false),
+    finalCheckAsked: z.boolean().default(false)
+});
 
 export const JourneyMapSchema = z.object({
   journeyMapId: z.string().uuid(),
@@ -93,6 +99,7 @@ export const JourneyMapSchema = z.object({
   mentalModels: z.string().optional(),
   quotes: z.array(z.string()).optional(),
   anythingElse: z.string().optional(),
+  ethnographicProgress: EthnographicProgressSchema.optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   version: z.number().int(),
@@ -104,6 +111,7 @@ export type SwimlaneObject = z.infer<typeof SwimlaneObjectSchema>;
 export type CellObject = z.infer<typeof CellObjectSchema>;
 export type CompletionStatusObject = z.infer<typeof CompletionStatusObjectSchema>;
 export type DerivedMetricsObject = z.infer<typeof DerivedMetricsObjectSchema>;
+export type EthnographicProgress = z.infer<typeof EthnographicProgressSchema>;
 
 // --- Auth & User Types ---
 

@@ -139,11 +139,15 @@ export class AIService {
             logger.info(`🔍 Tool Scoping: Stage=${currentStage}, Allowed=[${allowedToolNames.join(', ')}]`);
 
             // Determine function calling mode based on context
-            // CRITICAL: Force tool calling in two scenarios:
-            // 1. During CELL_POPULATION stage (prevent "Got it, moving on" without update_cell)
-            // 2. When confirmation response detected (prevent hallucination during structure definition)
-            const isCellPopulation = journeyState?.stage === 'CELL_POPULATION';
-            const shouldForceTools = forceToolCalling || isCellPopulation;
+            // CRITICAL: Force tool calling ONLY when confirmation response detected
+            // This prevents hallucination during structure definition (PHASES/SWIMLANES gates)
+            //
+            // IMPORTANT: Do NOT force mode=ANY during CELL_POPULATION
+            // - CELL_POPULATION requires alternating pattern: Question → User Response → Tool Call → Repeat
+            // - mode=ANY forces tool calls on EVERY turn, causing AI to guess/hallucinate cell content
+            // - Instead, rely on strong prompt instructions ("ONE CELL PER TURN", "NEXT TARGET CELL")
+            // - mode=AUTO allows AI to call tools after user responses, but also acknowledge with text
+            const shouldForceTools = forceToolCalling;  // Only force on confirmation responses (PHASES/SWIMLANES)
 
             const toolMode = shouldForceTools ? FunctionCallingMode.ANY : FunctionCallingMode.AUTO;
 
@@ -455,6 +459,14 @@ export class AIService {
                     }
 
                     return result;
+                }
+
+                case 'update_ethnographic_progress': {
+                    logger.info('Updating ethnographic progress', {
+                        journeyId: args.journeyMapId,
+                        questionType: args.questionType
+                    });
+                    return await this.journeyService.updateEthnographicProgress(args.journeyMapId, args.questionType);
                 }
 
                 case 'generate_artifacts': {

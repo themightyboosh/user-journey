@@ -413,6 +413,61 @@ export class JourneyService {
         logger.info(`[JourneyService] Cleared All Journeys`);
     }
 
+    async updateEthnographicProgress(id: string, questionType: 'gapAnalysis' | 'magicWand' | 'synthesis' | 'finalCheck'): Promise<JourneyMap | null> {
+        logger.info(`[JourneyService] Updating ethnographic progress for ${id}`, { questionType });
+
+        let journey = await Store.get(id);
+        if (!journey) {
+            logger.error(`[JourneyService] updateEthnographicProgress failed: Journey not found`, { journeyId: id });
+            return null;
+        }
+
+        // Initialize ethnographicProgress if it doesn't exist
+        if (!journey.ethnographicProgress) {
+            journey.ethnographicProgress = {
+                gapAnalysisAsked: false,
+                magicWandAsked: false,
+                synthesisAsked: false,
+                finalCheckAsked: false
+            };
+        }
+
+        // Mark the question as asked
+        switch (questionType) {
+            case 'gapAnalysis':
+                journey.ethnographicProgress.gapAnalysisAsked = true;
+                break;
+            case 'magicWand':
+                journey.ethnographicProgress.magicWandAsked = true;
+                break;
+            case 'synthesis':
+                journey.ethnographicProgress.synthesisAsked = true;
+                break;
+            case 'finalCheck':
+                journey.ethnographicProgress.finalCheckAsked = true;
+                break;
+        }
+
+        await Store.save(journey);
+
+        const progress = journey.ethnographicProgress;
+        const questionsComplete = [
+            progress.gapAnalysisAsked,
+            progress.magicWandAsked,
+            progress.synthesisAsked
+        ].filter(Boolean).length;
+
+        logger.info(`✅ [JourneyService] Ethnographic progress updated: ${questionType}`, {
+            journeyId: id,
+            questionType,
+            questionsComplete: `${questionsComplete}/3`,
+            finalCheckAsked: progress.finalCheckAsked,
+            progress
+        });
+
+        return journey;
+    }
+
     async generateArtifacts(id: string, params: { summaryOfFindings?: string; mentalModels?: string; anythingElse?: string; quotes?: string[] }): Promise<JourneyMap | null> {
         logger.info(`[JourneyService] Generating Artifacts for ${id}`, {
             hasSummary: !!params.summaryOfFindings,
@@ -451,10 +506,43 @@ export class JourneyService {
             throw new Error('Cannot generate artifacts without swimlanes. Please define journey swimlanes first by calling set_swimlanes_bulk.');
         }
 
-        logger.info(`✅ [VALIDATION PASSED] Structure exists`, {
+        // VALIDATION: Ensure all ethnographic questions were asked
+        if (!journey.ethnographicProgress ||
+            !journey.ethnographicProgress.gapAnalysisAsked ||
+            !journey.ethnographicProgress.magicWandAsked ||
+            !journey.ethnographicProgress.synthesisAsked) {
+
+            const progress = journey.ethnographicProgress || {
+                gapAnalysisAsked: false,
+                magicWandAsked: false,
+                synthesisAsked: false,
+                finalCheckAsked: false
+            };
+
+            const error = `🚨 [VALIDATION FAILED] Cannot generate artifacts: Not all ethnographic questions have been asked. The AI must complete Step 11 (Deep Dive) before Step 13 (Artifacts).`;
+            logger.error(error, {
+                journeyId: id,
+                stage: journey.stage,
+                ethnographicProgress: progress,
+                gapAnalysisAsked: progress.gapAnalysisAsked,
+                magicWandAsked: progress.magicWandAsked,
+                synthesisAsked: progress.synthesisAsked,
+                finalCheckAsked: progress.finalCheckAsked
+            });
+
+            const missingQuestions = [];
+            if (!progress.gapAnalysisAsked) missingQuestions.push('Gap Analysis');
+            if (!progress.magicWandAsked) missingQuestions.push('Magic Wand');
+            if (!progress.synthesisAsked) missingQuestions.push('Synthesis');
+
+            throw new Error(`Cannot generate artifacts without completing all ethnographic questions. Missing: ${missingQuestions.join(', ')}. Please ask these questions and call update_ethnographic_progress after each one.`);
+        }
+
+        logger.info(`✅ [VALIDATION PASSED] Structure exists and ethnographic questions complete`, {
             phasesCount: journey.phases.length,
             swimlanesCount: journey.swimlanes.length,
-            cellsCount: journey.cells.length
+            cellsCount: journey.cells.length,
+            ethnographicProgress: journey.ethnographicProgress
         });
 
         // Flowchart (TD)

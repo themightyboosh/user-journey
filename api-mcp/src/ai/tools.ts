@@ -3,9 +3,9 @@
 // ===========================================
 
 export const TOOLS_VERSION = {
-    version: '3.4.1',
-    lastModified: '2026-02-10',
-    description: 'Race condition fixes: Retry with backoff, complete data validation, naming conflict resolution'
+    version: '3.5.0',
+    lastModified: '2026-02-11',
+    description: 'Ethnographic question tracking: Added update_ethnographic_progress tool for Step 11 deep dive questions'
 };
 
 // Tool Scoping: Define which tools are available at each stage
@@ -15,7 +15,7 @@ export const TOOL_SCOPES: Record<string, string[]> = {
     'PHASES': ['update_journey_metadata', 'set_phases_bulk'],
     'SWIMLANES': ['update_journey_metadata', 'set_swimlanes_bulk', 'generate_matrix'],
     'CELL_POPULATION': ['update_cell', 'update_journey_metadata'],
-    'COMPLETE': ['generate_artifacts', 'update_journey_metadata']
+    'COMPLETE': ['update_ethnographic_progress', 'generate_artifacts', 'update_journey_metadata']
 };
 
 //
@@ -232,6 +232,22 @@ export const JOURNEY_TOOLS = [
                 }
             },
             {
+                name: "update_ethnographic_progress",
+                description: "Mark an ethnographic question as completed during Step 11 (Deep Dive). Call this AFTER asking each of the 3 required questions and receiving the user's response.",
+                parameters: {
+                    type: "OBJECT",
+                    properties: {
+                        journeyMapId: { type: "STRING" },
+                        questionType: {
+                            type: "STRING",
+                            description: "Type of ethnographic question: 'gapAnalysis' (contrasting expectations vs reality), 'magicWand' (if you could change one thing), 'synthesis' (why does X matter to you), or 'finalCheck' (is there anything else)",
+                            enum: ["gapAnalysis", "magicWand", "synthesis", "finalCheck"]
+                        }
+                    },
+                    required: ["journeyMapId", "questionType"]
+                }
+            },
+            {
                 name: "generate_artifacts",
                 description: "Finalize the journey. You MUST provide 'summaryOfFindings' and 'mentalModels' based on the conversation.",
                 parameters: {
@@ -240,8 +256,8 @@ export const JOURNEY_TOOLS = [
                         journeyMapId: { type: "STRING" },
                         summaryOfFindings: { type: "STRING", description: "Comprehensive summary of findings" },
                         mentalModels: { type: "STRING", description: "Identified mental models" },
-                        quotes: { 
-                            type: "ARRAY", 
+                        quotes: {
+                            type: "ARRAY",
                             description: "2-5 most interesting verbatim direct quotes from the participant's chat messages",
                             items: { type: "STRING" }
                         },
