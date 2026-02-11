@@ -512,11 +512,31 @@ server.post('/api/chat', async (request, reply) => {
               if (!emptyRetries) emptyRetries = 0;
               emptyRetries++;
               if (emptyRetries <= 2) {
-                  logger.info(`Retrying after empty candidates (attempt ${emptyRetries}/2)`, {
+                  const isCellPop = journeyState?.stage === 'CELL_POPULATION';
+                  
+                  logger.info(`Retrying after empty candidates (attempt ${emptyRetries}/2) ${isCellPop ? '[SMART RETRY]' : ''}`, {
                       journeyId: config.journeyId,
-                      model: currentModelName
+                      model: currentModelName,
+                      stage: journeyState?.stage
                   });
+                  
                   await sleep(1000);
+
+                  // Fix 4: Smart Retry for CELL_POPULATION (Blinders Protocol Refresh)
+                  if (isCellPop && config.journeyId) {
+                      try {
+                          const freshState = await aiService.getJourneyState(config.journeyId);
+                          // Rebuild model with fresh state (and trimmed prompt)
+                          const freshModelResult = await aiService.getRequestModel(config, freshState, currentModelName, false);
+                          requestModel = freshModelResult.model;
+                          // Update local reference
+                          journeyState = freshState;
+                          logger.info('🔄 Smart Retry: Refreshed model context with new state');
+                      } catch (err) {
+                          logger.error('Smart Retry failed to refresh state', { error: err });
+                      }
+                  }
+
                   genResult = await generateSafe(requestModel, { contents }, currentModelName);
                   response = genResult.response;
                   requestModel = genResult.model;

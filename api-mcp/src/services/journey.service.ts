@@ -244,6 +244,10 @@ export class JourneyService {
 
         // Clear cells as structure changed significantly
         journey.cells = [];
+        
+        // FIX 3: Backend Enforcement of Completion Flags
+        journey.arePhasesComplete = true;
+
         // Auto-advance stage
         journey.stage = 'SWIMLANES';
 
@@ -341,6 +345,10 @@ export class JourneyService {
 
         // Clear cells as structure changed
         journey.cells = [];
+        
+        // FIX 3: Backend Enforcement of Completion Flags
+        journey.areSwimlanesComplete = true;
+
         // Save intermediate state
         await Store.save(journey);
         logger.info(`[JourneyService] Intermediate state saved, generating matrix...`);

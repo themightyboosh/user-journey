@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.7.3',
+    version: '3.8.0',
     lastModified: '2026-02-11',
-    description: 'CRITICAL FIX: Changed journey name placeholder from [name]\'s Journey to Draft to prevent apostrophe JSON encoding issues causing MALFORMED_FUNCTION_CALL'
+    description: 'CRITICAL FIX: Implemented Blinders Protocol for CELL_POPULATION stage to reduce context load and enforce tool calling.'
 };
 
 //
@@ -714,7 +714,11 @@ function buildNextTargetContext(journeyState: any): string {
             const cell = journeyState.cells.find((c: any) =>
                 c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId
             );
-            const isEmpty = !cell || !cell.headline || cell.headline.trim().length === 0;
+            
+            // Safety check: Skip malformed cells
+            if (!cell || !cell.cellId) continue;
+
+            const isEmpty = !cell.headline || cell.headline.trim().length === 0;
             if (isEmpty) {
                 nextCell = {
                     ...cell,
@@ -1100,6 +1104,8 @@ Transition: The system will advance to PHASES only after a description is saved.
 }
 
 export function buildSystemInstruction(config: SessionConfig = {}, journeyState: any = null): string {
+    const isCellPopulation = journeyState?.stage === 'CELL_POPULATION';
+
     // PHASE 2: Director's Note - Add clear objective at the very top
     const directorNote = buildCurrentObjective(journeyState);
 
@@ -1115,23 +1121,31 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
     // All customization flows through placeholder replacement.
     // No competing override mechanisms.
 
-    // --- Step 1: Welcome & Identity Check (Code-First) ---
-    // Deterministic: AI receives ONLY the relevant instruction based on config state
-    const step1 = buildStep1(config);
-    instruction = instruction.replace('{{STEP_1}}', step1);
+    if (isCellPopulation) {
+        // --- BLINDERS PROTOCOL: Trim instructions for Steps 1-8 ---
+        instruction = instruction.replace('{{STEP_1}}', "");
+        instruction = instruction.replace('{{STEP_3}}', "");
+        instruction = instruction.replace('{{STEP_5}}', "");
+        instruction = instruction.replace('{{STEP_7}}', "");
+    } else {
+        // --- Step 1: Welcome & Identity Check (Code-First) ---
+        // Deterministic: AI receives ONLY the relevant instruction based on config state
+        const step1 = buildStep1(config);
+        instruction = instruction.replace('{{STEP_1}}', step1);
 
-    // --- Step 3: Journey Setup (Code-First) ---
-    // Deterministic: AI receives ONLY the relevant instruction based on config state
-    const step3 = buildStep3(config);
-    instruction = instruction.replace('{{STEP_3}}', step3);
+        // --- Step 3: Journey Setup (Code-First) ---
+        // Deterministic: AI receives ONLY the relevant instruction based on config state
+        const step3 = buildStep3(config);
+        instruction = instruction.replace('{{STEP_3}}', step3);
 
-    // --- Step 5: Phase Inquiry ---
-    const step5 = buildStep5(config);
-    instruction = instruction.replace('{{STEP_5}}', step5);
+        // --- Step 5: Phase Inquiry ---
+        const step5 = buildStep5(config);
+        instruction = instruction.replace('{{STEP_5}}', step5);
 
-    // --- Step 7: Swimlane Inquiry ---
-    const step7 = buildStep7(config);
-    instruction = instruction.replace('{{STEP_7}}', step7);
+        // --- Step 7: Swimlane Inquiry ---
+        const step7 = buildStep7(config);
+        instruction = instruction.replace('{{STEP_7}}', step7);
+    }
 
     // --- Persona Replacements ---
     const defaultFrame = 'Treat this as a research interview to understand the user\'s "jobs to be done", tools, and feelings.';
@@ -1182,19 +1196,21 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
         contextInjection += `- Journey Description: ${journeyDescription}\n`;
     }
 
-    // Pre-defined structure (explicit JSON for bypass modes)
-    const phasesData = config.structure?.phases?.data || config.phases;
-    if (phasesData && Array.isArray(phasesData) && phasesData.length > 0) {
-        const allPhaseDescriptions = phasesData.every(p => p.description && p.description.trim().length > 0);
-        const statusLabel = allPhaseDescriptions ? '(COMPLETE)' : '(PARTIAL - some descriptions missing)';
-        contextInjection += `- PHASES (PRE-DEFINED) ${statusLabel}: ${JSON.stringify(phasesData)}\n`;
-    }
+    if (!isCellPopulation) {
+        // Pre-defined structure (explicit JSON for bypass modes)
+        const phasesData = config.structure?.phases?.data || config.phases;
+        if (phasesData && Array.isArray(phasesData) && phasesData.length > 0) {
+            const allPhaseDescriptions = phasesData.every(p => p.description && p.description.trim().length > 0);
+            const statusLabel = allPhaseDescriptions ? '(COMPLETE)' : '(PARTIAL - some descriptions missing)';
+            contextInjection += `- PHASES (PRE-DEFINED) ${statusLabel}: ${JSON.stringify(phasesData)}\n`;
+        }
 
-    const swimlanesData = config.structure?.swimlanes?.data || config.swimlanes;
-    if (swimlanesData && Array.isArray(swimlanesData) && swimlanesData.length > 0) {
-        const allSwimlaneDescriptions = swimlanesData.every(s => s.description && s.description.trim().length > 0);
-        const statusLabel = allSwimlaneDescriptions ? '(COMPLETE)' : '(PARTIAL - some descriptions missing)';
-        contextInjection += `- SWIMLANES (PRE-DEFINED) ${statusLabel}: ${JSON.stringify(swimlanesData)}\n`;
+        const swimlanesData = config.structure?.swimlanes?.data || config.swimlanes;
+        if (swimlanesData && Array.isArray(swimlanesData) && swimlanesData.length > 0) {
+            const allSwimlaneDescriptions = swimlanesData.every(s => s.description && s.description.trim().length > 0);
+            const statusLabel = allSwimlaneDescriptions ? '(COMPLETE)' : '(PARTIAL - some descriptions missing)';
+            contextInjection += `- SWIMLANES (PRE-DEFINED) ${statusLabel}: ${JSON.stringify(swimlanesData)}\n`;
+        }
     }
 
     // Journey ID for tool calls
@@ -1213,68 +1229,84 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
     if (journeyState) {
         contextInjection += `\n=== LIVE JOURNEY STATE ===\n`;
         contextInjection += `CURRENT STAGE: ${journeyState.stage || 'UNKNOWN'}\n`;
-        contextInjection += `STATUS: ${journeyState.status}\n`;
+        
+        if (isCellPopulation) {
+             // --- BLINDERS PROTOCOL: Sanitized State ---
+            contextInjection += `STATUS: ${journeyState.status}\n`;
+            if (journeyState.name) contextInjection += `JOURNEY NAME: ${journeyState.name}\n`;
 
-        if (journeyState.name) {
-            contextInjection += `JOURNEY NAME: ${journeyState.name}\n`;
-        }
-        if (journeyState.description) {
-            contextInjection += `JOURNEY DESCRIPTION: ${journeyState.description}\n`;
-        }
-
-        if (journeyState.phases && journeyState.phases.length > 0) {
-            const phaseNames = journeyState.phases.map((p: any) => p.name).join(' -> ');
-            contextInjection += `PHASES: ${phaseNames}\n`;
-        }
-
-        if (journeyState.swimlanes && journeyState.swimlanes.length > 0) {
-            const swimlaneNames = journeyState.swimlanes.map((s: any) => s.name).join(', ');
-            contextInjection += `SWIMLANES: ${swimlaneNames}\n`;
-        }
-
-        contextInjection += `\nCOMPLETION GATES:\n${JSON.stringify(journeyState.completionStatus, null, 2)}\n`;
-
-        if (journeyState.metrics) {
-             const { totalCellsCompleted, totalCellsExpected } = journeyState.metrics;
-             contextInjection += `CELLS PROGRESS: ${totalCellsCompleted} / ${totalCellsExpected} completed\n`;
-        }
-
-        // Ethnographic Question Progress (Step 11 tracking)
-        if (journeyState.stage === 'COMPLETE') {
-            const progress = journeyState.ethnographicProgress || {
-                gapAnalysisAsked: false,
-                magicWandAsked: false,
-                synthesisAsked: false,
-                finalCheckAsked: false
-            };
-
-            contextInjection += `\n=== ETHNOGRAPHIC QUESTION PROGRESS (Step 11) ===\n`;
-            contextInjection += `Gap Analysis (Question 1): ${progress.gapAnalysisAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
-            contextInjection += `Magic Wand (Question 2): ${progress.magicWandAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
-            contextInjection += `Synthesis (Question 3): ${progress.synthesisAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
-            contextInjection += `Final Check (Step 12): ${progress.finalCheckAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
-
-            if (!progress.gapAnalysisAsked) {
-                contextInjection += `\n🎯 NEXT ACTION: Ask Gap Analysis question (contrasting expectations vs reality)\n`;
-                contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "gapAnalysis")\n`;
-            } else if (!progress.magicWandAsked) {
-                contextInjection += `\n🎯 NEXT ACTION: Ask Magic Wand question (if you could change one thing...)\n`;
-                contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "magicWand")\n`;
-            } else if (!progress.synthesisAsked) {
-                contextInjection += `\n🎯 NEXT ACTION: Ask Synthesis question (why does [theme] matter to you?)\n`;
-                contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "synthesis")\n`;
-            } else if (!progress.finalCheckAsked) {
-                contextInjection += `\n🎯 NEXT ACTION: Ask "Is there anything else you'd like to add?" (Step 12)\n`;
-                contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "finalCheck")\n`;
-            } else {
-                contextInjection += `\n🎯 NEXT ACTION: All questions complete! Call generate_artifacts (Step 13)\n`;
+            if (journeyState.metrics) {
+                 const { totalCellsCompleted, totalCellsExpected } = journeyState.metrics;
+                 contextInjection += `CELLS PROGRESS: ${totalCellsCompleted} / ${totalCellsExpected} completed\n`;
             }
-        }
 
-        // Next Target Cell Context (critical for Step 10 navigation)
-        const nextTargetContext = buildNextTargetContext(journeyState);
-        if (nextTargetContext) {
-            contextInjection += nextTargetContext;
+            // CRITICAL: Inject Next Target Cell Context
+            const nextTargetContext = buildNextTargetContext(journeyState);
+            if (nextTargetContext) {
+                contextInjection += nextTargetContext;
+            } else {
+                contextInjection += `\n(No target cell found - check completion status)\n`;
+            }
+        } else {
+            // Normal Mode: Full State Dump
+            contextInjection += `STATUS: ${journeyState.status}\n`;
+            if (journeyState.name) contextInjection += `JOURNEY NAME: ${journeyState.name}\n`;
+            if (journeyState.description) contextInjection += `JOURNEY DESCRIPTION: ${journeyState.description}\n`;
+
+            if (journeyState.phases && journeyState.phases.length > 0) {
+                const phaseNames = journeyState.phases.map((p: any) => p.name).join(' -> ');
+                contextInjection += `PHASES: ${phaseNames}\n`;
+            }
+
+            if (journeyState.swimlanes && journeyState.swimlanes.length > 0) {
+                const swimlaneNames = journeyState.swimlanes.map((s: any) => s.name).join(', ');
+                contextInjection += `SWIMLANES: ${swimlaneNames}\n`;
+            }
+
+            contextInjection += `\nCOMPLETION GATES:\n${JSON.stringify(journeyState.completionStatus, null, 2)}\n`;
+
+            if (journeyState.metrics) {
+                 const { totalCellsCompleted, totalCellsExpected } = journeyState.metrics;
+                 contextInjection += `CELLS PROGRESS: ${totalCellsCompleted} / ${totalCellsExpected} completed\n`;
+            }
+
+            // Ethnographic Progress (mostly for COMPLETE stage)
+            if (journeyState.stage === 'COMPLETE') {
+                const progress = journeyState.ethnographicProgress || {
+                    gapAnalysisAsked: false,
+                    magicWandAsked: false,
+                    synthesisAsked: false,
+                    finalCheckAsked: false
+                };
+
+                contextInjection += `\n=== ETHNOGRAPHIC QUESTION PROGRESS (Step 11) ===\n`;
+                contextInjection += `Gap Analysis (Question 1): ${progress.gapAnalysisAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
+                contextInjection += `Magic Wand (Question 2): ${progress.magicWandAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
+                contextInjection += `Synthesis (Question 3): ${progress.synthesisAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
+                contextInjection += `Final Check (Step 12): ${progress.finalCheckAsked ? '✅ ASKED' : '❌ NOT ASKED'}\n`;
+
+                if (!progress.gapAnalysisAsked) {
+                    contextInjection += `\n🎯 NEXT ACTION: Ask Gap Analysis question (contrasting expectations vs reality)\n`;
+                    contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "gapAnalysis")\n`;
+                } else if (!progress.magicWandAsked) {
+                    contextInjection += `\n🎯 NEXT ACTION: Ask Magic Wand question (if you could change one thing...)\n`;
+                    contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "magicWand")\n`;
+                } else if (!progress.synthesisAsked) {
+                    contextInjection += `\n🎯 NEXT ACTION: Ask Synthesis question (why does [theme] matter to you?)\n`;
+                    contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "synthesis")\n`;
+                } else if (!progress.finalCheckAsked) {
+                    contextInjection += `\n🎯 NEXT ACTION: Ask "Is there anything else you'd like to add?" (Step 12)\n`;
+                    contextInjection += `After user responds, call update_ethnographic_progress(journeyMapId, "finalCheck")\n`;
+                } else {
+                    contextInjection += `\n🎯 NEXT ACTION: All questions complete! Call generate_artifacts (Step 13)\n`;
+                }
+            }
+
+            // Next Target Cell Context (critical for Step 10 navigation)
+            const nextTargetContext = buildNextTargetContext(journeyState);
+            if (nextTargetContext) {
+                contextInjection += nextTargetContext;
+            }
         }
 
         contextInjection += `\n⚠️  STAGE GATE REMINDER: You are currently in the "${journeyState.stage}" stage. Do NOT proceed to the next stage until the current completion gate is satisfied (check COMPLETION GATES above).`;

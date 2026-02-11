@@ -15,7 +15,7 @@ export const TOOL_SCOPES: Record<string, string[]> = {
     'JOURNEY_DEFINITION': ['update_journey_metadata', 'set_phases_bulk'], // Added set_phases_bulk to allow early phase definition
     'PHASES': ['update_journey_metadata', 'set_phases_bulk'],
     'SWIMLANES': ['update_journey_metadata', 'set_swimlanes_bulk', 'generate_matrix'],
-    'CELL_POPULATION': ['update_cell', 'update_journey_metadata'],
+    'CELL_POPULATION': ['update_cell', 'update_journey_metadata', 'generate_matrix'],
     'COMPLETE': ['update_ethnographic_progress', 'generate_artifacts', 'update_journey_metadata']
 };
 

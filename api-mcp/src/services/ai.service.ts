@@ -414,6 +414,12 @@ export class AIService {
                     return await this.journeyService.generateMatrix(args.journeyMapId);
                 }
                 case 'update_cell': {
+                    logger.info('Tool: update_cell START', { 
+                        journeyId: args.journeyMapId, 
+                        cellId: args.cellId,
+                        headline: args.headline?.substring(0, 50)
+                    });
+
                     // Fetch journey ONCE for all resolution needs (was 3 reads, now 1)
                     const journey = await this.journeyService.getJourney(args.journeyMapId);
                     if (!journey) return { error: "Journey not found" };
@@ -438,6 +444,7 @@ export class AIService {
                     }
     
                     if (!targetCellId) {
+                        logger.error('Tool: update_cell FAILED - Target not resolved', { args });
                         return { error: "Missing cellId and could not resolve phaseName/swimlaneName to a valid cell." };
                     }
 
@@ -451,6 +458,12 @@ export class AIService {
                     }
     
                     const result = await this.journeyService.updateCell(args.journeyMapId, targetCellId, args);
+
+                    if (!result) {
+                        logger.error('Tool: update_cell FAILED - Service returned null', { journeyId: args.journeyMapId, targetCellId });
+                    } else {
+                        logger.info('Tool: update_cell SUCCESS', { journeyId: args.journeyMapId, targetCellId });
+                    }
 
                     // Fire-and-forget background summarization (don't block the response)
                     if (pId && sId) {
