@@ -743,7 +743,7 @@ function buildNextTargetContext(journeyState: any): string {
 === NEXT TARGET CELL ===
 
 🎯 **CRITICAL - FOCUS ONLY ON THIS ONE CELL:**
-Cell ID: ${nextCell.id}
+Cell ID: ${nextCell.cellId}
 
 **Phase Context** (Stage ${nextCell.phase.sequence} of ${phases.length}):
 * Name: ${nextCell.phase.name}
@@ -766,7 +766,7 @@ Cell ID: ${nextCell.id}
   "name": "update_cell",
   "args": {
     "journeyMapId": "${journeyState.journeyMapId}",
-    "cellId": "${nextCell.id}",
+    "cellId": "${nextCell.cellId}",
     "headline": "[5-10 word summary of their response]",
     "description": "[2-3 sentences synthesizing their answer in imperative/gerund form - avoid 'I/He/She/They']"
   }
