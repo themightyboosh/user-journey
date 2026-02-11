@@ -3,15 +3,16 @@
 // ===========================================
 
 export const TOOLS_VERSION = {
-    version: '3.5.0',
+    version: '3.5.1',
     lastModified: '2026-02-11',
-    description: 'Ethnographic question tracking: Added update_ethnographic_progress tool for Step 11 deep dive questions'
+    description: 'CRITICAL FIX: Added JOURNEY_DEFINITION scope to fix Identity->Phases transition bug.'
 };
 
 // Tool Scoping: Define which tools are available at each stage
 // This prevents the AI from calling irrelevant tools (e.g., update_cell during IDENTITY)
 export const TOOL_SCOPES: Record<string, string[]> = {
     'IDENTITY': ['create_journey_map', 'update_journey_metadata'],
+    'JOURNEY_DEFINITION': ['update_journey_metadata'], // Added to handle description capture
     'PHASES': ['update_journey_metadata', 'set_phases_bulk'],
     'SWIMLANES': ['update_journey_metadata', 'set_swimlanes_bulk', 'generate_matrix'],
     'CELL_POPULATION': ['update_cell', 'update_journey_metadata'],

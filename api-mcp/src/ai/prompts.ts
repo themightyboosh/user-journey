@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.7.1',
+    version: '3.7.2',
     lastModified: '2026-02-11',
-    description: 'CRITICAL FIX: Added missing journeyMapId parameter to Step 3 update_journey_metadata tool calls (fixes MALFORMED_FUNCTION_CALL at journey description)'
+    description: 'CRITICAL FIX: Restored JOURNEY_DEFINITION stage logic to prevent stuck Identity state.'
 };
 
 //
@@ -1003,6 +1003,11 @@ NAMING RULE: If the user explicitly named the journey, use that EXACT name.
             Otherwise, use the placeholder "${journeyState.userName}'s Journey".`;
             }
             return `🎯 CURRENT OBJECTIVE: Collect user identity (name, role) and create the journey. Call create_journey_map when you have this information.`;
+
+        case 'JOURNEY_DEFINITION':
+            return `🎯 CURRENT OBJECTIVE: Journey created (ID: ${journeyState.journeyMapId}). Now capture the Journey Description.
+ACTION: Ask user about the activity, then call 'update_journey_metadata' with the Name and Description.
+Transition: The system will advance to PHASES only after a description is saved.`;
 
         case 'PHASES':
             if (journeyState.phases?.length === 0) {

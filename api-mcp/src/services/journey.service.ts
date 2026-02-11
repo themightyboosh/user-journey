@@ -20,6 +20,12 @@ export class JourneyService {
         const id = uuidv4();
         const now = new Date().toISOString();
 
+        // LOGIC FIX: Determine initial stage based on completeness of data
+        // If description is missing, we must go to JOURNEY_DEFINITION to capture it.
+        // If description is present, we can skip to PHASES.
+        const hasDescription = params.description && params.description.trim().length > 0;
+        const initialStage = hasDescription ? 'PHASES' : 'JOURNEY_DEFINITION';
+
         logger.info(`[JourneyService] Creating journey with params`, {
             hasName: !!params.name,
             hasUserName: !!params.userName,
@@ -28,14 +34,15 @@ export class JourneyService {
             hasSessionId: !!params.sessionId,
             name: params.name,
             userName: params.userName,
-            role: params.role
+            role: params.role,
+            initialStage
         });
 
         const newJourney: JourneyMap = {
             journeyMapId: id,
             sessionId: params.sessionId || uuidv4(),
             status: 'DRAFT',
-            stage: 'IDENTITY',
+            stage: initialStage,
             userName: params.userName || '',
             name: params.name || '',
             role: params.role || '',
@@ -128,10 +135,18 @@ export class JourneyService {
             hasDescription: !!journey.description
         });
 
-        // Auto-advance stage if we just named it
-        if (journey.stage === 'IDENTITY' && journey.name && journey.description) {
-            logger.info(`[JourneyService] Stage transition check: name="${journey.name}", description="${journey.description?.substring(0, 50)}"...`);
-            journey.stage = 'PHASES';
+        // LOGIC FIX: Robust State Transition
+        // We now explicitly handle the transition from JOURNEY_DEFINITION -> PHASES
+        const hasValidDescription = journey.description && journey.description.trim().length > 0;
+
+        if (hasValidDescription) {
+            if (journey.stage === 'IDENTITY' || journey.stage === 'JOURNEY_DEFINITION') {
+                logger.info(`[JourneyService] Stage transition check passed. Advancing to PHASES.`, {
+                    name: journey.name,
+                    description: journey.description?.substring(0, 50)
+                });
+                journey.stage = 'PHASES';
+            }
         }
 
         journey = recalculateJourney(journey);

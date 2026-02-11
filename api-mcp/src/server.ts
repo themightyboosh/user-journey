@@ -300,8 +300,18 @@ server.post('/api/chat', async (request, reply) => {
       // CRITICAL: Detect confirmation responses to force tool calling
       // Prevents AI from narrating "I'm adding..." without actually calling tools
       const isConfirmationResponse = /^(yes|yeah|yep|yup|correct|right|sure|ok|okay|sounds good|that's right|looks good)$/i.test(message.trim());
-      const isConfirmationStage = journeyState?.stage && ['PHASES', 'SWIMLANES'].includes(journeyState.stage);
-      const shouldForceTools = isConfirmationResponse && isConfirmationStage;
+
+      // FIX: Check for phase/swimlane confirmations at the RIGHT stages
+      // Phases are set during JOURNEY_DEFINITION or PHASES stage
+      // Swimlanes are set during PHASES or SWIMLANES stage
+      const isPhasesConfirmation = isConfirmationResponse &&
+          (journeyState?.stage === 'JOURNEY_DEFINITION' || journeyState?.stage === 'PHASES');
+      const isSwimlanesConfirmation = isConfirmationResponse &&
+          (journeyState?.stage === 'PHASES' || journeyState?.stage === 'SWIMLANES');
+      const shouldForceTools = isPhasesConfirmation || isSwimlanesConfirmation;
+
+      // Legacy variable for logging compatibility
+      const isConfirmationStage = shouldForceTools;
 
       if (shouldForceTools) {
           logger.warn(`🎯 CONFIRMATION DETECTED: Forcing mode=ANY to prevent hallucination (stage: ${journeyState.stage}, message: "${message.trim()}")`);
