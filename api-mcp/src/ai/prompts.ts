@@ -742,7 +742,7 @@ function buildStep1(config: SessionConfig): string {
     *   Greet ${config.name} by name and state their role as "${config.role}".
     *   Ask: "Just to verify, you're ${config.name}, a ${config.role}—is that correct?"
     *   **Gate**: Wait for confirmation ('yes') before proceeding to Step 2.
-    *   **Then**: Call \`create_journey_map\` with userName: "${config.name}", role: "${config.role}"`;
+    *   **Then**: Call \`create_journey_map\` with name: "${config.name}'s Journey", userName: "${config.name}", role: "${config.role}"`;
     }
 
     if (hasName && !hasRole) {
@@ -751,7 +751,7 @@ function buildStep1(config: SessionConfig): string {
     *   ${welcomePrompt}
     *   Greet ${config.name} by name (their name is already established).
     *   Ask only: "What do you do?"
-    *   **Then**: Call \`create_journey_map\` with userName: "${config.name}", role: [their answer]`;
+    *   **Then**: Call \`create_journey_map\` with name: "${config.name}'s Journey", userName: "${config.name}", role: [their answer]`;
     }
 
     if (!hasName && hasRole) {
@@ -760,7 +760,7 @@ function buildStep1(config: SessionConfig): string {
     *   ${welcomePrompt}
     *   Acknowledge they are a ${config.role} (their role is already established).
     *   Ask only: "What's your name so I know who I'm chatting with?"
-    *   **Then**: Call \`create_journey_map\` with userName: [their answer], role: "${config.role}"`;
+    *   **Then**: Call \`create_journey_map\` with name: "[their answer]'s Journey", userName: [their answer], role: "${config.role}"`;
     }
 
     // BOTH UNKNOWN: Ask for both
@@ -768,7 +768,7 @@ function buildStep1(config: SessionConfig): string {
     *   ${welcomePrompt}
     *   Introduce yourself as ${agentName}, a UX researcher.
     *   Ask for their name and what they do.
-    *   **Then**: Call \`create_journey_map\` with userName: [their name], role: [their role]`;
+    *   **Then**: Call \`create_journey_map\` with name: "[their name]'s Journey", userName: [their name], role: [their role]`;
 }
 
 /**
