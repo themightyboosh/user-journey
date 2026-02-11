@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.7.0',
+    version: '3.7.1',
     lastModified: '2026-02-11',
-    description: 'Ethnographic question tracking: State-based progress tracking with update_ethnographic_progress tool, few-shot examples, removed mode=ANY from CELL_POPULATION'
+    description: 'CRITICAL FIX: Added missing journeyMapId parameter to Step 3 update_journey_metadata tool calls (fixes MALFORMED_FUNCTION_CALL at journey description)'
 };
 
 //
@@ -817,7 +817,7 @@ function buildStep3(config: SessionConfig): string {
     *   ${journeyPrompt} Or ask: "What is the main goal of ${config.journeyName}?" or "Why is this important?"
     *   **Voice Rule**: Convert their answer to imperative/gerund form (e.g., "Helping people..." not "I help people").
     *   **Formatting Rule**: Description must be PURE TEXT (no JSON, no variable assignments).
-    *   **Then**: Call \`update_journey_metadata\` with name: "${config.journeyName}", description: [their answer]`;
+    *   **Then**: Call \`update_journey_metadata\` with journeyMapId: [from CURRENT JOURNEY ID in context], name: "${config.journeyName}", description: [their answer]`;
     }
 
     // BOTH UNKNOWN: Ask and deduce
@@ -827,7 +827,7 @@ function buildStep3(config: SessionConfig): string {
     *   **Voice Rule**: Convert description to imperative/gerund form (e.g., "Managing requests..." not "I manage requests").
     *   **Formatting Rule**: Description must be PURE TEXT (no JSON, no variable assignments).
     *   **Constraint**: Focus on high-level context/purpose only. Don't ask for "steps" or "stages" yet.
-    *   **Then**: Call \`update_journey_metadata\` with name: [deduced name], description: [their answer]`;
+    *   **Then**: Call \`update_journey_metadata\` with journeyMapId: [from CURRENT JOURNEY ID in context], name: [deduced name], description: [their answer]`;
 }
 
 /**
