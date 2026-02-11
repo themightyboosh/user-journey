@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.7.2',
+    version: '3.7.3',
     lastModified: '2026-02-11',
-    description: 'CRITICAL FIX: Restored JOURNEY_DEFINITION stage logic to prevent stuck Identity state.'
+    description: 'CRITICAL FIX: Changed journey name placeholder from [name]\'s Journey to Draft to prevent apostrophe JSON encoding issues causing MALFORMED_FUNCTION_CALL'
 };
 
 //
@@ -320,7 +320,7 @@ export const STEP_3_DEFAULT = `3.  **Journey Setup**:
     *   **Constraint**: Focus exclusively on the high-level context and purpose. Keep the scope broad - specific stages will be defined in Step 5.
     *   **Voice Rule**: Convert description to imperative/gerund phrase (e.g. "Helping people..." or "Manage requests..."). Do NOT use "I", "He", "She", or "They".
     *   **Formatting Rule**: Description must be PURE TEXT. Do NOT include variable assignments (e.g., \`name='...'\`) or JSON keys.
-    *   **Gate**: Ensure journey name is meaningful (not "Draft" or "[userName]'s Journey") and description is non-empty before proceeding.`;
+    *   **Gate**: Ensure journey name is meaningful (not "Draft" or "[userName]Draft") and description is non-empty before proceeding.`;
 
 // STEP_5 and STEP_7 are now dynamically built via buildStep5() and buildStep7() functions
 // This eliminates the "AI as logic engine" problem where AI evaluates conditions and can skip tool calls
@@ -377,7 +377,7 @@ If you say "I've added those rows" without having called \`set_swimlanes_bulk\` 
 STATE MACHINE:
 {{STEP_1}}
 2.  **Capture Identity**:
-    *   **Action**: Call \`create_journey_map\` with \`userName\` (from context or user input), \`role\`, and \`name\` (set to "[userName]'s Journey" as temporary placeholder).
+    *   **Action**: Call \`create_journey_map\` with \`userName\` (from context or user input), \`role\`, and \`name\` (set to "[userName]Draft" as temporary placeholder).
     *   **Gate**: Check that \`CURRENT STAGE\` in context below shows 'IDENTITY'. Proceed only after tool succeeds and identity is established.
     *   **Transition**: After successful tool call, system will auto-advance to 'PHASES' stage. Move to Step 3.
 {{STEP_3}}
@@ -386,7 +386,7 @@ STATE MACHINE:
         - journeyMapId: (from previous tool result OR from CURRENT JOURNEY ID in context)
         - name: (the journey name you deduced in Step 3 from user's description - NOT the placeholder)
         - description: (user's full explanation from Step 3, converted to imperative/gerund form)
-    *   **Gate**: Ensure Journey Name is meaningful (not "[userName]'s Journey" or "Draft"). Check that description is PURE TEXT (no JSON).
+    *   **Gate**: Ensure Journey Name is meaningful (not "[userName]Draft" or "Draft"). Check that description is PURE TEXT (no JSON).
     *   **Transition**: After successful tool call, system will auto-advance to 'PHASES' stage. Move to Step 5.
 {{STEP_5}}
 6.  **Capture Phases (TOOL-FIRST — BLOCKING)**:
@@ -761,7 +761,7 @@ function buildStep1(config: SessionConfig): string {
     *   Greet ${config.name} by name and state their role as "${config.role}".
     *   Ask: "Just to verify, you're ${config.name}, a ${config.role}—is that correct?"
     *   **Gate**: Wait for confirmation ('yes') before proceeding to Step 2.
-    *   **Then**: Call \`create_journey_map\` with name: "${config.name}'s Journey", userName: "${config.name}", role: "${config.role}"`;
+    *   **Then**: Call \`create_journey_map\` with name: "${config.name}Draft", userName: "${config.name}", role: "${config.role}"`;
     }
 
     if (hasName && !hasRole) {
@@ -770,7 +770,7 @@ function buildStep1(config: SessionConfig): string {
     *   ${welcomePrompt}
     *   Greet ${config.name} by name (their name is already established).
     *   Ask only: "What do you do?"
-    *   **Then**: Call \`create_journey_map\` with name: "${config.name}'s Journey", userName: "${config.name}", role: [their answer]`;
+    *   **Then**: Call \`create_journey_map\` with name: "${config.name}Draft", userName: "${config.name}", role: [their answer]`;
     }
 
     if (!hasName && hasRole) {
@@ -779,7 +779,7 @@ function buildStep1(config: SessionConfig): string {
     *   ${welcomePrompt}
     *   Acknowledge they are a ${config.role} (their role is already established).
     *   Ask only: "What's your name so I know who I'm chatting with?"
-    *   **Then**: Call \`create_journey_map\` with name: "[their answer]'s Journey", userName: [their answer], role: "${config.role}"`;
+    *   **Then**: Call \`create_journey_map\` with name: "[their answer]Draft", userName: [their answer], role: "${config.role}"`;
     }
 
     // BOTH UNKNOWN: Ask for both
@@ -787,7 +787,7 @@ function buildStep1(config: SessionConfig): string {
     *   ${welcomePrompt}
     *   Introduce yourself as ${agentName}, a UX researcher.
     *   Ask for their name and what they do.
-    *   **Then**: Call \`create_journey_map\` with name: "[their name]'s Journey", userName: [their name], role: [their role]`;
+    *   **Then**: Call \`create_journey_map\` with name: "[their name]Draft", userName: [their name], role: [their role]`;
 }
 
 /**
@@ -998,11 +998,16 @@ DO NOT call create_journey_map again — the journey already exists.`;
             // No journey yet — need to create one
             if (journeyState?.userName && journeyState?.role) {
                 return `🎯 CURRENT OBJECTIVE: User has provided Name (${journeyState.userName}) and Role (${journeyState.role}).
-ACTION: Call 'create_journey_map' immediately.
-NAMING RULE: If the user explicitly named the journey, use that EXACT name.
-            Otherwise, use the placeholder "${journeyState.userName}'s Journey".`;
+ACTION: Call 'create_journey_map' immediately with:
+- userName: "${journeyState.userName}"
+- role: "${journeyState.role}"
+- name: "Draft" (placeholder - will be updated in Step 3)`;
             }
-            return `🎯 CURRENT OBJECTIVE: Collect user identity (name, role) and create the journey. Call create_journey_map when you have this information.`;
+            return `🎯 CURRENT OBJECTIVE: Collect user identity (name, role) and create the journey.
+When you have both pieces of information, call create_journey_map with:
+- userName: [their name]
+- role: [their role]
+- name: "Draft" (placeholder - will be updated in Step 3)`;
 
         case 'JOURNEY_DEFINITION':
             return `🎯 CURRENT OBJECTIVE: Journey created (ID: ${journeyState.journeyMapId}). Now capture the Journey Description.
