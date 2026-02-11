@@ -20,6 +20,17 @@ export class JourneyService {
         const id = uuidv4();
         const now = new Date().toISOString();
 
+        logger.info(`[JourneyService] Creating journey with params`, {
+            hasName: !!params.name,
+            hasUserName: !!params.userName,
+            hasRole: !!params.role,
+            hasDescription: !!params.description,
+            hasSessionId: !!params.sessionId,
+            name: params.name,
+            userName: params.userName,
+            role: params.role
+        });
+
         const newJourney: JourneyMap = {
             journeyMapId: id,
             sessionId: params.sessionId || uuidv4(),
@@ -56,7 +67,7 @@ export class JourneyService {
         };
 
         await Store.save(newJourney);
-        logger.info(`[JourneyService] Created: ${id} | Name: ${newJourney.name}`);
+        logger.info(`✅ [JourneyService] Created: ${id} | Name: ${newJourney.name} | UserName: ${newJourney.userName} | Role: ${newJourney.role}`);
         return newJourney;
     }
 
@@ -70,20 +81,56 @@ export class JourneyService {
 
     async updateMetadata(id: string, params: Partial<JourneyMap>): Promise<JourneyMap | null> {
         let journey = await Store.get(id);
-        if (!journey) return null;
+        if (!journey) {
+            logger.error(`[JourneyService] updateMetadata failed: Journey not found`, { journeyId: id });
+            return null;
+        }
 
         const oldStage = journey.stage;
+        const updatedFields: string[] = [];
 
-        if (params.name !== undefined) journey.name = params.name;
-        if (params.userName !== undefined) journey.userName = params.userName;
-        if (params.role !== undefined) journey.role = params.role;
-        if (params.description !== undefined) journey.description = params.description;
-        if (params.status !== undefined) journey.status = params.status;
-        if (params.arePhasesComplete !== undefined) journey.arePhasesComplete = params.arePhasesComplete;
-        if (params.areSwimlanesComplete !== undefined) journey.areSwimlanesComplete = params.areSwimlanesComplete;
+        if (params.name !== undefined) {
+            journey.name = params.name;
+            updatedFields.push('name');
+        }
+        if (params.userName !== undefined) {
+            journey.userName = params.userName;
+            updatedFields.push('userName');
+        }
+        if (params.role !== undefined) {
+            journey.role = params.role;
+            updatedFields.push('role');
+        }
+        if (params.description !== undefined) {
+            journey.description = params.description;
+            updatedFields.push('description');
+        }
+        if (params.status !== undefined) {
+            journey.status = params.status;
+            updatedFields.push('status');
+        }
+        if (params.arePhasesComplete !== undefined) {
+            journey.arePhasesComplete = params.arePhasesComplete;
+            updatedFields.push('arePhasesComplete');
+        }
+        if (params.areSwimlanesComplete !== undefined) {
+            journey.areSwimlanesComplete = params.areSwimlanesComplete;
+            updatedFields.push('areSwimlanesComplete');
+        }
+
+        logger.info(`[JourneyService] Updating metadata`, {
+            journeyId: id,
+            updatedFields,
+            oldStage,
+            currentName: journey.name,
+            currentDescription: journey.description?.substring(0, 100),
+            hasName: !!journey.name,
+            hasDescription: !!journey.description
+        });
 
         // Auto-advance stage if we just named it
         if (journey.stage === 'IDENTITY' && journey.name && journey.description) {
+            logger.info(`[JourneyService] Stage transition check: name="${journey.name}", description="${journey.description?.substring(0, 50)}"...`);
             journey.stage = 'PHASES';
         }
 
@@ -92,10 +139,16 @@ export class JourneyService {
 
         // Log stage transitions
         if (oldStage !== journey.stage) {
-            logger.info(`🚦 [GATE TRANSITION] ${oldStage} → ${journey.stage} | Journey: ${journey.name}`);
+            logger.info(`🚦 [GATE TRANSITION] ${oldStage} → ${journey.stage} | Journey: ${journey.name}`, {
+                journeyId: id,
+                oldStage,
+                newStage: journey.stage,
+                name: journey.name,
+                description: journey.description?.substring(0, 100)
+            });
         }
 
-        logger.info(`[JourneyService] Updated Metadata: ${id} | Name: "${journey.name}" | Stage: ${journey.stage}`);
+        logger.info(`✅ [JourneyService] Updated Metadata: ${id} | Name: "${journey.name}" | Stage: ${journey.stage}`);
         return journey;
     }
 

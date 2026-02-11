@@ -159,12 +159,13 @@ server.get('/api/cells-remaining/:id', async (request, reply) => {
 });
 
 server.post('/api/chat', async (request, reply) => {
-    logger.info('[HANDLER] /api/chat hit');
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    logger.info('[HANDLER] /api/chat hit', { requestId });
 
     // --- Validate BEFORE setting SSE headers (so we can return clean 400s) ---
     const body = request.body as any;
     if (!body || !body.message || typeof body.message !== 'string' || body.message.trim().length === 0) {
-        logger.warn('[HANDLER] Missing or empty message', { body: JSON.stringify(body).substring(0, 200) });
+        logger.warn('[HANDLER] Missing or empty message', { requestId, body: JSON.stringify(body).substring(0, 200) });
         return reply.status(400).send({ error: 'Message is required' });
     }
 
@@ -178,11 +179,14 @@ server.post('/api/chat', async (request, reply) => {
     reply.raw.setHeader('Cache-Control', 'no-cache');
     reply.raw.setHeader('Connection', 'keep-alive');
     if (journeyId) config.journeyId = journeyId;
-    
-    logger.info('[API] Chat request validated', { 
-        hasWelcome: !!config.welcomePrompt, 
+
+    logger.info('[API] Chat request validated', {
+        requestId,
+        hasWelcome: !!config.welcomePrompt,
         journeyId: config.journeyId,
-        historyLength: history.length
+        historyLength: history.length,
+        messageLength: message.length,
+        messagePreview: message.substring(0, 100)
     });
 
     // Safe SSE write helper — guards against writing to closed/destroyed streams
@@ -194,6 +198,11 @@ server.post('/api/chat', async (request, reply) => {
         }
     };
   
+    // Declare variables outside try block for error handling access
+    let journeyState: any = null;
+    let currentModelName: string = 'UNKNOWN';
+    let currentTurn: number = 0;
+
     try {
       logger.info('Chat request processing', { journeyId, messageLength: message.length });
 
@@ -202,9 +211,8 @@ server.post('/api/chat', async (request, reply) => {
         parts: [{ text: msg.content }]
       }));
       contents.push({ role: 'user', parts: [{ text: message }] });
-  
+
       // Fetch Journey State for Context
-      let journeyState: any = null;
       if (config.journeyId) {
           logger.info('Fetching journey state', { journeyId: config.journeyId });
           journeyState = await aiService.getJourneyState(config.journeyId);
@@ -299,13 +307,23 @@ server.post('/api/chat', async (request, reply) => {
           logger.warn(`🎯 CONFIRMATION DETECTED: Forcing mode=ANY to prevent hallucination (stage: ${journeyState.stage}, message: "${message.trim()}")`);
       }
 
-      logger.info('Getting request model');
+      logger.info('Getting request model', {
+          requestId,
+          journeyId: config.journeyId,
+          stage: journeyState?.stage || 'IDENTITY',
+          forceTools: shouldForceTools
+      });
       let modelResult = await aiService.getRequestModel(config, journeyState, undefined, shouldForceTools);
       let requestModel = modelResult.model;
-      let currentModelName = modelResult.modelName;
-      logger.info(`Got request model: ${currentModelName}`);
-  
-      let currentTurn = 0;
+      currentModelName = modelResult.modelName;
+      logger.info(`Got request model: ${currentModelName}`, {
+          requestId,
+          modelName: currentModelName,
+          stage: journeyState?.stage || 'IDENTITY',
+          toolMode: shouldForceTools ? 'ANY (FORCED)' : 'AUTO'
+      });
+
+      currentTurn = 0;
       const maxTurns = 10;
       let finalDone = false;
   
@@ -318,7 +336,17 @@ server.post('/api/chat', async (request, reply) => {
           } catch (e: any) {
               // Handle rate limiting (429)
               if (e.message?.includes('429') || e.status === 429 || e.code === 429 || e.message?.includes('RESOURCE_EXHAUSTED')) {
-                   logger.warn(`⚠️ 429 RESOURCE EXHAUSTED for ${modelName} (attempt ${retryCount + 1})`);
+                   logger.warn(`⚠️ 429 RESOURCE EXHAUSTED for ${modelName} (attempt ${retryCount + 1})`, {
+                       requestId,
+                       journeyId: config.journeyId,
+                       model: modelName,
+                       retryCount,
+                       errorMessage: e.message,
+                       errorStatus: e.status,
+                       errorCode: e.code,
+                       stage: journeyState?.stage || 'UNKNOWN',
+                       historyLength: params.contents?.length || 0
+                   });
 
                    // Backoff: wait before retrying (1s first, 3s second)
                    const backoffMs = retryCount === 0 ? 1000 : 3000;
@@ -350,8 +378,16 @@ server.post('/api/chat', async (request, reply) => {
               // Handle tool calling errors with mode fallback (400, 500)
               if ((e.status === 400 || e.status === 500) && forcedToolMode && retryCount === 0) {
                   logger.warn(`⚠️ Tool calling error with mode=ANY, falling back to mode=AUTO`, {
+                      requestId,
+                      journeyId: config.journeyId,
                       error: e.message,
-                      status: e.status
+                      errorName: e.name,
+                      status: e.status,
+                      model: modelName,
+                      stage: journeyState?.stage || 'UNKNOWN',
+                      wasForced: forcedToolMode,
+                      retryCount,
+                      lastUserMessage: message?.substring(0, 150) || '(no message)'
                   });
 
                   // Wait 500ms and retry with mode=AUTO
@@ -375,12 +411,24 @@ server.post('/api/chat', async (request, reply) => {
       };
 
       // Initial Generation
-      logger.info('Starting generation');
+      logger.info('Starting generation', {
+          requestId,
+          journeyId: config.journeyId,
+          model: currentModelName,
+          contentsLength: contents.length,
+          stage: journeyState?.stage || 'IDENTITY',
+          forceToolCalling: shouldForceTools
+      });
       let genResult = await generateSafe(requestModel, { contents }, currentModelName);
       let response = genResult.response;
       requestModel = genResult.model;
       currentModelName = genResult.modelName;
-      logger.info('Got initial response');
+      logger.info('Got initial response', {
+          requestId,
+          journeyId: config.journeyId,
+          model: currentModelName,
+          hasCandidates: response.candidates && response.candidates.length > 0
+      });
       let emptyRetries = 0;
       
       while (currentTurn < maxTurns && !finalDone) {
@@ -393,7 +441,19 @@ server.post('/api/chat', async (request, reply) => {
               const safetyRatings = candidates?.[0]?.safetyRatings;
               const promptFeedback = response.promptFeedback;
               const blockReason = promptFeedback?.blockReason || null;
+
+              // Capture last 3 messages from conversation for context
+              const recentHistory = contents.slice(-3).map((msg: any, idx: number) => ({
+                  index: contents.length - 3 + idx,
+                  role: msg.role,
+                  hasText: msg.parts?.some((p: any) => p.text),
+                  hasFunctionCall: msg.parts?.some((p: any) => p.functionCall),
+                  hasFunctionResponse: msg.parts?.some((p: any) => p.functionResponse),
+                  preview: msg.parts?.[0]?.text?.substring(0, 150) || msg.parts?.[0]?.functionCall?.name || msg.parts?.[0]?.functionResponse?.name || '(no content)'
+              }));
+
               logger.warn('⚠️ EMPTY_CANDIDATES: AI returned no usable response', {
+                  requestId,
                   journeyId: config.journeyId || null,
                   finishReason,
                   blockReason,
@@ -402,7 +462,15 @@ server.post('/api/chat', async (request, reply) => {
                   turn: currentTurn,
                   model: currentModelName,
                   lastUserMessage: message?.substring(0, 200) || '(no message)',
-                  historyLength: contents.length
+                  historyLength: contents.length,
+                  recentHistory,
+                  journeyStage: journeyState?.stage || 'UNKNOWN',
+                  journeyMetrics: journeyState?.metrics || {},
+                  promptVersion: PROMPTS_VERSION.version,
+                  toolsVersion: TOOLS_VERSION.version,
+                  forceToolCalling: shouldForceTools,
+                  isConfirmationResponse,
+                  isConfirmationStage
               });
 
               // Retry up to 2 times on empty candidates before giving up
@@ -421,16 +489,50 @@ server.post('/api/chat', async (request, reply) => {
                   continue;
               }
 
-              logger.error('🚨 EMPTY_CANDIDATES_FINAL: All retries exhausted — user saw error', {
-                  journeyId: config.journeyId || null,
+              // CRITICAL: Full diagnostic dump for user-visible errors
+              const fullDiagnostic = {
+                  requestId,
+                  timestamp: new Date().toISOString(),
+                  // Error Details
                   finishReason,
                   blockReason,
-                  safetyRatings: JSON.stringify(safetyRatings || []),
+                  safetyRatings: safetyRatings || [],
+                  promptFeedback: promptFeedback || {},
+                  totalEmptyRetries: emptyRetries,
                   turn: currentTurn,
+                  // Journey Context
+                  journeyId: config.journeyId || null,
+                  journeyStage: journeyState?.stage || 'UNKNOWN',
+                  journeyName: journeyState?.name || null,
+                  journeyDescription: journeyState?.description || null,
+                  journeyMetrics: journeyState?.metrics || {},
+                  completionStatus: journeyState?.completionStatus || null,
+                  // Model Configuration
                   model: currentModelName,
-                  lastUserMessage: message?.substring(0, 200) || '(no message)',
-                  totalEmptyRetries: emptyRetries
-              });
+                  forceToolCalling: shouldForceTools,
+                  isConfirmationResponse,
+                  isConfirmationStage,
+                  // Prompt Context
+                  promptVersion: PROMPTS_VERSION.version,
+                  toolsVersion: TOOLS_VERSION.version,
+                  // Request Context
+                  lastUserMessage: message || '(no message)',
+                  messageLength: message?.length || 0,
+                  historyLength: contents.length,
+                  recentHistory,
+                  // Config Context
+                  hasWelcomePrompt: !!config.welcomePrompt,
+                  hasPersonaFrame: !!config.personaFrame,
+                  hasRagContext: !!config.ragContext,
+                  hasPhases: Array.isArray(config.phases) && config.phases.length > 0,
+                  hasSwimlanes: Array.isArray(config.swimlanes) && config.swimlanes.length > 0,
+                  // Journey Structure (if available)
+                  phasesCount: journeyState?.phases?.length || 0,
+                  swimlanesCount: journeyState?.swimlanes?.length || 0,
+                  cellsCount: journeyState?.cells?.length || 0
+              };
+
+              logger.error('🚨 EMPTY_CANDIDATES_FINAL: All retries exhausted — user saw error', fullDiagnostic);
               safeSend({ text: "I had a brief hiccup processing that. Could you try sending your message again?" });
               safeSend({ done: true, journeyId: config.journeyId });
               finalDone = true;
@@ -467,16 +569,40 @@ server.post('/api/chat', async (request, reply) => {
                   // Send tool execution event to frontend for visibility
                   safeSend({ tool: fn.name, status: 'executing', args: fn.args });
 
-                  logger.info(`⚙️ Executing tool: ${fn.name}`, { journeyId: config.journeyId });
+                  logger.info(`⚙️ Executing tool: ${fn.name}`, {
+                      requestId,
+                      journeyId: config.journeyId,
+                      toolName: fn.name,
+                      args: fn.args,
+                      turn: currentTurn,
+                      stage: journeyState?.stage || 'UNKNOWN'
+                  });
+
                   const toolResult: any = await aiService.executeTool(fn.name, fn.args);
 
                   // Log tool outcome for observability
                   if (toolResult?.error) {
-                      logger.error(`❌ Tool "${fn.name}" returned error`, { error: toolResult.error, args: JSON.stringify(fn.args).substring(0, 500) });
+                      logger.error(`❌ Tool "${fn.name}" returned error`, {
+                          requestId,
+                          journeyId: config.journeyId,
+                          toolName: fn.name,
+                          error: toolResult.error,
+                          args: fn.args,
+                          turn: currentTurn,
+                          stage: journeyState?.stage || 'UNKNOWN',
+                          model: currentModelName,
+                          promptVersion: PROMPTS_VERSION.version
+                      });
                       // Send error to frontend
                       safeSend({ tool: fn.name, status: 'error', error: toolResult.error });
                   } else {
-                      logger.info(`✅ Tool "${fn.name}" succeeded`, { journeyId: config.journeyId });
+                      logger.info(`✅ Tool "${fn.name}" succeeded`, {
+                          requestId,
+                          journeyId: config.journeyId,
+                          toolName: fn.name,
+                          turn: currentTurn,
+                          resultPreview: JSON.stringify(toolResult).substring(0, 200)
+                      });
                       // Send success to frontend
                       safeSend({ tool: fn.name, status: 'success' });
                   }
@@ -538,10 +664,24 @@ server.post('/api/chat', async (request, reply) => {
       reply.raw.end();
   
     } catch (error: any) {
-      logger.error('🚨 CHAT_ERROR: Unhandled exception in /api/chat', { 
-          error: error.message, 
+      logger.error('🚨 CHAT_ERROR: Unhandled exception in /api/chat', {
+          requestId,
+          timestamp: new Date().toISOString(),
+          error: error.message,
+          errorName: error.name,
+          errorCode: error.code,
+          errorStatus: error.status,
           stack: error.stack,
-          journeyId: config?.journeyId
+          journeyId: config?.journeyId,
+          journeyStage: journeyState?.stage || 'UNKNOWN',
+          model: currentModelName || 'UNKNOWN',
+          turn: currentTurn || 0,
+          lastUserMessage: message?.substring(0, 200) || '(no message)',
+          historyLength: history?.length || 0,
+          promptVersion: PROMPTS_VERSION.version,
+          toolsVersion: TOOLS_VERSION.version,
+          hasConfig: !!config,
+          configKeys: config ? Object.keys(config) : []
       });
       safeSend({ error: error.message });
       if (!reply.raw.destroyed) reply.raw.end();

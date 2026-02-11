@@ -168,7 +168,17 @@ export class AIService {
             });
 
             const modeLabel = toolMode === FunctionCallingMode.ANY ? 'ANY (FORCED)' : 'AUTO';
-            logger.info(`🔧 Tool Calling Mode: ${modeLabel} (stage: ${journeyState?.stage || 'N/A'})${forceToolCalling ? ' - Confirmation detected' : ''}`);
+            logger.info(`🔧 Tool Calling Mode: ${modeLabel} (stage: ${journeyState?.stage || 'N/A'})${forceToolCalling ? ' - Confirmation detected' : ''}`, {
+                model: targetModel,
+                toolMode: modeLabel,
+                maxOutputTokens,
+                stage: journeyState?.stage || 'N/A',
+                forceToolCalling,
+                allowedTools: allowedToolNames,
+                scopedToolsCount: scopedTools.reduce((acc: number, tg: any) => acc + tg.functionDeclarations.length, 0),
+                journeyId: fullConfig.journeyId || null,
+                promptVersion: buildSystemInstruction.length // Approximate prompt size
+            });
 
             // Return both model and name
             return { model, modelName: targetModel };
@@ -184,7 +194,7 @@ export class AIService {
      * Handles 429 (Rate Limit), 500 (Model Overloaded), and network flakes
      * Prevents "Brief Hiccup" errors from reaching the user
      */
-    async generateWithRetry(model: any, request: any, retries = 3): Promise<any> {
+    async generateWithRetry(model: any, request: any, retries = 3, context?: any): Promise<any> {
         try {
             const result = await model.generateContent(request);
             return result;
@@ -201,18 +211,31 @@ export class AIService {
                 const delay = 1000 * (4 - retries); // 1s, 2s, 3s exponential backoff
                 logger.warn(`⚠️ Generation failed, retrying in ${delay}ms... (${retries} attempts left)`, {
                     error: error.message,
-                    status: error.status
+                    errorName: error.name,
+                    errorCode: error.code,
+                    status: error.status,
+                    retriesLeft: retries,
+                    delay,
+                    model: this.activeModelName,
+                    requestContext: context || {}
                 });
 
                 await new Promise(resolve => setTimeout(resolve, delay));
-                return this.generateWithRetry(model, request, retries - 1);
+                return this.generateWithRetry(model, request, retries - 1, context);
             }
 
             // Final failure bubbles up
             logger.error('❌ Generation failed after all retries', {
+                timestamp: new Date().toISOString(),
                 error: error.message,
+                errorName: error.name,
+                errorCode: error.code,
                 status: error.status,
-                retriesExhausted: retries === 0
+                stack: error.stack,
+                retriesExhausted: retries === 0,
+                model: this.activeModelName,
+                requestContext: context || {},
+                isRetryable
             });
             throw error;
         }
@@ -350,20 +373,42 @@ export class AIService {
     }
 
     async executeTool(name: string, args: any) {
-        logger.info(`🛠️ Executing Tool: ${name}`, args);
-        
+        logger.info(`🛠️ Executing Tool: ${name}`, {
+            toolName: name,
+            args,
+            timestamp: new Date().toISOString()
+        });
+
         try {
             switch (name) {
-                case 'create_journey_map':
+                case 'create_journey_map': {
+                    logger.info('Creating journey map', { args });
                     return await this.journeyService.createJourney(args);
-                case 'update_journey_metadata':
+                }
+                case 'update_journey_metadata': {
+                    logger.info('Updating journey metadata', { journeyId: args.journeyMapId, fields: Object.keys(args) });
                     return await this.journeyService.updateMetadata(args.journeyMapId, args);
-                case 'set_phases_bulk':
+                }
+                case 'set_phases_bulk': {
+                    logger.info('Setting phases bulk', {
+                        journeyId: args.journeyMapId,
+                        phasesCount: args.phases?.length || 0,
+                        phases: args.phases?.map((p: any) => ({ name: p.name, hasDescription: !!p.description }))
+                    });
                     return await this.journeyService.setPhasesBulk(args.journeyMapId, args.phases);
-                case 'set_swimlanes_bulk':
+                }
+                case 'set_swimlanes_bulk': {
+                    logger.info('Setting swimlanes bulk', {
+                        journeyId: args.journeyMapId,
+                        swimlanesCount: args.swimlanes?.length || 0,
+                        swimlanes: args.swimlanes?.map((s: any) => ({ name: s.name, hasDescription: !!s.description }))
+                    });
                     return await this.journeyService.setSwimlanesBulk(args.journeyMapId, args.swimlanes);
-                case 'generate_matrix':
+                }
+                case 'generate_matrix': {
+                    logger.info('Generating matrix', { journeyId: args.journeyMapId });
                     return await this.journeyService.generateMatrix(args.journeyMapId);
+                }
                 case 'update_cell': {
                     // Fetch journey ONCE for all resolution needs (was 3 reads, now 1)
                     const journey = await this.journeyService.getJourney(args.journeyMapId);
@@ -412,15 +457,32 @@ export class AIService {
                     return result;
                 }
 
-                case 'generate_artifacts':
+                case 'generate_artifacts': {
+                    logger.info('Generating artifacts', {
+                        journeyId: args.journeyMapId,
+                        hasSummary: !!args.summaryOfFindings,
+                        hasModels: !!args.mentalModels,
+                        quotesCount: args.quotes?.length || 0
+                    });
                     return await this.journeyService.generateArtifacts(args.journeyMapId, args);
-                    
-                default:
+                }
+
+                default: {
+                    logger.error('Unknown tool called', { toolName: name, args });
                     return { error: `Unknown tool: ${name}` };
+                }
             }
-    
+
         } catch (e: any) {
-            logger.error("Tool execution error", e);
+            logger.error("🚨 Tool execution error", {
+                timestamp: new Date().toISOString(),
+                toolName: name,
+                error: e.message,
+                errorName: e.name,
+                stack: e.stack,
+                args,
+                journeyId: args?.journeyMapId || args?.journeyId || null
+            });
             return { error: e.message };
         }
     }
