@@ -13,7 +13,7 @@ import { SUPER_ADMIN_EMAIL, AppUser } from './types';
 import logger from './logger';
 import { VERSION } from './version';
 import { PROMPTS_VERSION } from './ai/prompts';
-import { TOOLS_VERSION } from './ai/tools';
+import { TOOLS_VERSION, TOOL_SCOPES } from './ai/tools';
 
 // Log version on server start (forces redeploy on every build)
 logger.info('🚀 Journey Mapper API Starting', { version: VERSION });
@@ -565,6 +565,35 @@ server.post('/api/chat', async (request, reply) => {
               for (const call of functionCalls) {
                   const fn = call.functionCall;
                   if (!fn) continue;
+
+                  // CRITICAL: Validate tool is allowed for current stage (prevents AI from calling scoped-out tools mentioned in prompt text)
+                  const currentStage = journeyState?.stage || 'IDENTITY';
+                  const allowedTools = TOOL_SCOPES[currentStage] || [];
+
+                  if (!allowedTools.includes(fn.name)) {
+                      logger.warn(`🚫 BLOCKED: AI attempted to call "${fn.name}" which is not allowed in stage ${currentStage}`, {
+                          requestId,
+                          journeyId: config.journeyId,
+                          attemptedTool: fn.name,
+                          currentStage,
+                          allowedTools,
+                          turn: currentTurn
+                      });
+
+                      const toolResult = {
+                          error: `Tool "${fn.name}" is not available in stage ${currentStage}. Allowed tools: [${allowedTools.join(', ')}]. You must complete the current stage before accessing this tool.`
+                      };
+
+                      functionResponseParts.push({
+                          functionResponse: {
+                              name: fn.name,
+                              response: { content: toolResult }
+                          }
+                      });
+
+                      safeSend({ tool: fn.name, status: 'blocked', error: toolResult.error });
+                      continue; // Skip execution
+                  }
 
                   // Send tool execution event to frontend for visibility
                   safeSend({ tool: fn.name, status: 'executing', args: fn.args });
