@@ -140,19 +140,9 @@ function closeCellModal(event) {
 
 // Main Render Function
 function renderMap(journey, targetElementId) {
-    console.log('[RENDERER] renderMap called', {
-        hasJourney: !!journey,
-        journeyName: journey?.name,
-        phasesCount: journey?.phases?.length || 0,
-        swimlanesCount: journey?.swimlanes?.length || 0,
-        cellsCount: journey?.cells?.length || 0,
-        targetElementId: targetElementId
-    });
-
     // Default: use JourneyViewer canvas if available, else fallback
     if (!targetElementId) {
         targetElementId = (window.journeyViewer && window.journeyViewer.canvasId) || 'journeyDashboard';
-        console.log('[RENDERER] Using default target:', targetElementId);
     }
     const container = document.getElementById(targetElementId);
     if (!container) {
@@ -163,7 +153,6 @@ function renderMap(journey, targetElementId) {
         console.error('[RENDERER] No journey data provided');
         return;
     }
-    console.log('[RENDERER] Container found, starting render');
 
     // Update global state for modals
     currentRenderedJourney = journey;
@@ -543,12 +532,9 @@ function renderMap(journey, targetElementId) {
 
     html += `</div>`; // End board container
 
-    console.log('[RENDERER] Setting container innerHTML, size:', html.length);
     container.innerHTML = html;
-    console.log('[RENDERER] innerHTML set successfully');
 
     // Dispatch event to notify Panzoom
-    console.log('[RENDERER] Dispatching journeyRendered event');
     window.dispatchEvent(new CustomEvent('journeyRendered', {
         detail: { width: container.scrollWidth, height: container.scrollHeight }
     }));
@@ -558,8 +544,6 @@ function renderMap(journey, targetElementId) {
         const mapBtn = document.getElementById('mobileToggleBtn');
         if (mapBtn) mapBtn.classList.add('map-updated');
     }
-
-    console.log('[RENDERER] renderMap complete');
 }
 
 // ===========================================
@@ -587,9 +571,7 @@ async function embedFontsForPdf() {
     ];
 
     let css = '';
-    
-    console.log("Embedding fonts for PDF...");
-    
+
     // We can run these in parallel
     await Promise.all(fontConfig.map(async (font) => {
         try {
@@ -630,9 +612,8 @@ async function embedFontsForPdf() {
     
     // Extra safety buffer for layout/paint
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     areFontsEmbedded = true;
-    console.log("Fonts embedded successfully.");
 }
 
 // Rasterize SVG <img> elements to PNG data URLs so html2canvas renders them correctly.
