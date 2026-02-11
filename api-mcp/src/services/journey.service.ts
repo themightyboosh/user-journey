@@ -421,6 +421,13 @@ export class JourneyService {
         if (params.context !== undefined) cell.context = params.context;
 
         journey = recalculateJourney(journey);
+
+        // FIX: Auto-advance to COMPLETE when all cells are filled
+        if (journey.metrics.percentCellsComplete === 100 && journey.stage === 'CELL_POPULATION') {
+             journey.stage = 'COMPLETE';
+             logger.info(`[JourneyService] All cells complete. Auto-advancing to COMPLETE stage.`);
+        }
+
         await Store.save(journey);
         logger.info(`[JourneyService] Cell Updated: ${id} | CellId: ${cellId} | Progress: ${Math.round(journey.metrics.percentCellsComplete * 100)}%`);
         return journey;
