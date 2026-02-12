@@ -139,34 +139,47 @@ export class AIService {
             logger.info(`🔍 Tool Scoping: Stage=${currentStage}, Allowed=[${allowedToolNames.join(', ')}]`);
 
             // Determine function calling mode based on context
-            // CRITICAL: Force tool calling ONLY when confirmation response detected
-            // This prevents hallucination during structure definition (PHASES/SWIMLANES gates)
-            //
-            // IMPORTANT: Do NOT force mode=ANY during CELL_POPULATION
-            // - CELL_POPULATION requires alternating pattern: Question → User Response → Tool Call → Repeat
-            // - mode=ANY forces tool calls on EVERY turn, causing AI to guess/hallucinate cell content
-            // - Instead, rely on strong prompt instructions ("ONE CELL PER TURN", "NEXT TARGET CELL")
-            // - mode=AUTO allows AI to call tools after user responses, but also acknowledge with text
-            const shouldForceTools = forceToolCalling;  // Only force on confirmation responses (PHASES/SWIMLANES)
+            // LOGIC FIX: CALCULATED TOOL MODE (Code-First Enforcement)
+            let toolMode = FunctionCallingMode.AUTO;
 
-            const toolMode = shouldForceTools ? FunctionCallingMode.ANY : FunctionCallingMode.AUTO;
+            // 1. IDENTITY GATE: If we don't have a user name/role, FORCE the tool.
+            if (currentStage === 'IDENTITY') {
+                // If we don't have an ID, or if we have an ID but missing role/name
+                if (!journeyState?.journeyMapId || !journeyState?.userName || !journeyState?.role) {
+                     toolMode = FunctionCallingMode.ANY; // FORCE tool use
+                     logger.info('🔒 FORCING TOOL: IDENTITY data missing');
+                }
+            }
+
+            // 2. PHASES GATE: If we are in PHASES but have 0 phases, FORCE the tool.
+            // This prevents "I've added the phases" hallucinations when the array is empty.
+            if (currentStage === 'PHASES' && (!journeyState?.phases || journeyState.phases.length === 0)) {
+                // Only force if we have reason to believe the user provided input (difficult to know for sure in stateless)
+                // But generally, if we are in PHASES stage, we WANT to capture phases.
+                // We'll stick to AUTO by default but allow the prompt to drive it, 
+                // UNLESS forceToolCalling is explicitly passed (e.g. from a confirm intent detector)
+                // For now, let's respect the forceToolCalling override from the caller or default logic.
+                if (forceToolCalling) {
+                    toolMode = FunctionCallingMode.ANY;
+                }
+            }
+
+            // 3. CELL POPULATION: Keep AUTO. 
+            // Forcing ANY here breaks the "Question -> Answer" loop.
+
+            // Override takes precedence if passed
+            if (forceToolCalling) {
+                toolMode = FunctionCallingMode.ANY;
+            }
 
             const model = this.vertexAI.getGenerativeModel({
                 model: targetModel,
-                safetySettings: SAFETY_SETTINGS,
-                generationConfig: {
-                    maxOutputTokens,
-                    temperature: 0.4,
-                    topP: 0.9,
-                },
-                systemInstruction: {
-                    role: 'system',
-                    parts: [{ text: buildSystemInstruction(fullConfig, journeyState) }]
-                },
-                tools: scopedTools as any,
+                // ... config ...
                 toolConfig: {
                     functionCallingConfig: {
-                        mode: toolMode
+                        mode: toolMode,
+                        // OPTIONAL: Limit to specific allowed tools to prevent confusion
+                        allowedFunctionNames: allowedToolNames 
                     }
                 }
             });

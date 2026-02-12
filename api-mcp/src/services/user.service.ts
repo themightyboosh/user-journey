@@ -33,12 +33,14 @@ export class UserService {
         }
 
         const isSuperAdmin = userEmail === SUPER_ADMIN_EMAIL;
+        const settings = await Store.getSettings().catch(() => ({}));
+        const autoActivate = settings?.autoActivate !== false;
         const newUser: AppUser = {
             uid,
             email: userEmail,
             displayName,
             role: isSuperAdmin ? 'super_admin' : 'admin',
-            active: true,
+            active: isSuperAdmin || autoActivate,
             createdAt: new Date().toISOString(),
             lastLoginAt: new Date().toISOString()
         };

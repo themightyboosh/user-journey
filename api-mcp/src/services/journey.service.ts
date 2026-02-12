@@ -135,17 +135,27 @@ export class JourneyService {
             hasDescription: !!journey.description
         });
 
-        // LOGIC FIX: Robust State Transition
+        // LOGIC FIX: Robust State Transition with Strict Validation
         // We now explicitly handle the transition from JOURNEY_DEFINITION -> PHASES
-        const hasValidDescription = journey.description && journey.description.trim().length > 0;
+        // Check for meaningful content to prevent "Draft" or empty descriptions triggering advancement
+        const hasValidDescription = journey.description && journey.description.trim().length > 10; // Must be substantial (>10 chars)
+        const hasValidName = journey.name && journey.name.toLowerCase() !== 'draft' && !journey.name.toLowerCase().includes('draft') && journey.name.trim().length > 0;
 
-        if (hasValidDescription) {
+        if (hasValidDescription && hasValidName) {
             if (journey.stage === 'IDENTITY' || journey.stage === 'JOURNEY_DEFINITION') {
-                logger.info(`[JourneyService] Stage transition check passed. Advancing to PHASES.`, {
+                logger.info(`🚦 [GATE PASSED] Valid Name & Desc detected. Advancing to PHASES.`, {
                     name: journey.name,
                     description: journey.description?.substring(0, 50)
                 });
                 journey.stage = 'PHASES';
+            }
+        } else {
+            // If data is weak, DO NOT ADVANCE. Stay in definition mode.
+            if (journey.stage === 'IDENTITY' || journey.stage === 'JOURNEY_DEFINITION') {
+                logger.warn(`🛑 [GATE HELD] Description too short or Name invalid. Staying in ${journey.stage}.`, {
+                    name: journey.name,
+                    descLen: journey.description?.length || 0
+                });
             }
         }
 

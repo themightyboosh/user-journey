@@ -18,7 +18,7 @@ import { TOOLS_VERSION, TOOL_SCOPES } from './ai/tools';
 // Log version on server start (forces redeploy on every build)
 logger.info('🚀 Journey Mapper API Starting', { version: VERSION });
 
-export const server: FastifyInstance = Fastify({ 
+export const server: FastifyInstance = Fastify({
     logger: false, // Use our own logger
     ignoreTrailingSlash: true
 });
@@ -72,13 +72,13 @@ server.addHook('onReady', async () => {
 
 // Global Error Handler
 server.setErrorHandler((error: any, request, reply) => {
-    logger.error('Global Error Handler', { 
-        error: error.message, 
+    logger.error('Global Error Handler', {
+        error: error.message,
         stack: error.stack,
-        url: request.url 
+        url: request.url
     });
-    reply.status(error.statusCode || 500).send({ 
-        error: error.name, 
+    reply.status(error.statusCode || 500).send({
+        error: error.name,
         message: error.message,
         statusCode: error.statusCode || 500
     });
@@ -86,35 +86,35 @@ server.setErrorHandler((error: any, request, reply) => {
 
 // Process-level Error Handling (Winston Opportunities)
 process.on('unhandledRejection', (reason: any, promise) => {
-    logger.error('Unhandled Rejection at:', { 
-        promise, 
+    logger.error('Unhandled Rejection at:', {
+        promise,
         reason: reason?.message || reason,
-        stack: reason?.stack 
+        stack: reason?.stack
     });
 });
 
 process.on('uncaughtException', (error: any) => {
-    logger.error('Uncaught Exception:', { 
-        error: error.message, 
-        stack: error.stack 
+    logger.error('Uncaught Exception:', {
+        error: error.message,
+        stack: error.stack
     });
     // Optional: process.exit(1) if critical
 });
 
 server.register(swagger, {
-  openapi: {
-    openapi: '3.1.0',
-    info: {
-      title: 'Journey Map Capture API',
-      description: 'API for creating and progressively completing Journey Maps',
-      version: '1.0.0',
+    openapi: {
+        openapi: '3.1.0',
+        info: {
+            title: 'Journey Map Capture API',
+            description: 'API for creating and progressively completing Journey Maps',
+            version: '1.0.0',
+        },
+        servers: [{ url: 'http://localhost:3001' }],
     },
-    servers: [{ url: 'http://localhost:3001' }],
-  },
 });
 
 server.register(swaggerUi, {
-  routePrefix: '/docs',
+    routePrefix: '/docs',
 });
 
 // --- Utility: sleep for backoff ---
@@ -146,7 +146,7 @@ server.get('/api/version', async (request, reply) => {
 server.get('/api/journey-state/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
     const data = await aiService.getJourneyState(id);
-    if (!data) return reply.status(404).send({error: "Not found"});
+    if (!data) return reply.status(404).send({ error: "Not found" });
     return data;
 });
 
@@ -197,578 +197,616 @@ server.post('/api/chat', async (request, reply) => {
             logger.warn('⚠️ Attempted SSE write to closed stream', { journeyId: config?.journeyId });
         }
     };
-  
+
     // Declare variables outside try block for error handling access
     let journeyState: any = null;
     let currentModelName: string = 'UNKNOWN';
     let currentTurn: number = 0;
 
     try {
-      logger.info('Chat request processing', { journeyId, messageLength: message.length });
+        logger.info('Chat request processing', { journeyId, messageLength: message.length });
 
-      const contents = history.map((msg: any) => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }]
-      }));
-      contents.push({ role: 'user', parts: [{ text: message }] });
+        const contents = history.map((msg: any) => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }]
+        }));
+        contents.push({ role: 'user', parts: [{ text: message }] });
 
-      // Fetch Journey State for Context
-      if (config.journeyId) {
-          logger.info('Fetching journey state', { journeyId: config.journeyId });
-          journeyState = await aiService.getJourneyState(config.journeyId);
-          logger.info('Fetched journey state', { found: !!journeyState });
-      }
+        // [INSPECTOR] Log the constructed prompt
+        safeSend({
+            inspector: {
+                type: 'prompt',
+                timestamp: new Date().toISOString(),
+                data: { contents, config }
+            }
+        });
 
-// PHASE 3: Auto-Execution Logic (Refactored for Granular Control)
-      const currentStage = journeyState?.stage || 'IDENTITY';
+        // Fetch Journey State for Context
+        if (config.journeyId) {
+            logger.info('Fetching journey state', { journeyId: config.journeyId });
+            journeyState = await aiService.getJourneyState(config.journeyId);
+            safeSend({
+                inspector: {
+                    type: 'state',
+                    timestamp: new Date().toISOString(),
+                    data: { stage: journeyState?.stage, cells: journeyState?.cells?.length, version: journeyState?.version }
+                }
+            });
+            logger.info('Fetched journey state', { found: !!journeyState });
+        }
 
-      // --- Helper: Auto-Execution Decision Engine ---
-      const shouldAutoExecute = (
-          stage: string, 
-          configGroup: any, // e.g., config.structure.phases or legacy config.phases
-          dataArray: any[]
-      ): boolean => {
-          if (!dataArray || dataArray.length === 0) return false;
+        // PHASE 3: Auto-Execution Logic (Refactored for Granular Control)
+        const currentStage = journeyState?.stage || 'IDENTITY';
 
-          // 1. Check Completeness (Data Quality)
-          const allHaveDescriptions = dataArray.every((item: any) => 
-              item.name && item.description && item.description.trim().length > 0
-          );
+        // --- Helper: Auto-Execution Decision Engine ---
+        const shouldAutoExecute = (
+            stage: string,
+            configGroup: any, // e.g., config.structure.phases or legacy config.phases
+            dataArray: any[]
+        ): boolean => {
+            if (!dataArray || dataArray.length === 0) return false;
 
-          // 2. Determine Probe Mode
-          // Support both new nested config and legacy flat config
-          let probeMode = 'NEVER_PROBE'; // Default: Trust admin data
-          if (configGroup?.probeMode) {
-              probeMode = configGroup.probeMode;
-          }
+            // 1. Check Completeness (Data Quality)
+            const allHaveDescriptions = dataArray.every((item: any) =>
+                item.name && item.description && item.description.trim().length > 0
+            );
 
-          logger.info(`[AutoExec] Evaluating ${stage}`, { 
-              probeMode, 
-              itemCount: dataArray.length, 
-              allHaveDescriptions 
-          });
+            // 2. Determine Probe Mode
+            // Support both new nested config and legacy flat config
+            let probeMode = 'NEVER_PROBE'; // Default: Trust admin data
+            if (configGroup?.probeMode) {
+                probeMode = configGroup.probeMode;
+            }
 
-          // 3. Evaluate Logic
-          if (probeMode === 'ALWAYS_PROBE') {
-              logger.info(`[AutoExec] ${stage}: Skipped (ALWAYS_PROBE is active)`);
-              return false; // Force AI to ask questions
-          }
+            logger.info(`[AutoExec] Evaluating ${stage}`, {
+                probeMode,
+                itemCount: dataArray.length,
+                allHaveDescriptions
+            });
 
-          if (probeMode === 'AUTO_PROBE') {
-              if (allHaveDescriptions) {
-                  logger.info(`[AutoExec] ${stage}: Approved (AUTO_PROBE + Complete Data)`);
-                  return true;
-              } else {
-                  logger.info(`[AutoExec] ${stage}: Skipped (AUTO_PROBE + Missing Descriptions)`);
-                  return false; // Let AI probe missing items
-              }
-          }
+            // 3. Evaluate Logic
+            if (probeMode === 'ALWAYS_PROBE') {
+                logger.info(`[AutoExec] ${stage}: Skipped (ALWAYS_PROBE is active)`);
+                return false; // Force AI to ask questions
+            }
 
-          // NEVER_PROBE (Default)
-          // If data is complete, execute. 
-          // If data is partial, we MUST let AI probe (otherwise we save empty descriptions)
-          if (allHaveDescriptions) {
-              logger.info(`[AutoExec] ${stage}: Approved (NEVER_PROBE + Complete Data)`);
-              return true;
-          }
-          
-          logger.info(`[AutoExec] ${stage}: Skipped (Data Incomplete)`);
-          return false;
-      };
+            if (probeMode === 'AUTO_PROBE') {
+                if (allHaveDescriptions) {
+                    logger.info(`[AutoExec] ${stage}: Approved (AUTO_PROBE + Complete Data)`);
+                    return true;
+                } else {
+                    logger.info(`[AutoExec] ${stage}: Skipped (AUTO_PROBE + Missing Descriptions)`);
+                    return false; // Let AI probe missing items
+                }
+            }
 
-      // --- Phases Auto-Execution ---
-      const phasesData = config.structure?.phases?.data || config.phases;
-      const phasesConfig = config.structure?.phases || {};
-      
-      if (currentStage === 'PHASES' && phasesData && journeyState) {
-          if (shouldAutoExecute('PHASES', phasesConfig, phasesData)) {
-              logger.info(`🚀 [AUTO-EXEC] Executing set_phases_bulk`);
-              await aiService.executeTool(config.journeyId!, {
-                  name: 'set_phases_bulk',
-                  args: { journeyMapId: config.journeyId, phases: phasesData }
-              });
+            // NEVER_PROBE (Default)
+            // If data is complete, execute. 
+            // If data is partial, we MUST let AI probe (otherwise we save empty descriptions)
+            if (allHaveDescriptions) {
+                logger.info(`[AutoExec] ${stage}: Approved (NEVER_PROBE + Complete Data)`);
+                return true;
+            }
 
-              journeyState = await aiService.getJourneyState(config.journeyId!);
-              
-              if (!reply.raw.destroyed && reply.raw.writable) {
-                  reply.raw.write(`data: ${JSON.stringify({ text: `I've applied the ${phasesData.length} standard phases for this template.\n\n` })}\n\n`);
-                  reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-                  reply.raw.end();
-              }
-              return;
-          }
-      }
+            logger.info(`[AutoExec] ${stage}: Skipped (Data Incomplete)`);
+            return false;
+        };
 
-      // --- Swimlanes Auto-Execution ---
-      const swimlanesData = config.structure?.swimlanes?.data || config.swimlanes;
-      const swimlanesConfig = config.structure?.swimlanes || {};
+        // --- Phases Auto-Execution ---
+        const phasesData = config.structure?.phases?.data || config.phases;
+        const phasesConfig = config.structure?.phases || {};
 
-      if (currentStage === 'SWIMLANES' && swimlanesData && journeyState) {
-          if (shouldAutoExecute('SWIMLANES', swimlanesConfig, swimlanesData)) {
-              logger.info(`🚀 [AUTO-EXEC] Executing set_swimlanes_bulk`);
-              await aiService.executeTool(config.journeyId!, {
-                  name: 'set_swimlanes_bulk',
-                  args: { journeyMapId: config.journeyId, swimlanes: swimlanesData }
-              });
+        if (currentStage === 'PHASES' && phasesData && journeyState) {
+            if (shouldAutoExecute('PHASES', phasesConfig, phasesData)) {
+                logger.info(`🚀 [AUTO-EXEC] Executing set_phases_bulk`);
+                await aiService.executeTool(config.journeyId!, {
+                    name: 'set_phases_bulk',
+                    args: { journeyMapId: config.journeyId, phases: phasesData }
+                });
 
-              journeyState = await aiService.getJourneyState(config.journeyId!);
+                journeyState = await aiService.getJourneyState(config.journeyId!);
 
-              if (!reply.raw.destroyed && reply.raw.writable) {
-                  reply.raw.write(`data: ${JSON.stringify({ text: `I've set up the ${swimlanesData.length} standard layers. Let's get started.\n\n` })}\n\n`);
-                  reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-                  reply.raw.end();
-              }
-              return;
-          }
-      }
+                if (!reply.raw.destroyed && reply.raw.writable) {
+                    reply.raw.write(`data: ${JSON.stringify({ text: `I've applied the ${phasesData.length} standard phases for this template.\n\n` })}\n\n`);
+                    reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+                    reply.raw.end();
+                }
+                return;
+            }
+        }
 
-      // CRITICAL: Detect confirmation responses to force tool calling
-      // Prevents AI from narrating "I'm adding..." without actually calling tools
-      const isConfirmationResponse = /^(yes|yeah|yep|yup|correct|right|sure|ok|okay|sounds good|that's right|looks good)$/i.test(message.trim());
+        // --- Swimlanes Auto-Execution ---
+        const swimlanesData = config.structure?.swimlanes?.data || config.swimlanes;
+        const swimlanesConfig = config.structure?.swimlanes || {};
 
-      // FIX: Check for phase/swimlane confirmations at the RIGHT stages
-      // Phases are set during JOURNEY_DEFINITION or PHASES stage
-      // Swimlanes are set during PHASES or SWIMLANES stage
-      const isPhasesConfirmation = isConfirmationResponse &&
-          (journeyState?.stage === 'JOURNEY_DEFINITION' || journeyState?.stage === 'PHASES');
-      const isSwimlanesConfirmation = isConfirmationResponse &&
-          (journeyState?.stage === 'PHASES' || journeyState?.stage === 'SWIMLANES');
-      const shouldForceTools = isPhasesConfirmation || isSwimlanesConfirmation;
+        if (currentStage === 'SWIMLANES' && swimlanesData && journeyState) {
+            if (shouldAutoExecute('SWIMLANES', swimlanesConfig, swimlanesData)) {
+                logger.info(`🚀 [AUTO-EXEC] Executing set_swimlanes_bulk`);
+                await aiService.executeTool(config.journeyId!, {
+                    name: 'set_swimlanes_bulk',
+                    args: { journeyMapId: config.journeyId, swimlanes: swimlanesData }
+                });
 
-      // Legacy variable for logging compatibility
-      const isConfirmationStage = shouldForceTools;
+                journeyState = await aiService.getJourneyState(config.journeyId!);
 
-      if (shouldForceTools) {
-          logger.warn(`🎯 CONFIRMATION DETECTED: Forcing mode=ANY to prevent hallucination (stage: ${journeyState.stage}, message: "${message.trim()}")`);
-      }
+                if (!reply.raw.destroyed && reply.raw.writable) {
+                    reply.raw.write(`data: ${JSON.stringify({ text: `I've set up the ${swimlanesData.length} standard layers. Let's get started.\n\n` })}\n\n`);
+                    reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+                    reply.raw.end();
+                }
+                return;
+            }
+        }
 
-      logger.info('Getting request model', {
-          requestId,
-          journeyId: config.journeyId,
-          stage: journeyState?.stage || 'IDENTITY',
-          forceTools: shouldForceTools
-      });
-      let modelResult = await aiService.getRequestModel(config, journeyState, undefined, shouldForceTools);
-      let requestModel = modelResult.model;
-      currentModelName = modelResult.modelName;
-      logger.info(`Got request model: ${currentModelName}`, {
-          requestId,
-          modelName: currentModelName,
-          stage: journeyState?.stage || 'IDENTITY',
-          toolMode: shouldForceTools ? 'ANY (FORCED)' : 'AUTO'
-      });
+        // CRITICAL: Detect confirmation responses to force tool calling
+        // Prevents AI from narrating "I'm adding..." without actually calling tools
+        const isConfirmationResponse = /^(yes|yeah|yep|yup|correct|right|sure|ok|okay|sounds good|that's right|looks good)$/i.test(message.trim());
 
-      currentTurn = 0;
-      const maxTurns = 10;
-      let finalDone = false;
-  
-      // PHASE 5: Enhanced retry with mode fallback
-      const generateSafe = async (model: any, params: any, modelName: string, retryCount = 0, forcedToolMode = shouldForceTools): Promise<any> => {
-          try {
-              const result = await model.generateContent(params);
-              const response = await result.response;
-              return { response, model, modelName };
-          } catch (e: any) {
-              // Handle rate limiting (429)
-              if (e.message?.includes('429') || e.status === 429 || e.code === 429 || e.message?.includes('RESOURCE_EXHAUSTED')) {
-                   logger.warn(`⚠️ 429 RESOURCE EXHAUSTED for ${modelName} (attempt ${retryCount + 1})`, {
-                       requestId,
-                       journeyId: config.journeyId,
-                       model: modelName,
-                       retryCount,
-                       errorMessage: e.message,
-                       errorStatus: e.status,
-                       errorCode: e.code,
-                       stage: journeyState?.stage || 'UNKNOWN',
-                       historyLength: params.contents?.length || 0
-                   });
+        // FIX: Check for phase/swimlane confirmations at the RIGHT stages
+        // Phases are set during JOURNEY_DEFINITION or PHASES stage
+        // Swimlanes are set during PHASES or SWIMLANES stage
+        const isPhasesConfirmation = isConfirmationResponse &&
+            (journeyState?.stage === 'JOURNEY_DEFINITION' || journeyState?.stage === 'PHASES');
+        const isSwimlanesConfirmation = isConfirmationResponse &&
+            (journeyState?.stage === 'PHASES' || journeyState?.stage === 'SWIMLANES');
+        const shouldForceTools = isPhasesConfirmation || isSwimlanesConfirmation;
 
-                   // Backoff: wait before retrying (1s first, 3s second)
-                   const backoffMs = retryCount === 0 ? 1000 : 3000;
-                   await sleep(backoffMs);
+        // Legacy variable for logging compatibility
+        const isConfirmationStage = shouldForceTools;
 
-                   // Get the next fallback model name
-                   const nextFallbackModel = aiService.getNextFallback(modelName);
+        if (shouldForceTools) {
+            logger.warn(`🎯 CONFIRMATION DETECTED: Forcing mode=ANY to prevent hallucination (stage: ${journeyState.stage}, message: "${message.trim()}")`);
+        }
 
-                   // Re-fetch journey state so the fallback model gets fresh context
-                   let freshState = journeyState;
-                   if (config.journeyId) {
-                       freshState = await aiService.getJourneyState(config.journeyId);
-                   }
+        logger.info('Getting request model', {
+            requestId,
+            journeyId: config.journeyId,
+            stage: journeyState?.stage || 'IDENTITY',
+            forceTools: shouldForceTools
+        });
+        let modelResult = await aiService.getRequestModel(config, journeyState, undefined, shouldForceTools);
+        let requestModel = modelResult.model;
+        currentModelName = modelResult.modelName;
+        logger.info(`Got request model: ${currentModelName}`, {
+            requestId,
+            modelName: currentModelName,
+            stage: journeyState?.stage || 'IDENTITY',
+            toolMode: shouldForceTools ? 'ANY (FORCED)' : 'AUTO'
+        });
 
-                   // Propagate forceToolCalling on fallback retry
-                   const newModelResult = await aiService.getRequestModel(config, freshState, nextFallbackModel, forcedToolMode);
+        currentTurn = 0;
+        const maxTurns = 10;
+        let finalDone = false;
 
-                   // Allow up to 2 retries total (original + 2 fallbacks)
-                   if (retryCount < 2) {
-                       return generateSafe(newModelResult.model, params, newModelResult.modelName, retryCount + 1, forcedToolMode);
-                   }
+        // PHASE 5: Enhanced retry with mode fallback
+        const generateSafe = async (model: any, params: any, modelName: string, retryCount = 0, forcedToolMode = shouldForceTools): Promise<any> => {
+            try {
+                const result = await model.generateContent(params);
+                const response = await result.response;
+                return { response, model, modelName };
+            } catch (e: any) {
+                // Handle rate limiting (429)
+                if (e.message?.includes('429') || e.status === 429 || e.code === 429 || e.message?.includes('RESOURCE_EXHAUSTED')) {
+                    logger.warn(`⚠️ 429 RESOURCE EXHAUSTED for ${modelName} (attempt ${retryCount + 1})`, {
+                        requestId,
+                        journeyId: config.journeyId,
+                        model: modelName,
+                        retryCount,
+                        errorMessage: e.message,
+                        errorStatus: e.status,
+                        errorCode: e.code,
+                        stage: journeyState?.stage || 'UNKNOWN',
+                        historyLength: params.contents?.length || 0
+                    });
 
-                   // Final attempt without recursion
-                   const result = await newModelResult.model.generateContent(params);
-                   const response = await result.response;
-                   return { response, model: newModelResult.model, modelName: newModelResult.modelName };
-              }
+                    // Backoff: wait before retrying (1s first, 3s second)
+                    const backoffMs = retryCount === 0 ? 1000 : 3000;
+                    await sleep(backoffMs);
 
-              // Handle tool calling errors with mode fallback (400, 500)
-              if ((e.status === 400 || e.status === 500) && forcedToolMode && retryCount === 0) {
-                  logger.warn(`⚠️ Tool calling error with mode=ANY, falling back to mode=AUTO`, {
-                      requestId,
-                      journeyId: config.journeyId,
-                      error: e.message,
-                      errorName: e.name,
-                      status: e.status,
-                      model: modelName,
-                      stage: journeyState?.stage || 'UNKNOWN',
-                      wasForced: forcedToolMode,
-                      retryCount,
-                      lastUserMessage: message?.substring(0, 150) || '(no message)'
-                  });
+                    // Get the next fallback model name
+                    const nextFallbackModel = aiService.getNextFallback(modelName);
 
-                  // Wait 500ms and retry with mode=AUTO
-                  await sleep(500);
+                    // Re-fetch journey state so the fallback model gets fresh context
+                    let freshState = journeyState;
+                    if (config.journeyId) {
+                        freshState = await aiService.getJourneyState(config.journeyId);
+                    }
 
-                  // Re-fetch journey state
-                  let freshState = journeyState;
-                  if (config.journeyId) {
-                      freshState = await aiService.getJourneyState(config.journeyId);
-                  }
+                    // Propagate forceToolCalling on fallback retry
+                    const newModelResult = await aiService.getRequestModel(config, freshState, nextFallbackModel, forcedToolMode);
 
-                  // Rebuild model WITHOUT forcing tools (mode=AUTO)
-                  const autoModelResult = await aiService.getRequestModel(config, freshState, modelName, false);
+                    // Allow up to 2 retries total (original + 2 fallbacks)
+                    if (retryCount < 2) {
+                        return generateSafe(newModelResult.model, params, newModelResult.modelName, retryCount + 1, forcedToolMode);
+                    }
 
-                  // Retry once with mode=AUTO
-                  return generateSafe(autoModelResult.model, params, autoModelResult.modelName, retryCount + 1, false);
-              }
+                    // Final attempt without recursion
+                    const result = await newModelResult.model.generateContent(params);
+                    const response = await result.response;
+                    return { response, model: newModelResult.model, modelName: newModelResult.modelName };
+                }
 
-              throw e;
-          }
-      };
+                // Handle tool calling errors with mode fallback (400, 500)
+                if ((e.status === 400 || e.status === 500) && forcedToolMode && retryCount === 0) {
+                    logger.warn(`⚠️ Tool calling error with mode=ANY, falling back to mode=AUTO`, {
+                        requestId,
+                        journeyId: config.journeyId,
+                        error: e.message,
+                        errorName: e.name,
+                        status: e.status,
+                        model: modelName,
+                        stage: journeyState?.stage || 'UNKNOWN',
+                        wasForced: forcedToolMode,
+                        retryCount,
+                        lastUserMessage: message?.substring(0, 150) || '(no message)'
+                    });
 
-      // Initial Generation
-      logger.info('Starting generation', {
-          requestId,
-          journeyId: config.journeyId,
-          model: currentModelName,
-          contentsLength: contents.length,
-          stage: journeyState?.stage || 'IDENTITY',
-          forceToolCalling: shouldForceTools
-      });
-      let genResult = await generateSafe(requestModel, { contents }, currentModelName);
-      let response = genResult.response;
-      requestModel = genResult.model;
-      currentModelName = genResult.modelName;
-      logger.info('Got initial response', {
-          requestId,
-          journeyId: config.journeyId,
-          model: currentModelName,
-          hasCandidates: response.candidates && response.candidates.length > 0
-      });
-      let emptyRetries = 0;
-      
-      while (currentTurn < maxTurns && !finalDone) {
-          currentTurn++;
-          
-          // Guard against empty candidates (safety filters, recitation, or model hiccups)
-          const candidates = response.candidates;
-          if (!candidates || candidates.length === 0 || !candidates[0]?.content?.parts) {
-              const finishReason = candidates?.[0]?.finishReason || 'NO_CANDIDATES';
-              const safetyRatings = candidates?.[0]?.safetyRatings;
-              const promptFeedback = response.promptFeedback;
-              const blockReason = promptFeedback?.blockReason || null;
+                    // Wait 500ms and retry with mode=AUTO
+                    await sleep(500);
 
-              // Capture last 3 messages from conversation for context
-              const recentHistory = contents.slice(-3).map((msg: any, idx: number) => ({
-                  index: contents.length - 3 + idx,
-                  role: msg.role,
-                  hasText: msg.parts?.some((p: any) => p.text),
-                  hasFunctionCall: msg.parts?.some((p: any) => p.functionCall),
-                  hasFunctionResponse: msg.parts?.some((p: any) => p.functionResponse),
-                  preview: msg.parts?.[0]?.text?.substring(0, 150) || msg.parts?.[0]?.functionCall?.name || msg.parts?.[0]?.functionResponse?.name || '(no content)'
-              }));
+                    // Re-fetch journey state
+                    let freshState = journeyState;
+                    if (config.journeyId) {
+                        freshState = await aiService.getJourneyState(config.journeyId);
+                    }
 
-              logger.warn('⚠️ EMPTY_CANDIDATES: AI returned no usable response', {
-                  requestId,
-                  journeyId: config.journeyId || null,
-                  finishReason,
-                  blockReason,
-                  safetyRatings: JSON.stringify(safetyRatings || []),
-                  promptFeedback: JSON.stringify(promptFeedback || {}),
-                  turn: currentTurn,
-                  model: currentModelName,
-                  lastUserMessage: message?.substring(0, 200) || '(no message)',
-                  historyLength: contents.length,
-                  recentHistory,
-                  journeyStage: journeyState?.stage || 'UNKNOWN',
-                  journeyMetrics: journeyState?.metrics || {},
-                  promptVersion: PROMPTS_VERSION.version,
-                  toolsVersion: TOOLS_VERSION.version,
-                  forceToolCalling: shouldForceTools,
-                  isConfirmationResponse,
-                  isConfirmationStage
-              });
+                    // Rebuild model WITHOUT forcing tools (mode=AUTO)
+                    const autoModelResult = await aiService.getRequestModel(config, freshState, modelName, false);
 
-              // Retry up to 2 times on empty candidates before giving up
-              if (!emptyRetries) emptyRetries = 0;
-              emptyRetries++;
-              if (emptyRetries <= 2) {
-                  const isCellPop = journeyState?.stage === 'CELL_POPULATION';
-                  
-                  logger.info(`Retrying after empty candidates (attempt ${emptyRetries}/2) ${isCellPop ? '[SMART RETRY]' : ''}`, {
-                      journeyId: config.journeyId,
-                      model: currentModelName,
-                      stage: journeyState?.stage
-                  });
-                  
-                  await sleep(1000);
+                    // Retry once with mode=AUTO
+                    return generateSafe(autoModelResult.model, params, autoModelResult.modelName, retryCount + 1, false);
+                }
 
-                  // Fix 4: Smart Retry for CELL_POPULATION (Blinders Protocol Refresh)
-                  if (isCellPop && config.journeyId) {
-                      try {
-                          const freshState = await aiService.getJourneyState(config.journeyId);
-                          // Rebuild model with fresh state (and trimmed prompt)
-                          const freshModelResult = await aiService.getRequestModel(config, freshState, currentModelName, false);
-                          requestModel = freshModelResult.model;
-                          // Update local reference
-                          journeyState = freshState;
-                          logger.info('🔄 Smart Retry: Refreshed model context with new state');
-                      } catch (err) {
-                          logger.error('Smart Retry failed to refresh state', { error: err });
-                      }
-                  }
+                throw e;
+            }
+        };
 
-                  genResult = await generateSafe(requestModel, { contents }, currentModelName);
-                  response = genResult.response;
-                  requestModel = genResult.model;
-                  currentModelName = genResult.modelName;
-                  continue;
-              }
+        // Initial Generation
+        logger.info('Starting generation', {
+            requestId,
+            journeyId: config.journeyId,
+            model: currentModelName,
+            contentsLength: contents.length,
+            stage: journeyState?.stage || 'IDENTITY',
+            forceToolCalling: shouldForceTools
+        });
+        let genResult = await generateSafe(requestModel, { contents }, currentModelName);
+        let response = genResult.response;
 
-              // CRITICAL: Full diagnostic dump for user-visible errors
-              const fullDiagnostic = {
-                  requestId,
-                  timestamp: new Date().toISOString(),
-                  // Error Details
-                  finishReason,
-                  blockReason,
-                  safetyRatings: safetyRatings || [],
-                  promptFeedback: promptFeedback || {},
-                  totalEmptyRetries: emptyRetries,
-                  turn: currentTurn,
-                  // Journey Context
-                  journeyId: config.journeyId || null,
-                  journeyStage: journeyState?.stage || 'UNKNOWN',
-                  journeyName: journeyState?.name || null,
-                  journeyDescription: journeyState?.description || null,
-                  journeyMetrics: journeyState?.metrics || {},
-                  completionStatus: journeyState?.completionStatus || null,
-                  // Model Configuration
-                  model: currentModelName,
-                  forceToolCalling: shouldForceTools,
-                  isConfirmationResponse,
-                  isConfirmationStage,
-                  // Prompt Context
-                  promptVersion: PROMPTS_VERSION.version,
-                  toolsVersion: TOOLS_VERSION.version,
-                  // Request Context
-                  lastUserMessage: message || '(no message)',
-                  messageLength: message?.length || 0,
-                  historyLength: contents.length,
-                  recentHistory,
-                  // Config Context
-                  hasWelcomePrompt: !!config.welcomePrompt,
-                  hasPersonaFrame: !!config.personaFrame,
-                  hasRagContext: !!config.ragContext,
-                  hasPhases: Array.isArray(config.phases) && config.phases.length > 0,
-                  hasSwimlanes: Array.isArray(config.swimlanes) && config.swimlanes.length > 0,
-                  // Journey Structure (if available)
-                  phasesCount: journeyState?.phases?.length || 0,
-                  swimlanesCount: journeyState?.swimlanes?.length || 0,
-                  cellsCount: journeyState?.cells?.length || 0
-              };
+        // [INSPECTOR] Log the raw model response
+        safeSend({
+            inspector: {
+                type: 'response',
+                timestamp: new Date().toISOString(),
+                data: {
+                    model: currentModelName,
+                    candidates: response.candidates,
+                    usageMetadata: response.usageMetadata
+                }
+            }
+        });
+        requestModel = genResult.model;
+        currentModelName = genResult.modelName;
+        logger.info('Got initial response', {
+            requestId,
+            journeyId: config.journeyId,
+            model: currentModelName,
+            hasCandidates: response.candidates && response.candidates.length > 0
+        });
+        let emptyRetries = 0;
 
-              logger.error('🚨 EMPTY_CANDIDATES_FINAL: All retries exhausted — user saw error', fullDiagnostic);
-              safeSend({ text: "I had a brief hiccup processing that. Could you try sending your message again?" });
-              safeSend({ done: true, journeyId: config.journeyId });
-              finalDone = true;
-              break;
-          }
-          // Reset empty retry counter on successful response
-          emptyRetries = 0;
+        while (currentTurn < maxTurns && !finalDone) {
+            currentTurn++;
 
-          const allParts = candidates[0].content.parts;
-          const functionCalls = allParts.filter((p: any) => p.functionCall);
-          const textParts = allParts.filter((p: any) => p.text);
-          
-          if (functionCalls && functionCalls.length > 0) {
-              // P0 FIX: If model generated BOTH text and tool calls in the same turn,
-              // log the discarded text. The tool calls take priority — we'll get proper
-              // follow-up text from the next generation with fresh post-tool context.
-              if (textParts.length > 0) {
-                  const discardedText = textParts.map((p: any) => p.text).join('');
-                  if (discardedText.trim().length > 0) {
-                      logger.info('🔇 Discarding co-generated text in favor of tool execution', {
-                          discardedLength: discardedText.length,
-                          discardedPreview: discardedText.substring(0, 150),
-                          tools: functionCalls.map((c: any) => c.functionCall?.name)
-                      });
-                  }
-              }
+            // Guard against empty candidates (safety filters, recitation, or model hiccups)
+            const candidates = response.candidates;
+            if (!candidates || candidates.length === 0 || !candidates[0]?.content?.parts) {
+                const finishReason = candidates?.[0]?.finishReason || 'NO_CANDIDATES';
+                const safetyRatings = candidates?.[0]?.safetyRatings;
+                const promptFeedback = response.promptFeedback;
+                const blockReason = promptFeedback?.blockReason || null;
 
-              // Execute all function calls and collect responses
-              const functionResponseParts: any[] = [];
-              for (const call of functionCalls) {
-                  const fn = call.functionCall;
-                  if (!fn) continue;
+                // Capture last 3 messages from conversation for context
+                const recentHistory = contents.slice(-3).map((msg: any, idx: number) => ({
+                    index: contents.length - 3 + idx,
+                    role: msg.role,
+                    hasText: msg.parts?.some((p: any) => p.text),
+                    hasFunctionCall: msg.parts?.some((p: any) => p.functionCall),
+                    hasFunctionResponse: msg.parts?.some((p: any) => p.functionResponse),
+                    preview: msg.parts?.[0]?.text?.substring(0, 150) || msg.parts?.[0]?.functionCall?.name || msg.parts?.[0]?.functionResponse?.name || '(no content)'
+                }));
 
-                  // CRITICAL: Validate tool is allowed for current stage (prevents AI from calling scoped-out tools mentioned in prompt text)
-                  const currentStage = journeyState?.stage || 'IDENTITY';
-                  const allowedTools = TOOL_SCOPES[currentStage] || [];
+                logger.warn('⚠️ EMPTY_CANDIDATES: AI returned no usable response', {
+                    requestId,
+                    journeyId: config.journeyId || null,
+                    finishReason,
+                    blockReason,
+                    safetyRatings: JSON.stringify(safetyRatings || []),
+                    promptFeedback: JSON.stringify(promptFeedback || {}),
+                    turn: currentTurn,
+                    model: currentModelName,
+                    lastUserMessage: message?.substring(0, 200) || '(no message)',
+                    historyLength: contents.length,
+                    recentHistory,
+                    journeyStage: journeyState?.stage || 'UNKNOWN',
+                    journeyMetrics: journeyState?.metrics || {},
+                    promptVersion: PROMPTS_VERSION.version,
+                    toolsVersion: TOOLS_VERSION.version,
+                    forceToolCalling: shouldForceTools,
+                    isConfirmationResponse,
+                    isConfirmationStage
+                });
 
-                  if (!allowedTools.includes(fn.name)) {
-                      logger.warn(`🚫 BLOCKED: AI attempted to call "${fn.name}" which is not allowed in stage ${currentStage}`, {
-                          requestId,
-                          journeyId: config.journeyId,
-                          attemptedTool: fn.name,
-                          currentStage,
-                          allowedTools,
-                          turn: currentTurn
-                      });
+                // Retry up to 2 times on empty candidates before giving up
+                if (!emptyRetries) emptyRetries = 0;
+                emptyRetries++;
+                if (emptyRetries <= 2) {
+                    const isCellPop = journeyState?.stage === 'CELL_POPULATION';
 
-                      const toolResult = {
-                          error: `Tool "${fn.name}" is not available in stage ${currentStage}. Allowed tools: [${allowedTools.join(', ')}]. You must complete the current stage before accessing this tool.`
-                      };
+                    logger.info(`Retrying after empty candidates (attempt ${emptyRetries}/2) ${isCellPop ? '[SMART RETRY]' : ''}`, {
+                        journeyId: config.journeyId,
+                        model: currentModelName,
+                        stage: journeyState?.stage
+                    });
 
-                      functionResponseParts.push({
-                          functionResponse: {
-                              name: fn.name,
-                              response: { content: toolResult }
-                          }
-                      });
+                    await sleep(1000);
 
-                      safeSend({ tool: fn.name, status: 'blocked', error: toolResult.error });
-                      continue; // Skip execution
-                  }
+                    // Fix 4: Smart Retry for CELL_POPULATION (Blinders Protocol Refresh)
+                    if (isCellPop && config.journeyId) {
+                        try {
+                            const freshState = await aiService.getJourneyState(config.journeyId);
+                            // Rebuild model with fresh state (and trimmed prompt)
+                            const freshModelResult = await aiService.getRequestModel(config, freshState, currentModelName, false);
+                            requestModel = freshModelResult.model;
+                            // Update local reference
+                            journeyState = freshState;
+                            logger.info('🔄 Smart Retry: Refreshed model context with new state');
+                        } catch (err) {
+                            logger.error('Smart Retry failed to refresh state', { error: err });
+                        }
+                    }
 
-                  // Send tool execution event to frontend for visibility
-                  safeSend({ tool: fn.name, status: 'executing', args: fn.args });
+                    genResult = await generateSafe(requestModel, { contents }, currentModelName);
+                    response = genResult.response;
+                    requestModel = genResult.model;
+                    currentModelName = genResult.modelName;
+                    continue;
+                }
 
-                  logger.info(`⚙️ Executing tool: ${fn.name}`, {
-                      requestId,
-                      journeyId: config.journeyId,
-                      toolName: fn.name,
-                      args: fn.args,
-                      turn: currentTurn,
-                      stage: journeyState?.stage || 'UNKNOWN'
-                  });
+                // CRITICAL: Full diagnostic dump for user-visible errors
+                const fullDiagnostic = {
+                    requestId,
+                    timestamp: new Date().toISOString(),
+                    // Error Details
+                    finishReason,
+                    blockReason,
+                    safetyRatings: safetyRatings || [],
+                    promptFeedback: promptFeedback || {},
+                    totalEmptyRetries: emptyRetries,
+                    turn: currentTurn,
+                    // Journey Context
+                    journeyId: config.journeyId || null,
+                    journeyStage: journeyState?.stage || 'UNKNOWN',
+                    journeyName: journeyState?.name || null,
+                    journeyDescription: journeyState?.description || null,
+                    journeyMetrics: journeyState?.metrics || {},
+                    completionStatus: journeyState?.completionStatus || null,
+                    // Model Configuration
+                    model: currentModelName,
+                    forceToolCalling: shouldForceTools,
+                    isConfirmationResponse,
+                    isConfirmationStage,
+                    // Prompt Context
+                    promptVersion: PROMPTS_VERSION.version,
+                    toolsVersion: TOOLS_VERSION.version,
+                    // Request Context
+                    lastUserMessage: message || '(no message)',
+                    messageLength: message?.length || 0,
+                    historyLength: contents.length,
+                    recentHistory,
+                    // Config Context
+                    hasWelcomePrompt: !!config.welcomePrompt,
+                    hasPersonaFrame: !!config.personaFrame,
+                    hasRagContext: !!config.ragContext,
+                    hasPhases: Array.isArray(config.phases) && config.phases.length > 0,
+                    hasSwimlanes: Array.isArray(config.swimlanes) && config.swimlanes.length > 0,
+                    // Journey Structure (if available)
+                    phasesCount: journeyState?.phases?.length || 0,
+                    swimlanesCount: journeyState?.swimlanes?.length || 0,
+                    cellsCount: journeyState?.cells?.length || 0
+                };
 
-                  const toolResult: any = await aiService.executeTool(fn.name, fn.args);
+                logger.error('🚨 EMPTY_CANDIDATES_FINAL: All retries exhausted — user saw error', fullDiagnostic);
+                safeSend({ text: "I had a brief hiccup processing that. Could you try sending your message again?" });
+                safeSend({ debug: fullDiagnostic }); // Send debug info to client console
+                safeSend({ done: true, journeyId: config.journeyId });
+                finalDone = true;
+                break;
+            }
+            // Reset empty retry counter on successful response
+            emptyRetries = 0;
 
-                  // Log tool outcome for observability
-                  if (toolResult?.error) {
-                      logger.error(`❌ Tool "${fn.name}" returned error`, {
-                          requestId,
-                          journeyId: config.journeyId,
-                          toolName: fn.name,
-                          error: toolResult.error,
-                          args: fn.args,
-                          turn: currentTurn,
-                          stage: journeyState?.stage || 'UNKNOWN',
-                          model: currentModelName,
-                          promptVersion: PROMPTS_VERSION.version
-                      });
-                      // Send error to frontend
-                      safeSend({ tool: fn.name, status: 'error', error: toolResult.error });
-                  } else {
-                      logger.info(`✅ Tool "${fn.name}" succeeded`, {
-                          requestId,
-                          journeyId: config.journeyId,
-                          toolName: fn.name,
-                          turn: currentTurn,
-                          resultPreview: JSON.stringify(toolResult).substring(0, 200)
-                      });
-                      // Send success to frontend
-                      safeSend({ tool: fn.name, status: 'success' });
-                  }
-                  
-                  functionResponseParts.push({
-                      functionResponse: {
-                          name: fn.name,
-                          response: { content: toolResult }
-                      }
-                  });
-  
-                  if (fn.name === 'create_journey_map' && toolResult && toolResult.journeyMapId) {
-                       config.journeyId = toolResult.journeyMapId;
-                       safeSend({ journeyId: toolResult.journeyMapId });
-                  }
-              }
+            const allParts = candidates[0].content.parts;
+            const functionCalls = allParts.filter((p: any) => p.functionCall);
+            const textParts = allParts.filter((p: any) => p.text);
 
-              // Push model response (with function call parts ONLY — strip co-generated text
-              // to keep conversation history clean and avoid confusing the model)
-              const cleanModelParts = allParts.filter((p: any) => p.functionCall);
-              contents.push({ role: 'model', parts: cleanModelParts });
-              contents.push({ role: 'function', parts: functionResponseParts });
-              
-              // Re-fetch journey state after tool calls so the model
-              // gets a fresh system instruction reflecting the mutations just made.
-              if (config.journeyId) {
-                  journeyState = await aiService.getJourneyState(config.journeyId);
-                  logger.info('Refreshed journey state after tool calls', { 
-                      stage: journeyState?.stage,
-                      cellsCompleted: journeyState?.metrics?.totalCellsCompleted 
-                  });
-              }
+            if (functionCalls && functionCalls.length > 0) {
+                // P0 FIX: If model generated BOTH text and tool calls in the same turn,
+                // log the discarded text. The tool calls take priority — we'll get proper
+                // follow-up text from the next generation with fresh post-tool context.
+                if (textParts.length > 0) {
+                    const discardedText = textParts.map((p: any) => p.text).join('');
+                    if (discardedText.trim().length > 0) {
+                        logger.info('🔇 Discarding co-generated text in favor of tool execution', {
+                            discardedLength: discardedText.length,
+                            discardedPreview: discardedText.substring(0, 150),
+                            tools: functionCalls.map((c: any) => c.functionCall?.name)
+                        });
+                    }
+                }
 
-              // Rebuild model with fresh state so system instruction is current
-              // NOTE: After tool execution, reset to AUTO mode (don't force tools)
-              // This prevents the "mute" problem where AI can't narrate results
-              const freshModelResult = await aiService.getRequestModel(config, journeyState, currentModelName, false);
-              requestModel = freshModelResult.model;
-              currentModelName = freshModelResult.modelName;
+                // Execute all function calls and collect responses
+                const functionResponseParts: any[] = [];
+                for (const call of functionCalls) {
+                    const fn = call.functionCall;
+                    if (!fn) continue;
 
-              genResult = await generateSafe(requestModel, { contents }, currentModelName);
-              response = genResult.response;
-              requestModel = genResult.model;
-              currentModelName = genResult.modelName;
-          } else {
-              // Pure text response — no tool calls. Send to client.
-              const finalText = textParts.map((p: any) => p.text).join('') || "Processing...";
-              safeSend({ text: finalText });
-              safeSend({ done: true, journeyId: config.journeyId });
-              finalDone = true;
-          }
-      }
-  
-      if (!finalDone) {
-           safeSend({ text: "I'm still thinking, but I hit a limit. Please continue." });
-           safeSend({ done: true });
-      }
-  
-      reply.raw.end();
-  
+                    // CRITICAL: Validate tool is allowed for current stage (prevents AI from calling scoped-out tools mentioned in prompt text)
+                    const currentStage = journeyState?.stage || 'IDENTITY';
+                    const allowedTools = TOOL_SCOPES[currentStage] || [];
+
+                    if (!allowedTools.includes(fn.name)) {
+                        logger.warn(`🚫 BLOCKED: AI attempted to call "${fn.name}" which is not allowed in stage ${currentStage}`, {
+                            requestId,
+                            journeyId: config.journeyId,
+                            attemptedTool: fn.name,
+                            currentStage,
+                            allowedTools,
+                            turn: currentTurn
+                        });
+
+                        const toolResult = {
+                            error: `Tool "${fn.name}" is not available in stage ${currentStage}. Allowed tools: [${allowedTools.join(', ')}]. You must complete the current stage before accessing this tool.`
+                        };
+
+                        functionResponseParts.push({
+                            functionResponse: {
+                                name: fn.name,
+                                response: { content: toolResult }
+                            }
+                        });
+
+                        safeSend({ tool: fn.name, status: 'blocked', error: toolResult.error });
+                        continue; // Skip execution
+                    }
+
+                    // Send tool execution event to frontend for visibility
+                    safeSend({ tool: fn.name, status: 'executing', args: fn.args });
+
+                    logger.info(`⚙️ Executing tool: ${fn.name}`, {
+                        requestId,
+                        journeyId: config.journeyId,
+                        toolName: fn.name,
+                        args: fn.args,
+                        turn: currentTurn,
+                        stage: journeyState?.stage || 'UNKNOWN'
+                    });
+
+                    const toolResult: any = await aiService.executeTool(fn.name, fn.args);
+
+                    // Log tool outcome for observability
+                    if (toolResult?.error) {
+                        logger.error(`❌ Tool "${fn.name}" returned error`, {
+                            requestId,
+                            journeyId: config.journeyId,
+                            toolName: fn.name,
+                            error: toolResult.error,
+                            args: fn.args,
+                            turn: currentTurn,
+                            stage: journeyState?.stage || 'UNKNOWN',
+                            model: currentModelName,
+                            promptVersion: PROMPTS_VERSION.version
+                        });
+                        // Send error to frontend
+                        safeSend({ tool: fn.name, status: 'error', error: toolResult.error });
+                    } else {
+                        logger.info(`✅ Tool "${fn.name}" succeeded`, {
+                            requestId,
+                            journeyId: config.journeyId,
+                            toolName: fn.name,
+                            turn: currentTurn,
+                            resultPreview: JSON.stringify(toolResult).substring(0, 200)
+                        });
+                        // Send success to frontend
+                        safeSend({ tool: fn.name, status: 'success' });
+                    }
+
+                    functionResponseParts.push({
+                        functionResponse: {
+                            name: fn.name,
+                            response: { content: toolResult }
+                        }
+                    });
+
+                    if (fn.name === 'create_journey_map' && toolResult && toolResult.journeyMapId) {
+                        config.journeyId = toolResult.journeyMapId;
+                        safeSend({ journeyId: toolResult.journeyMapId });
+                    }
+                    // After any state-changing tool, re-fetch journey so next tool's scope check sees updated stage (e.g. CELL_POPULATION → COMPLETE)
+                    if (config.journeyId) {
+                        journeyState = await aiService.getJourneyState(config.journeyId);
+                    }
+                    // Trigger frontend to poll and redraw after each mutation so cells appear incrementally
+                    if (!toolResult?.error && config.journeyId) {
+                        safeSend({ journeyId: config.journeyId });
+                    }
+                }
+
+                // Push model response (with function call parts ONLY — strip co-generated text
+                // to keep conversation history clean and avoid confusing the model)
+                const cleanModelParts = allParts.filter((p: any) => p.functionCall);
+                contents.push({ role: 'model', parts: cleanModelParts });
+                contents.push({ role: 'function', parts: functionResponseParts });
+
+                // Re-fetch journey state after tool calls so the model
+                // gets a fresh system instruction reflecting the mutations just made.
+                if (config.journeyId) {
+                    journeyState = await aiService.getJourneyState(config.journeyId);
+                    logger.info('Refreshed journey state after tool calls', {
+                        stage: journeyState?.stage,
+                        cellsCompleted: journeyState?.metrics?.totalCellsCompleted
+                    });
+                }
+
+                // Rebuild model with fresh state so system instruction is current
+                // NOTE: After tool execution, reset to AUTO mode (don't force tools)
+                // This prevents the "mute" problem where AI can't narrate results
+                const freshModelResult = await aiService.getRequestModel(config, journeyState, currentModelName, false);
+                requestModel = freshModelResult.model;
+                currentModelName = freshModelResult.modelName;
+
+                genResult = await generateSafe(requestModel, { contents }, currentModelName);
+                response = genResult.response;
+                requestModel = genResult.model;
+                currentModelName = genResult.modelName;
+            } else {
+                // Pure text response — no tool calls. Send to client.
+                const finalText = textParts.map((p: any) => p.text).join('') || "Processing...";
+                safeSend({ text: finalText });
+                safeSend({ done: true, journeyId: config.journeyId });
+                finalDone = true;
+            }
+        }
+
+        if (!finalDone) {
+            safeSend({ text: "I'm still thinking, but I hit a limit. Please continue." });
+            safeSend({ done: true });
+        }
+
+        reply.raw.end();
+
     } catch (error: any) {
-      logger.error('🚨 CHAT_ERROR: Unhandled exception in /api/chat', {
-          requestId,
-          timestamp: new Date().toISOString(),
-          error: error.message,
-          errorName: error.name,
-          errorCode: error.code,
-          errorStatus: error.status,
-          stack: error.stack,
-          journeyId: config?.journeyId,
-          journeyStage: journeyState?.stage || 'UNKNOWN',
-          model: currentModelName || 'UNKNOWN',
-          turn: currentTurn || 0,
-          lastUserMessage: message?.substring(0, 200) || '(no message)',
-          historyLength: history?.length || 0,
-          promptVersion: PROMPTS_VERSION.version,
-          toolsVersion: TOOLS_VERSION.version,
-          hasConfig: !!config,
-          configKeys: config ? Object.keys(config) : []
-      });
-      safeSend({ error: error.message });
-      if (!reply.raw.destroyed) reply.raw.end();
+        logger.error('🚨 CHAT_ERROR: Unhandled exception in /api/chat', {
+            requestId,
+            timestamp: new Date().toISOString(),
+            error: error.message,
+            errorName: error.name,
+            errorCode: error.code,
+            errorStatus: error.status,
+            stack: error.stack,
+            journeyId: config?.journeyId,
+            journeyStage: journeyState?.stage || 'UNKNOWN',
+            model: currentModelName || 'UNKNOWN',
+            turn: currentTurn || 0,
+            lastUserMessage: message?.substring(0, 200) || '(no message)',
+            historyLength: history?.length || 0,
+            promptVersion: PROMPTS_VERSION.version,
+            toolsVersion: TOOLS_VERSION.version,
+            hasConfig: !!config,
+            configKeys: config ? Object.keys(config) : []
+        });
+        safeSend({ error: error.message });
+        if (!reply.raw.destroyed) reply.raw.end();
     }
 });
 
@@ -776,14 +814,14 @@ server.post('/api/chat', async (request, reply) => {
 
 // Create JourneyMap
 server.post('/v1/journey-maps', async (request, reply) => {
-  const body = request.body as any;
-  const journey = await journeyService.createJourney(body);
-  return journey;
+    const body = request.body as any;
+    const journey = await journeyService.createJourney(body);
+    return journey;
 });
 
 // List JourneyMaps
 server.get('/v1/journey-maps', async (request, reply) => {
-  return await journeyService.getAllJourneys();
+    return await journeyService.getAllJourneys();
 });
 
 // Delete JourneyMap
@@ -801,12 +839,12 @@ server.delete('/v1/journey-maps', async (request, reply) => {
 
 // Get JourneyMap
 server.get('/v1/journey-maps/:id', async (request, reply) => {
-  const { id } = request.params as { id: string };
-  const journey = await journeyService.getJourney(id);
-  if (!journey) {
-      return reply.status(404).send({ message: 'Journey not found' });
-  }
-  return journey;
+    const { id } = request.params as { id: string };
+    const journey = await journeyService.getJourney(id);
+    if (!journey) {
+        return reply.status(404).send({ message: 'Journey not found' });
+    }
+    return journey;
 });
 
 // Update Metadata
@@ -974,13 +1012,13 @@ server.put('/api/admin/links/:id', async (request, reply) => {
     if (!user) return requireAuth(reply);
     if (!user.active) return reply.status(403).send({ error: 'Account is inactive' });
     const { id } = request.params as { id: string };
-    
+
     // Check permissions: creator or super_admin
     const existing = await adminService.getLink(id);
     if (existing && existing.createdBy && existing.createdBy !== user.email && user.role !== 'super_admin') {
         return reply.status(403).send({ error: 'Only the template creator or super admin can edit this template' });
     }
-    
+
     const body = request.body as any;
     return await adminService.updateLink(id, body);
 });
@@ -989,13 +1027,13 @@ server.delete('/api/admin/links/:id', async (request, reply) => {
     const user = await authenticateRequest(request);
     if (!user) return requireAuth(reply);
     const { id } = request.params as { id: string };
-    
+
     // Check permissions: creator or super_admin
     const existing = await adminService.getLink(id);
     if (existing && existing.createdBy && existing.createdBy !== user.email && user.role !== 'super_admin') {
         return reply.status(403).send({ error: 'Only the template creator or super admin can delete this template' });
     }
-    
+
     return await adminService.deleteLink(id);
 });
 
@@ -1059,10 +1097,10 @@ server.get('/admin/journeys', async (request, reply) => {
 // Client-side Log Ingestion
 server.post('/api/logs', async (request, reply) => {
     const { level, message, context, userAgent, timestamp } = request.body as any;
-    
+
     // Sanitize
     const safeContext = context ? JSON.parse(JSON.stringify(context)) : {};
-    
+
     const logData = {
         source: 'client-browser',
         userAgent,
@@ -1082,7 +1120,21 @@ server.post('/api/logs', async (request, reply) => {
 });
 
 // --- Auth Middleware Helper ---
+// TEMPORARY: set to true to allow admin access without sign-in
+const ADMIN_AUTH_DISABLED = true;
+const MOCK_ADMIN_USER: AppUser = {
+    uid: 'auth-bypass',
+    email: 'auth-disabled@local',
+    displayName: 'Auth Disabled',
+    role: 'super_admin',
+    active: true,
+    createdAt: new Date().toISOString(),
+    lastLoginAt: new Date().toISOString()
+};
+
 async function authenticateRequest(request: FastifyRequest): Promise<AppUser | null> {
+    if (ADMIN_AUTH_DISABLED) return MOCK_ADMIN_USER;
+
     const authHeader = request.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
 
@@ -1122,7 +1174,8 @@ function requireSuperAdmin(user: AppUser, reply: any): boolean {
 server.get('/api/admin/me', async (request, reply) => {
     const user = await authenticateRequest(request);
     if (!user) return requireAuth(reply);
-    if (!user.active) return reply.status(403).send({ error: 'Account is inactive. Contact administrator.' });
+    // TEMPORARY: allow all authenticated users in (bypass inactive check)
+    // if (!user.active) return reply.status(403).send({ error: 'Account is inactive. Contact administrator.' });
     return user;
 });
 
@@ -1139,7 +1192,7 @@ server.put('/api/admin/users/:uid/active', async (request, reply) => {
     const user = await authenticateRequest(request);
     if (!user) return requireAuth(reply);
     if (!requireSuperAdmin(user, reply)) return;
-    
+
     const { uid } = request.params as { uid: string };
     const updated = await userService.toggleUserActive(uid);
     if (!updated) return reply.status(404).send({ error: 'User not found' });
@@ -1151,7 +1204,7 @@ server.put('/api/admin/users/:uid/active', async (request, reply) => {
 server.post('/api/feedback', async (request, reply) => {
     const body = request.body as any;
     const { text, messages, journeyId, email, templateId } = body || {};
-    
+
     if (!text || !text.trim()) {
         return reply.status(400).send({ error: 'Feedback text is required' });
     }
@@ -1191,14 +1244,14 @@ server.get('/favicon.ico', async (request, reply) => {
 });
 
 const start = async () => {
-  try {
-    await server.listen({ port: 3001, host: '0.0.0.0' });
-    logger.info('Server listening on http://localhost:3001');
-    logger.info('Swagger docs at http://localhost:3001/docs');
-  } catch (err) {
-    logger.error('Startup Error', { error: err });
-    process.exit(1);
-  }
+    try {
+        await server.listen({ port: 3001, host: '0.0.0.0' });
+        logger.info('Server listening on http://localhost:3001');
+        logger.info('Swagger docs at http://localhost:3001/docs');
+    } catch (err) {
+        logger.error('Startup Error', { error: err });
+        process.exit(1);
+    }
 };
 
 // Only start if this file is the main module

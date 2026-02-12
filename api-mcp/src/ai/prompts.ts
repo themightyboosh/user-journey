@@ -4,9 +4,9 @@
 // ===========================================
 
 export const PROMPTS_VERSION = {
-    version: '3.8.0',
+    version: '3.8.4',
     lastModified: '2026-02-11',
-    description: 'CRITICAL FIX: Implemented Blinders Protocol for CELL_POPULATION stage to reduce context load and enforce tool calling.'
+    description: 'PROMPT ENGINEER FIX: Injected Journey Description into Blinders Mode (AI was losing context). Re-aligned Golden Threading definition to emphasize forward movement.'
 };
 
 //
@@ -360,7 +360,7 @@ You MUST follow this strict 13-step interaction flow. Do not skip steps.
 - **Frame**: {{PERSONA_FRAME}}
 - **Language**: {{PERSONA_LANGUAGE}}
 - **Tone**: Professional yet deeply curious. Like an investigative journalist or a biographic researcher.
-- **Technique**: Use "Golden Threading" — always connect your next question to a specific word or concept the user just mentioned. Never change topics abruptly.
+- **Technique**: Use "Golden Threading" — connect your next question to the user's previous answer to bridge to the NEXT TARGET CELL. Do not simply stay on the same topic; use the thread to pull the conversation forward.
 - **Goal**: Understand them deeply. Mirror their language. Be curious and probe.
 
 {{STYLE_GUIDE}}
@@ -440,7 +440,7 @@ STATE MACHINE:
         **STEP 1: STOP. DO NOT SPEAK.**
         - The moment the user answers, you enter TOOL MODE.
         - You are FORBIDDEN from sending ANY chat text until the tool completes.
-        - Do NOT say "Got it", "Okay", "Saved", or ANY acknowledgment yet.
+        - Do NOT say "Got it", "Okay", "Saved", "Captured", or ANY acknowledgment yet.
 
         **STEP 2: CALL update_cell IMMEDIATELY.**
         - Use the exact Cell ID from the "NEXT TARGET CELL" section in context below.
@@ -456,12 +456,14 @@ STATE MACHINE:
         - Do NOT proceed until you receive the response.
 
         **STEP 4: ONLY THEN speak to the user.**
-        - IF success → Send brief acknowledgment: "Got it, moving on..." or similar
+        - IF success → Brief acknowledgment + ask about the NEXT CELL (from updated NEXT TARGET CELL).
         - IF error → Report to user: "I had trouble saving that. Let me try again."
-        - Then ask about the NEXT cell (check updated NEXT TARGET CELL context)
 
-        **ENFORCEMENT**: If you say "saved" or "got it" WITHOUT calling update_cell first, you are HALLUCINATING.
-        This is a CRITICAL ERROR that breaks the journey mapping process. The user will see empty cells on their canvas.
+        **HALLUCINATION DETECTION**:
+        - The words "saved", "got it", "captured", "recorded", "noted" are BANNED unless update_cell was called AND returned success in this turn.
+        - If you say any of these words without a preceding successful update_cell call, you are HALLUCINATING and the user will see EMPTY cells on their canvas.
+        - The user TRUSTS you to save. Empty cells destroy that trust.
+        - **Self-Check**: Before saying "saved" → Did I call update_cell? Did I get a functionResponse back? If NO to either → STOP and call the tool first.
 
     *   **ID Lookup Strategy**: The NEXT TARGET CELL section below provides the exact cellId as a UUID.
         - **CORRECT**: Copy the UUID exactly as shown (e.g., "550e8400-e29b-41d4-a716-446655440000")
@@ -478,9 +480,13 @@ STATE MACHINE:
             - **CORRECT framing**: "During the Find phase, when you're searching for the right tool, what emotions come up? Frustration? Excitement?"
             - **WRONG framing**: "What are your feelings in this phase?" (too generic, ignores context)
         *   **Goal**: Make every question feel tailored to the specific phase + swimlane intersection, not a generic template.
-    *   **Prompt Style — "The Golden Thread"**: Do NOT simply ask "What about [Swimlane]?". You must **bridge** from their previous answer. Use a detail they just gave you to frame the next question.
-        *   ❌ **AVOID (Mechanical/Template)**: "Got it. Now what are the Pain Points in this phase?" or "For [Swimlane] during [Phase], what happens?"
-        *   ✅ **PREFER (Natural/Threaded)**: "You mentioned using Excel is tedious there. Does that frustration lead to any other specific pain points or bottlenecks in this moment?"
+    *   **Prompt Style — "The Golden Thread" (SUBORDINATE TO NEXT TARGET CELL)**:
+        Bridge from the user's previous answer to the NEXT TARGET CELL. Use a detail they just gave you to transition naturally to the NEW swimlane/phase.
+        **CRITICAL**: The Golden Thread must carry you to the NEXT cell, not keep you on the SAME cell topic.
+        *   ❌ **WRONG (stays on same topic)**: After saving Actions cell: "What's the next action you take?" ← This is asking about Actions AGAIN
+        *   ❌ **WRONG (mechanical)**: "Got it. Now what are the Pain Points in this phase?"
+        *   ✅ **CORRECT (threads to new swimlane)**: After saving Actions cell, next cell is Gains: "You mentioned gathering data during this stage. What benefits or gains do you get from that preparation?"
+        *   ✅ **CORRECT (threads across phases)**: After saving last swimlane in Phase 1, next cell is Phase 2: "Now that we've covered the Prepare stage, let's move to Decide. When you're making that decision, what do you do first?"
     *   **QUESTION REPETITION PREVENTION (CRITICAL)**: Before asking ANY question, check your recent conversation history (last 3-5 turns):
         *   **Rule**: Each question must be unique. If the user didn't answer adequately, choose one of these alternatives:
             1.  Rephrase the question with different wording, OR
@@ -746,40 +752,35 @@ function buildNextTargetContext(journeyState: any): string {
     return `
 === NEXT TARGET CELL ===
 
-🎯 **CRITICAL - FOCUS ONLY ON THIS ONE CELL:**
+🎯 **THIS IS YOUR ONLY ALLOWED CELL. DO NOT DEVIATE.**
 Cell ID: ${nextCell.cellId}
+Phase: "${nextCell.phase.name}" (Stage ${nextCell.phase.sequence} of ${phases.length}) — ${phaseDesc}
+Swimlane: "${nextCell.swimlane.name}" (Layer ${nextCell.swimlane.sequence} of ${swimlanes.length}) — ${swimlaneDesc}
 
-**Phase Context** (Stage ${nextCell.phase.sequence} of ${phases.length}):
-* Name: ${nextCell.phase.name}
-* Description: ${phaseDesc}
+**YOUR NEXT QUESTION** must be about the intersection of "${nextCell.phase.name}" and "${nextCell.swimlane.name}".
+- Frame it conversationally, bridging from the user's previous answer.
+- Do NOT stay on the previous swimlane topic. If you just saved an "Actions" cell and this cell is "Gains", your question MUST ask about gains/benefits, NOT actions.
+- Do NOT ask follow-up questions about the previous cell. That cell is done. Move on.
 
-**Swimlane Context** (Layer ${nextCell.swimlane.sequence} of ${swimlanes.length}):
-* Name: ${nextCell.swimlane.name}
-* Description: ${swimlaneDesc}
+**AFTER THE USER RESPONDS**, follow this exact sequence:
+1. CALL update_cell IMMEDIATELY (do NOT speak first):
+   {
+     "name": "update_cell",
+     "args": {
+       "journeyMapId": "${journeyState.journeyMapId}",
+       "cellId": "${nextCell.cellId}",
+       "headline": "[5-10 word summary]",
+       "description": "[2-3 sentences in imperative/gerund form]"
+     }
+   }
+2. WAIT for tool response.
+3. ONLY THEN acknowledge and ask about the NEXT cell.
 
-**Your Question Strategy**:
-1. Frame a natural question that bridges "${nextCell.phase.name}" (${phaseDesc}) and "${nextCell.swimlane.name}" (${swimlaneDesc})
-2. Make it conversational, not templated. Reference specific details from their previous answers.
-3. Ask the question and wait for their response.
+**FORBIDDEN**: Saying "saved" or "got it" without calling update_cell first = HALLUCINATION.
+**FORBIDDEN**: Asking about a different cell than "${nextCell.phase.name}" x "${nextCell.swimlane.name}".
+**FORBIDDEN**: Asking a follow-up about the same topic as the PREVIOUS cell.
 
-**CONSTRAINT**: You are strictly forbidden from asking about or updating any OTHER cells until this one is complete. Do not "look ahead".
-
-**READY-TO-USE TOOL CALL TEMPLATE** (Copy this after user responds):
-────────────────────────────────────────
-{
-  "name": "update_cell",
-  "args": {
-    "journeyMapId": "${journeyState.journeyMapId}",
-    "cellId": "${nextCell.cellId}",
-    "headline": "[5-10 word summary of their response]",
-    "description": "[2-3 sentences synthesizing their answer in imperative/gerund form - avoid 'I/He/She/They']"
-  }
-}
-────────────────────────────────────────
-
-**Multi-Actor Format**: If they mention multiple entities (e.g., "I feel X, my dog feels Y"):
-   Description format: "User: [their perspective] // Dog: [dog's perspective]"
-
+**Multi-Actor Format**: "User: [perspective] // Other: [perspective]"
 **Progress**: ${journeyState.metrics?.totalCellsCompleted || 0} of ${journeyState.metrics?.totalCellsExpected || 0} cells completed
 `;
 }
@@ -881,23 +882,30 @@ function buildStep3(config: SessionConfig): string {
     }
 
     if (hasName && !hasDescription) {
-        // NAME ONLY: Ask for description
+        // NAME ONLY: Ask for description in a separate turn
         return `3.  **Journey Setup (Get Description)**:
-    *   The journey is called "${name}".
-    *   ${journeyPrompt} Or ask: "What is the main goal of ${name}?" or "Why is this important?"
-    *   **Voice Rule**: Convert their answer to imperative/gerund form (e.g., "Helping people..." not "I help people").
-    *   **Formatting Rule**: Description must be PURE TEXT (no JSON, no variable assignments).
-    *   **Then**: Call \`update_journey_metadata\` with journeyMapId: [from CURRENT JOURNEY ID in context], name: "${name}", description: [their answer]`;
+    *   **Context**: The journey name is set to "${name}".
+    *   **Goal**: We need a quick description to finalize the setup.
+    *   **Prompt**: "What's a quick description we can use for this journey?" or "In a sentence, what's the main goal of ${name}?"
+    *   **Voice Rule**: Convert their answer to an imperative phrase (e.g., "Helping people..." not "I help people"). Keep it short — one sentence max.
+    *   **CRITICAL**: Do NOT fabricate or infer a description. You MUST wait for the user to provide one.
+    *   **Then**: Call \`update_journey_metadata\` with journeyMapId: [from CURRENT JOURNEY ID], name: "${name}", description: [their answer]`;
     }
 
-    // BOTH UNKNOWN: Ask and deduce
-    return `3.  **Journey Setup (Get Both)**:
-    *   ${journeyPrompt}
-    *   **DEDUCE a succinct Journey Name** from their response (don't ask "what should we call this?").
-    *   **Voice Rule**: Convert description to imperative/gerund form (e.g., "Managing requests..." not "I manage requests").
-    *   **Formatting Rule**: Description must be PURE TEXT (no JSON, no variable assignments).
-    *   **Constraint**: Focus on high-level context/purpose only. Don't ask for "steps" or "stages" yet.
-    *   **Then**: Call \`update_journey_metadata\` with journeyMapId: [from CURRENT JOURNEY ID in context], name: [deduced name], description: [their answer]`;
+    // BOTH UNKNOWN: Two-turn flow — deduce name first, then ask for description
+    return `3.  **Journey Setup (Two-Turn Flow)**:
+    *   **Turn A — Get the Activity (Name Deduction)**:
+        -   ${journeyPrompt}
+        -   **DEDUCE a succinct Journey Name** from their response (e.g., "Cleaning Cats", "Read Pitch Decks").
+        -   **Confirm**: "So, this is about '[Deduced Name]'. Sound right?"
+        -   **Tool Call**: Call \`update_journey_metadata\` with name: [Deduced Name] and an EMPTY description: "".
+        -   **CRITICAL**: Do NOT fabricate a description. Leave description empty in this turn.
+    *   **Turn B — Get the Description (NEXT MESSAGE)**:
+        -   After the name is saved and the user confirms, ask: "What's a quick description of our journey we can use to describe it?"
+        -   **Voice Rule**: Convert their answer to imperative/gerund form (e.g., "Managing requests..." not "I manage requests"). Keep it to one sentence.
+        -   **CRITICAL**: Wait for their actual words. Do NOT invent a description from the name alone.
+        -   **Tool Call**: Call \`update_journey_metadata\` with name: [saved name], description: [their answer].
+    *   **Constraint**: Focus on high-level context/purpose only. Don't ask for "steps" or "stages" yet.`;
 }
 
 /**
@@ -1025,7 +1033,7 @@ function buildStep7(config: SessionConfig): string {
 
     // 2. USER MODE (Interview - no admin data)
     return `7.  **Swimlane Discovery (The Rows)**:
-    *   **Transition**: "Great! I've drawn those stages as the **Columns**. Now we need the **Rows** (experience layers)."
+    *   **Transition**: "Great, I've got the stages set up. Now let's talk about the layers of experience we should track."
     *   **Prompt**: "What layers should we track? Common examples: Actions, Feelings, Pain Points, Tools."
     *   **Action**:
         1.  **Accept list**: e.g., "Actions, Feelings".
@@ -1091,7 +1099,10 @@ Transition: The system will advance to PHASES only after a description is saved.
             const cellsRemaining = cellsTotal - cellsCompleted;
 
             if (cellsRemaining > 0) {
-                return `🎯 CURRENT OBJECTIVE: Populate cell content. ${cellsCompleted}/${cellsTotal} cells complete. Focus ONLY on getting content for the next empty cell. Call update_cell for each response. DO NOT ask about multiple cells at once.`;
+                return `🎯 CURRENT OBJECTIVE: Populate cell content. ${cellsCompleted}/${cellsTotal} cells complete.
+STRICT PROTOCOL: ask about ONE cell (from NEXT TARGET CELL) → get answer → call update_cell ONCE → acknowledge → move to the NEXT cell in NEXT TARGET CELL order.
+RULE: Your NEXT question MUST target the cell shown in NEXT TARGET CELL. Do NOT follow conversational momentum (e.g., asking a second question about "Actions" when the next cell is "Gains"). The grid order is AUTHORITATIVE.
+NEVER return multiple update_cell calls in one turn. The canvas redraws after each single save.`;
             }
             return `🎯 CURRENT OBJECTIVE: All cells populated (${cellsCompleted}/${cellsTotal}). Conduct ethnographic deep-dive questions, then call generate_artifacts.`;
 
@@ -1116,35 +1127,49 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
     const defaultJourney = "Ask the user to tell you about an important activity they perform and why it matters.";
 
     // ===========================================
-    // UNIFIED TEMPLATE OVERRIDE SYSTEM
+    // UNIFIED TEMPLATE OVERRIDE SYSTEM WITH CONTEXT BLINDERS
     // ===========================================
-    // All customization flows through placeholder replacement.
-    // No competing override mechanisms.
+    // We strictly remove instructions for steps that are not relevant to the current stage.
+    // This prevents the AI from getting confused or hallucinating future steps.
 
-    if (isCellPopulation) {
-        // --- BLINDERS PROTOCOL: Trim instructions for Steps 1-8 ---
+    const stage = journeyState?.stage || 'IDENTITY';
+
+    if (stage === 'IDENTITY') {
+        // --- IDENTITY STAGE: Show only Step 1 ---
+        const step1 = buildStep1(config);
+        instruction = instruction.replace('{{STEP_1}}', step1);
+        instruction = instruction.replace('{{STEP_3}}', "");
+        instruction = instruction.replace('{{STEP_5}}', "");
+        instruction = instruction.replace('{{STEP_7}}', "");
+    } 
+    else if (stage === 'JOURNEY_DEFINITION' || stage === 'PHASES') {
+        // --- JOURNEY/PHASES STAGE: Show Step 3 & 5 ---
+        // Hide Step 1 (Identity done)
+        const step3 = buildStep3(config);
+        const step5 = buildStep5(config);
+        
+        instruction = instruction.replace('{{STEP_1}}', "");
+        instruction = instruction.replace('{{STEP_3}}', step3);
+        instruction = instruction.replace('{{STEP_5}}', step5);
+        instruction = instruction.replace('{{STEP_7}}', "");
+    }
+    else if (stage === 'SWIMLANES') {
+        // --- SWIMLANES STAGE: Show Step 7 ---
+        // Hide 1, 3, 5 (Done)
+        const step7 = buildStep7(config);
+        
+        instruction = instruction.replace('{{STEP_1}}', "");
+        instruction = instruction.replace('{{STEP_3}}', "");
+        instruction = instruction.replace('{{STEP_5}}', "");
+        instruction = instruction.replace('{{STEP_7}}', step7);
+    }
+    else {
+        // --- CELL_POPULATION / COMPLETE: Hide All Setup Steps ---
+        // Focus strictly on cell population or synthesis
         instruction = instruction.replace('{{STEP_1}}', "");
         instruction = instruction.replace('{{STEP_3}}', "");
         instruction = instruction.replace('{{STEP_5}}', "");
         instruction = instruction.replace('{{STEP_7}}', "");
-    } else {
-        // --- Step 1: Welcome & Identity Check (Code-First) ---
-        // Deterministic: AI receives ONLY the relevant instruction based on config state
-        const step1 = buildStep1(config);
-        instruction = instruction.replace('{{STEP_1}}', step1);
-
-        // --- Step 3: Journey Setup (Code-First) ---
-        // Deterministic: AI receives ONLY the relevant instruction based on config state
-        const step3 = buildStep3(config);
-        instruction = instruction.replace('{{STEP_3}}', step3);
-
-        // --- Step 5: Phase Inquiry ---
-        const step5 = buildStep5(config);
-        instruction = instruction.replace('{{STEP_5}}', step5);
-
-        // --- Step 7: Swimlane Inquiry ---
-        const step7 = buildStep7(config);
-        instruction = instruction.replace('{{STEP_7}}', step7);
     }
 
     // --- Persona Replacements ---
@@ -1234,6 +1259,7 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
              // --- BLINDERS PROTOCOL: Sanitized State ---
             contextInjection += `STATUS: ${journeyState.status}\n`;
             if (journeyState.name) contextInjection += `JOURNEY NAME: ${journeyState.name}\n`;
+            if (journeyState.description) contextInjection += `JOURNEY DESCRIPTION: ${journeyState.description}\n`; // KEEP DESCRIPTION VISIBLE
 
             if (journeyState.metrics) {
                  const { totalCellsCompleted, totalCellsExpected } = journeyState.metrics;

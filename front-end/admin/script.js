@@ -72,11 +72,11 @@ const formInputs = {
     // Identity
     name: document.getElementById('name'),
     role: document.getElementById('role'),
-    
+
     // Journey Context
     journey: document.getElementById('journey'),
     journeyDescription: document.getElementById('journey-description'),
-    
+
     // Prompts
     welcomePrompt: document.getElementById('welcome-prompt'),
     journeyPrompt: document.getElementById('journey-prompt'),
@@ -208,18 +208,18 @@ async function handleSignOut() {
 function showAdminApp() {
     loginOverlay.style.display = 'none';
     adminApp.style.display = 'flex';
-    
+
     // Show user email in header
     if (adminUserEmail && currentAppUser) {
         adminUserEmail.textContent = currentAppUser.email;
     }
-    
+
     // Role-based visibility
     const isSuperAdmin = currentAppUser && currentAppUser.role === 'super_admin';
     document.querySelectorAll('.super-admin-only').forEach(el => {
         el.style.display = isSuperAdmin ? '' : 'none';
     });
-    
+
     // Initialize app
     initApp();
 }
@@ -390,7 +390,7 @@ function toggleSidebar() {
 
 function switchModule(e, moduleName) {
     e.preventDefault();
-    
+
     // Update Active State (Desktop & Mobile)
     document.querySelectorAll('.admin-nav a').forEach(el => el.classList.remove('active'));
     if (navLinks[moduleName]) navLinks[moduleName].classList.add('active');
@@ -402,11 +402,11 @@ function switchModule(e, moduleName) {
 
     // Sidebar Logic
     const isMobile = window.innerWidth < 1024;
-    
+
     // Hide sidebar lists based on module
     savedLinksList.style.display = 'none';
     journeyList.style.display = 'none';
-    
+
     if (moduleName === 'links') {
         savedLinksList.style.display = 'block';
         sidebarTitle.textContent = 'Saved Templates';
@@ -428,7 +428,7 @@ function switchModule(e, moduleName) {
 
     // Close mobile menu if open
     mobileNavOverlay.classList.remove('active');
-    
+
     // Reset sidebar state on mobile
     if (isMobile) adminSidebar.classList.remove('active');
 }
@@ -443,7 +443,7 @@ function getIconSvg(name, size = 20) {
 
 function initIconPicker() {
     if (!iconPickerBtn || !iconPickerDropdown) return;
-    
+
     // Build grid
     renderIconGrid('');
 
@@ -674,8 +674,8 @@ function renderJourneysList() {
 
     if (completed.length === 0) {
         const partialCount = savedJourneys.length - completed.length;
-        const hint = partialCount > 0 
-            ? `No completed journeys yet. ${partialCount} in progress.` 
+        const hint = partialCount > 0
+            ? `No completed journeys yet. ${partialCount} in progress.`
             : 'No journeys yet.';
         journeyList.innerHTML = `<div class="empty-state">${hint}</div>`;
         return;
@@ -686,13 +686,13 @@ function renderJourneysList() {
         const div = document.createElement('div');
         div.className = `saved-link-item ${journey.journeyMapId === currentJourneyId ? 'active' : ''}`;
         let date = 'Unknown Date';
-        try { date = new Date(journey.updatedAt || journey.createdAt).toLocaleDateString(); } catch (e) {}
+        try { date = new Date(journey.updatedAt || journey.createdAt).toLocaleDateString(); } catch (e) { }
         let name = journey.userName ? `${journey.userName} (${journey.role})` : (journey.role || 'Unknown User');
 
         // Permission: only creator or super admin can delete journeys
         const journeyCreator = journey.userEmail || journey.createdBy || null;
         const canDelete = currentAppUser && (
-            currentAppUser.role === 'super_admin' || 
+            currentAppUser.role === 'super_admin' ||
             (journeyCreator && currentAppUser.email === journeyCreator)
         );
 
@@ -736,8 +736,14 @@ async function deleteJourney(id) {
                 journeyPreviewTitle.textContent = 'Select a Journey';
             }
             fetchJourneys();
-        } else { alert("Failed to delete journey."); }
-    } catch (e) { console.error(e); alert("Error deleting journey."); }
+            showToast('Journey deleted', 'success');
+        } else {
+            showToast("Failed to delete journey.", 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showToast("Error deleting journey.", 'error');
+    }
 }
 
 async function clearAllJourneys() {
@@ -756,8 +762,14 @@ async function clearAllJourneys() {
             if (ph2) ph2.style.display = '';
             journeyPreviewTitle.textContent = 'Select a Journey';
             fetchJourneys();
-        } else { alert("Failed to clear journeys."); }
-    } catch (e) { console.error(e); alert("Error clearing journeys."); }
+            showToast('All journeys cleared', 'success');
+        } else {
+            showToast("Failed to clear journeys.", 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showToast("Error clearing journeys.", 'error');
+    }
 }
 
 function loadJourney(journey) {
@@ -842,20 +854,27 @@ async function saveSettings() {
     const activeModel = activeModelInput.value;
     const autoToggle = document.getElementById('autoActivateToggle');
     const autoActivate = autoToggle ? autoToggle.checked : false;
+
+    setLoading(saveSettingsBtn, true, 'Saving...');
+
     try {
-        saveSettingsBtn.textContent = 'Saving...';
-        saveSettingsBtn.disabled = true;
         await refreshToken();
         const res = await fetch(SETTINGS_API_URL, {
             method: 'PUT',
             headers: authHeaders(),
             body: JSON.stringify({ agentName, activeModel, autoActivate })
         });
-        if (res.ok) { alert('Settings saved!'); } else { alert('Failed to save settings.'); }
-    } catch (e) { alert('Error saving settings.'); }
+        if (res.ok) {
+            showToast('Settings saved!', 'success');
+        } else {
+            showToast('Failed to save settings.', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showToast('Error saving settings.', 'error');
+    }
     finally {
-        saveSettingsBtn.textContent = 'Save Settings';
-        saveSettingsBtn.disabled = false;
+        setLoading(saveSettingsBtn, false);
     }
 }
 
@@ -895,8 +914,8 @@ function renderLinksList() {
         const globalTag = link.global ? '<span class="global-tag">GLOBAL</span>' : '';
 
         const createdByText = link.createdBy ? ` | ${link.createdBy}` : '';
-        const descriptionText = link.description 
-            ? `<div class="link-description">${escapeHtml(link.description.length > 80 ? link.description.substring(0, 80) + '...' : link.description)}</div>` 
+        const descriptionText = link.description
+            ? `<div class="link-description">${escapeHtml(link.description.length > 80 ? link.description.substring(0, 80) + '...' : link.description)}</div>`
             : '';
         const div = document.createElement('div');
         div.className = `saved-link-item ${link.id === currentLinkId ? 'active' : ''}`;
@@ -976,8 +995,8 @@ function loadConfiguration(link) {
     });
 
     // Show delete button only if creator or super admin
-    const canDelete = !link.createdBy || 
-                      (currentAppUser && (currentAppUser.role === 'super_admin' || currentAppUser.email === link.createdBy));
+    const canDelete = !link.createdBy ||
+        (currentAppUser && (currentAppUser.role === 'super_admin' || currentAppUser.email === link.createdBy));
     deleteBtn.style.display = canDelete ? 'inline-flex' : 'none';
     saveBtn.textContent = 'Update';
     renderLinksList();
@@ -1020,13 +1039,13 @@ function resetForm() {
 async function saveConfiguration() {
     const configName = configNameInput.value.trim();
     if (!configName) {
-        alert("Please enter a Template Name.");
+        showToast("Please enter a Template Name.", 'error');
         configNameInput.focus();
         return;
     }
     const description = templateDescriptionInput.value.trim();
     if (!description) {
-        alert("Please enter a Description.");
+        showToast("Please enter a Description.", 'error');
         templateDescriptionInput.focus();
         return;
     }
@@ -1039,7 +1058,7 @@ async function saveConfiguration() {
         icon: selectedIcon,
         global: globalToggle.checked,
         requireAuth: requireAuthToggle ? requireAuthToggle.checked : false,
-        
+
         // Use the nested structure directly
         identity: {
             name: { value: formInputs.name.value.trim(), confirmationMode: formInputs.nameMode ? formInputs.nameMode.value : 'BYPASS' },
@@ -1051,13 +1070,13 @@ async function saveConfiguration() {
             prompt: formInputs.journeyPrompt.value.trim()
         },
         structure: {
-            phases: { 
-                data: getPhasesFromDOM(), 
+            phases: {
+                data: getPhasesFromDOM(),
                 probeMode: formInputs.phasesProbeMode ? formInputs.phasesProbeMode.value : 'NEVER_PROBE',
                 probeThreshold: 1.0
             },
-            swimlanes: { 
-                data: getSwimlanesFromDOM(), 
+            swimlanes: {
+                data: getSwimlanesFromDOM(),
                 probeMode: formInputs.swimlanesProbeMode ? formInputs.swimlanesProbeMode.value : 'NEVER_PROBE',
                 probeThreshold: 1.0
             }
@@ -1084,8 +1103,7 @@ async function saveConfiguration() {
     }
 
     try {
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
+        setLoading(saveBtn, true, 'Saving...');
         await refreshToken();
 
         let res;
@@ -1108,14 +1126,15 @@ async function saveConfiguration() {
             currentLinkId = savedLink.id;
             await fetchLinks();
             loadConfiguration(savedLink);
+            showToast('Template saved successfully!', 'success');
         } else {
-            alert("Failed to save.");
+            showToast("Failed to save template.", 'error');
         }
     } catch (e) {
         console.error(e);
-        alert("Error saving template.");
+        showToast("Error saving template.", 'error');
     } finally {
-        saveBtn.disabled = false;
+        setLoading(saveBtn, false);
         // reset logic sets text to Save, but here we want Update if it was an update or create
         if (currentLinkId) saveBtn.textContent = 'Update';
         else saveBtn.textContent = 'Save';
@@ -1127,8 +1146,16 @@ async function deleteConfiguration() {
     try {
         await refreshToken();
         const res = await fetch(`${LINKS_API_URL}/${currentLinkId}`, { method: 'DELETE', headers: authHeaders() });
-        if (res.ok) { resetForm(); fetchLinks(); } else { alert("Failed to delete."); }
-    } catch (e) { alert("Error deleting."); }
+        if (res.ok) {
+            resetForm();
+            fetchLinks();
+            showToast('Template deleted', 'success');
+        } else {
+            showToast("Failed to delete.", 'error');
+        }
+    } catch (e) {
+        showToast("Error deleting.", 'error');
+    }
 }
 
 // ========================================
@@ -1217,7 +1244,7 @@ function updateUrl() {
         if (active.journey?.name?.value) params.set('journey', active.journey.name.value);
         if (active.journey?.description?.value) params.set('journey-description', active.journey.description.value);
         if (active.journey?.prompt) params.set('journey-prompt', active.journey.prompt);
-        
+
         // Legacy fallback
         if (!active.identity && active.name) params.set('name', active.name);
         if (!active.identity && active.role) params.set('role', active.role);
@@ -1225,11 +1252,11 @@ function updateUrl() {
         if (!active.journey && active.journeyDescription) params.set('journey-description', active.journeyDescription);
 
         if (active.welcomePrompt) params.set('welcome-prompt', active.welcomePrompt);
-        
+
         // RAG & phases too large for URL; only available via ?id= link
         const swimlanesData = active.structure?.swimlanes?.data || active.swimlanes;
         if (swimlanesData) params.set('swimlanes', JSON.stringify(swimlanesData));
-        
+
         const phasesData = active.structure?.phases?.data || active.phases;
         if (phasesData) params.set('phases', JSON.stringify(phasesData));
 
@@ -1243,6 +1270,41 @@ function updateUrl() {
 // ========================================
 // Helpers
 // ========================================
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    let icon = '';
+    if (type === 'success') icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    else if (type === 'error') icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+    else icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+
+    toast.innerHTML = `${icon}<span>${escapeHtml(message)}</span>`;
+
+    container.appendChild(toast);
+
+    // Remove after 3s
+    setTimeout(() => {
+        toast.style.animation = 'fadeOutToast 0.3s forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function setLoading(btn, isLoading, loadingText = 'Loading...') {
+    if (!btn) return;
+    if (isLoading) {
+        btn.dataset.originalText = btn.textContent;
+        btn.classList.add('loading');
+        // We keep the width if possible to avoid jump, but simple loading class handles visual
+    } else {
+        btn.classList.remove('loading');
+        if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
+    }
+}
+
 function slugify(text) {
     return text.toString().toLowerCase()
         .replace(/\s+/g, '_')
@@ -1261,6 +1323,7 @@ function escapeHtml(text) {
 function copyToClipboard() {
     const url = generatedUrlCode.innerText;
     navigator.clipboard.writeText(url).then(() => {
+        showToast('URL copied to clipboard', 'success');
         const originalHtml = copyBtn.innerHTML;
         copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #22c55e;"><polyline points="20 6 9 17 4 12"/></svg>`;
         setTimeout(() => { copyBtn.innerHTML = originalHtml; }, 2000);
@@ -1287,7 +1350,7 @@ async function fetchUsers() {
 function renderUsersTable(users) {
     if (!usersTableBody) return;
     usersTableBody.innerHTML = '';
-    
+
     if (!users || users.length === 0) {
         usersTableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No users registered yet.</td></tr>';
         return;
@@ -1305,17 +1368,17 @@ function renderUsersTable(users) {
         const isSuperAdmin = user.role === 'super_admin';
         const statusClass = user.active ? 'status-active' : 'status-inactive';
         const statusText = user.active ? 'Active' : 'Inactive';
-        
+
         tr.innerHTML = `
             <td><strong>${escapeHtml(user.displayName || 'Unknown')}</strong></td>
             <td>${escapeHtml(user.email || '')}</td>
             <td><span class="role-badge ${user.role}">${user.role === 'super_admin' ? 'Super Admin' : 'Admin'}</span></td>
             <td>${lastLogin}</td>
             <td>
-                ${isSuperAdmin 
-                    ? `<span class="status-badge status-active">Always Active</span>` 
-                    : `<button class="status-toggle-btn ${statusClass}" data-uid="${user.uid}">${statusText}</button>`
-                }
+                ${isSuperAdmin
+                ? `<span class="status-badge status-active">Always Active</span>`
+                : `<button class="status-toggle-btn ${statusClass}" data-uid="${user.uid}">${statusText}</button>`
+            }
             </td>
         `;
         usersTableBody.appendChild(tr);
@@ -1329,8 +1392,8 @@ function renderUsersTable(users) {
                 await refreshToken();
                 const res = await fetch(`${USERS_API_URL}/${uid}/active`, { method: 'PUT', headers: authHeaders() });
                 if (res.ok) fetchUsers();
-                else alert('Failed to toggle user status.');
-            } catch (e) { alert('Error toggling user.'); }
+                else showToast('Failed to toggle user status.', 'error');
+            } catch (e) { showToast('Error toggling user.', 'error'); }
         });
     });
 }
