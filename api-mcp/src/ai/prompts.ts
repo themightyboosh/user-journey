@@ -667,7 +667,7 @@ export interface SessionConfig {
         name?: ConfigItem<string>;
         role?: ConfigItem<string>;
     };
-    
+
     // Journey Context Group
     journey?: {
         name?: ConfigItem<string>;
@@ -720,11 +720,12 @@ function buildNextTargetContext(journeyState: any): string {
             const cell = journeyState.cells.find((c: any) =>
                 c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId
             );
-            
+
             // Safety check: Skip malformed cells
             if (!cell || !cell.cellId) continue;
 
-            const isEmpty = !cell.headline || cell.headline.trim().length === 0;
+            // Match logic with metrics.ts: requires BOTH headline and description
+            const isEmpty = !cell.headline || cell.headline.trim().length === 0 || !cell.description || cell.description.trim().length === 0;
             if (isEmpty) {
                 nextCell = {
                     ...cell,
@@ -741,8 +742,8 @@ function buildNextTargetContext(journeyState: any): string {
     if (!nextCell) {
         const totalCells = phases.length * swimlanes.length;
         return `\n=== ALL CELLS COMPLETE ===\n` +
-               `Total cells filled: ${totalCells}/${totalCells}\n` +
-               `Status: Ready to proceed to Step 11 (Ethnographic Analysis)\n`;
+            `Total cells filled: ${totalCells}/${totalCells}\n` +
+            `Status: Ready to proceed to Step 11 (Ethnographic Analysis)\n`;
     }
 
     // Build rich context for the next target cell
@@ -795,7 +796,7 @@ function buildStep1(config: SessionConfig): string {
     const role = config.identity?.role?.value || config.role;
     const nameMode = config.identity?.name?.confirmationMode || 'BYPASS';
     const roleMode = config.identity?.role?.confirmationMode || 'BYPASS';
-    
+
     const hasName = !!name;
     const hasRole = !!role;
     const agentName = config.agentName || 'Max';
@@ -811,7 +812,7 @@ function buildStep1(config: SessionConfig): string {
     *   **Narrative**: Do NOT ask for confirmation. Just say: "${welcomePrompt} I see you're ${name}, a ${role}. Let's jump in."
     *   **Transition**: Move directly to Step 2/3.`;
         }
-        
+
         // CONFIRM Mode (Verify)
         return `1.  **Verify Identity**:
     *   ${welcomePrompt}
@@ -856,7 +857,7 @@ function buildStep3(config: SessionConfig): string {
     const description = config.journey?.description?.value || config.journeyDescription;
     const nameMode = config.journey?.name?.confirmationMode || 'BYPASS';
     const descMode = config.journey?.description?.confirmationMode || 'BYPASS';
-    
+
     const hasName = !!name;
     const hasDescription = !!description;
     const journeyPrompt = config.journey?.prompt || config.journeyPrompt || "Tell me about an important activity you perform and why it matters.";
@@ -873,7 +874,7 @@ function buildStep3(config: SessionConfig): string {
     *   **Narrative**: Briefly acknowledge: "I see this is about ${name}—got it."
     *   **Transition**: JUMP directly to Step 5 (Phase Inquiry).`;
         }
-        
+
         // CONFIRM Mode
         return `3.  **Journey Setup (Verify)**:
     *   **Context**: Admin proposes "${name}" - "${description}".
@@ -918,7 +919,7 @@ function buildStep5(config: SessionConfig): string {
 
     // 1. ADMIN MODE (Pre-filled phases)
     if (phasesData && Array.isArray(phasesData) && phasesData.length > 0) {
-        
+
         // --- NEVER_PROBE (Trust Admin) ---
         if (probeMode === 'NEVER_PROBE') {
             return `5.  **Phase Setup (Admin Defined - TRUST)**:
@@ -947,7 +948,7 @@ function buildStep5(config: SessionConfig): string {
         // --- AUTO_PROBE (Smart) ---
         // Check if ALL phases have descriptions
         const allHaveDescriptions = phasesData.every(p => p.description && p.description.trim().length > 0);
-        
+
         if (allHaveDescriptions) {
             // Treat as NEVER_PROBE if complete
             return `5.  **Phase Setup (Admin Defined - AUTO COMPLETE)**:
@@ -987,7 +988,7 @@ function buildStep7(config: SessionConfig): string {
 
     // 1. ADMIN MODE (Pre-filled swimlanes)
     if (swimlanesData && Array.isArray(swimlanesData) && swimlanesData.length > 0) {
-        
+
         // --- NEVER_PROBE (Trust Admin) ---
         if (probeMode === 'NEVER_PROBE') {
             return `7.  **Swimlane Setup (Admin Defined - TRUST)**:
@@ -1015,7 +1016,7 @@ function buildStep7(config: SessionConfig): string {
 
         // --- AUTO_PROBE (Smart) ---
         const allHaveDescriptions = swimlanesData.every(s => s.description && s.description.trim().length > 0);
-        
+
         if (allHaveDescriptions) {
             return `7.  **Swimlane Setup (Admin Defined - AUTO COMPLETE)**:
     *   **Context**: Admin data is complete.
@@ -1141,13 +1142,13 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
         instruction = instruction.replace('{{STEP_3}}', "");
         instruction = instruction.replace('{{STEP_5}}', "");
         instruction = instruction.replace('{{STEP_7}}', "");
-    } 
+    }
     else if (stage === 'JOURNEY_DEFINITION' || stage === 'PHASES') {
         // --- JOURNEY/PHASES STAGE: Show Step 3 & 5 ---
         // Hide Step 1 (Identity done)
         const step3 = buildStep3(config);
         const step5 = buildStep5(config);
-        
+
         instruction = instruction.replace('{{STEP_1}}', "");
         instruction = instruction.replace('{{STEP_3}}', step3);
         instruction = instruction.replace('{{STEP_5}}', step5);
@@ -1157,7 +1158,7 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
         // --- SWIMLANES STAGE: Show Step 7 ---
         // Hide 1, 3, 5 (Done)
         const step7 = buildStep7(config);
-        
+
         instruction = instruction.replace('{{STEP_1}}', "");
         instruction = instruction.replace('{{STEP_3}}', "");
         instruction = instruction.replace('{{STEP_5}}', "");
@@ -1254,16 +1255,16 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
     if (journeyState) {
         contextInjection += `\n=== LIVE JOURNEY STATE ===\n`;
         contextInjection += `CURRENT STAGE: ${journeyState.stage || 'UNKNOWN'}\n`;
-        
+
         if (isCellPopulation) {
-             // --- BLINDERS PROTOCOL: Sanitized State ---
+            // --- BLINDERS PROTOCOL: Sanitized State ---
             contextInjection += `STATUS: ${journeyState.status}\n`;
             if (journeyState.name) contextInjection += `JOURNEY NAME: ${journeyState.name}\n`;
             if (journeyState.description) contextInjection += `JOURNEY DESCRIPTION: ${journeyState.description}\n`; // KEEP DESCRIPTION VISIBLE
 
             if (journeyState.metrics) {
-                 const { totalCellsCompleted, totalCellsExpected } = journeyState.metrics;
-                 contextInjection += `CELLS PROGRESS: ${totalCellsCompleted} / ${totalCellsExpected} completed\n`;
+                const { totalCellsCompleted, totalCellsExpected } = journeyState.metrics;
+                contextInjection += `CELLS PROGRESS: ${totalCellsCompleted} / ${totalCellsExpected} completed\n`;
             }
 
             // CRITICAL: Inject Next Target Cell Context
@@ -1292,8 +1293,8 @@ export function buildSystemInstruction(config: SessionConfig = {}, journeyState:
             contextInjection += `\nCOMPLETION GATES:\n${JSON.stringify(journeyState.completionStatus, null, 2)}\n`;
 
             if (journeyState.metrics) {
-                 const { totalCellsCompleted, totalCellsExpected } = journeyState.metrics;
-                 contextInjection += `CELLS PROGRESS: ${totalCellsCompleted} / ${totalCellsExpected} completed\n`;
+                const { totalCellsCompleted, totalCellsExpected } = journeyState.metrics;
+                contextInjection += `CELLS PROGRESS: ${totalCellsCompleted} / ${totalCellsExpected} completed\n`;
             }
 
             // Ethnographic Progress (mostly for COMPLETE stage)

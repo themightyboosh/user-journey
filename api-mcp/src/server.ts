@@ -340,7 +340,8 @@ server.post('/api/chat', async (request, reply) => {
 
         // CRITICAL: Detect confirmation responses to force tool calling
         // Prevents AI from narrating "I'm adding..." without actually calling tools
-        const isConfirmationResponse = /^(yes|yeah|yep|yup|correct|right|sure|ok|okay|sounds good|that's right|looks good)$/i.test(message.trim());
+        // FIX: More robust confirmation detection
+        const isConfirmationResponse = /\b(yes|yeah|yep|yup|correct|right|sure|ok|okay|sounds good|that's right|looks good|perfect|great|go ahead)\b/i.test(message.trim());
 
         // FIX: Check for phase/swimlane confirmations at the RIGHT stages
         // Phases are set during JOURNEY_DEFINITION or PHASES stage
@@ -355,7 +356,7 @@ server.post('/api/chat', async (request, reply) => {
         const isConfirmationStage = shouldForceTools;
 
         if (shouldForceTools) {
-            logger.warn(`🎯 CONFIRMATION DETECTED: Forcing mode=ANY to prevent hallucination (stage: ${journeyState.stage}, message: "${message.trim()}")`);
+            logger.info(`🎯 CONFIRMATION DETECTED: Forcing mode=ANY to prevent hallucination (stage: ${journeyState.stage})`);
         }
 
         logger.info('Getting request model', {

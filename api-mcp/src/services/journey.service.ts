@@ -7,7 +7,7 @@ import logger from '../logger';
 export class JourneyService {
     private static instance: JourneyService;
 
-    private constructor() {}
+    private constructor() { }
 
     public static getInstance(): JourneyService {
         if (!JourneyService.instance) {
@@ -138,7 +138,7 @@ export class JourneyService {
         // LOGIC FIX: Robust State Transition with Strict Validation
         // We now explicitly handle the transition from JOURNEY_DEFINITION -> PHASES
         // Check for meaningful content to prevent "Draft" or empty descriptions triggering advancement
-        const hasValidDescription = journey.description && journey.description.trim().length > 10; // Must be substantial (>10 chars)
+        const hasValidDescription = journey.description && journey.description.trim().length > 2; // Relaxed from 10 to >2 to prevent getting stuck
         const hasValidName = journey.name && journey.name.toLowerCase() !== 'draft' && !journey.name.toLowerCase().includes('draft') && journey.name.trim().length > 0;
 
         if (hasValidDescription && hasValidName) {
@@ -254,7 +254,7 @@ export class JourneyService {
 
         // Clear cells as structure changed significantly
         journey.cells = [];
-        
+
         // FIX 3: Backend Enforcement of Completion Flags
         journey.arePhasesComplete = true;
 
@@ -355,7 +355,7 @@ export class JourneyService {
 
         // Clear cells as structure changed
         journey.cells = [];
-        
+
         // FIX 3: Backend Enforcement of Completion Flags
         journey.areSwimlanesComplete = true;
 
@@ -434,8 +434,8 @@ export class JourneyService {
 
         // FIX: Auto-advance to COMPLETE when all cells are filled
         if (journey.metrics.percentCellsComplete === 100 && journey.stage === 'CELL_POPULATION') {
-             journey.stage = 'COMPLETE';
-             logger.info(`[JourneyService] All cells complete. Auto-advancing to COMPLETE stage.`);
+            journey.stage = 'COMPLETE';
+            logger.info(`[JourneyService] All cells complete. Auto-advancing to COMPLETE stage.`);
         }
 
         await Store.save(journey);
@@ -588,14 +588,14 @@ export class JourneyService {
         // Flowchart (TD)
         // Subgraphs for Phases
         let mermaidCode = `graph TD\n    title ${journey.name}\n`;
-        
+
         // Define Styles
         mermaidCode += `    %% Styles\n    classDef phase fill:#f9f9f9,stroke:#333,stroke-width:2px;\n    classDef swimlane fill:#e1f5fe,stroke:#0277bd,stroke-width:1px;\n`;
 
         // Create Subgraphs for each Phase
         for (const phase of journey.phases) {
             mermaidCode += `    subgraph ${phase.phaseId}["${phase.name}"]\n`;
-            
+
             // Add nodes for cells within this phase
             for (const swimlane of journey.swimlanes) {
                 const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
@@ -618,10 +618,10 @@ export class JourneyService {
         // Instead, let's just let them layout naturally or connect "dummy" nodes?
         // Alternatively, we can assume a linear flow if we want.
         // For now, let's just group them.
-        
+
         // OPTIONAL: Connect first cell of Phase N to first cell of Phase N+1 to encourage layout?
         // Let's keep it simple first. The user asked for "ALL elements".
-        
+
         journey.mermaid = { code: mermaidCode };
         journey.outputJson = { code: JSON.stringify(journey, null, 2) };
 
@@ -648,7 +648,7 @@ export class JourneyService {
     async checkPhaseCompletion(id: string, phaseId: string): Promise<boolean> {
         const journey = await Store.get(id);
         if (!journey) return false;
-        
+
         // Find all cells for this phase
         const phaseCells = journey.cells.filter(c => c.phaseId === phaseId);
         if (phaseCells.length === 0) return false;
@@ -660,7 +660,7 @@ export class JourneyService {
     async checkSwimlaneCompletion(id: string, swimlaneId: string): Promise<boolean> {
         const journey = await Store.get(id);
         if (!journey) return false;
-        
+
         // Find all cells for this swimlane
         const swimlaneCells = journey.cells.filter(c => c.swimlaneId === swimlaneId);
         if (swimlaneCells.length === 0) return false;
@@ -671,7 +671,7 @@ export class JourneyService {
     async savePhaseSummary(id: string, phaseId: string, summary: string): Promise<JourneyMap | null> {
         let journey = await Store.get(id);
         if (!journey) return null;
-        
+
         const phase = journey.phases.find(p => p.phaseId === phaseId);
         if (phase) {
             phase.summary = summary;
@@ -684,7 +684,7 @@ export class JourneyService {
     async saveSwimlaneSummary(id: string, swimlaneId: string, summary: string): Promise<JourneyMap | null> {
         let journey = await Store.get(id);
         if (!journey) return null;
-        
+
         const swimlane = journey.swimlanes.find(s => s.swimlaneId === swimlaneId);
         if (swimlane) {
             swimlane.summary = summary;

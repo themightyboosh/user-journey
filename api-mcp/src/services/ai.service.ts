@@ -51,7 +51,7 @@ export class AIService {
         // Just a health check now - stateless!
         const modelName = preferredModel || 'gemini-2.5-flash-lite';
         logger.info(`🤖 Health Check for model: ${modelName}...`);
-        
+
         try {
             const model = this.vertexAI.getGenerativeModel({
                 model: modelName,
@@ -146,8 +146,8 @@ export class AIService {
             if (currentStage === 'IDENTITY') {
                 // If we don't have an ID, or if we have an ID but missing role/name
                 if (!journeyState?.journeyMapId || !journeyState?.userName || !journeyState?.role) {
-                     toolMode = FunctionCallingMode.ANY; // FORCE tool use
-                     logger.info('🔒 FORCING TOOL: IDENTITY data missing');
+                    toolMode = FunctionCallingMode.ANY; // FORCE tool use
+                    logger.info('🔒 FORCING TOOL: IDENTITY data missing');
                 }
             }
 
@@ -172,14 +172,21 @@ export class AIService {
                 toolMode = FunctionCallingMode.ANY;
             }
 
+            // Generate System Instruction dynamically
+            const systemInstructionContent = buildSystemInstruction(fullConfig, journeyState);
+
             const model = this.vertexAI.getGenerativeModel({
                 model: targetModel,
+                systemInstruction: {
+                    role: 'system',
+                    parts: [{ text: systemInstructionContent }]
+                },
                 // ... config ...
                 toolConfig: {
                     functionCallingConfig: {
                         mode: toolMode,
                         // OPTIONAL: Limit to specific allowed tools to prevent confusion
-                        allowedFunctionNames: allowedToolNames 
+                        allowedFunctionNames: allowedToolNames
                     }
                 }
             });
@@ -272,7 +279,7 @@ export class AIService {
 
         // 1. Check Phase Completion
         const phaseCells = journey.cells.filter(c => c.phaseId === phaseId);
-        const isPhaseComplete = phaseCells.length > 0 && 
+        const isPhaseComplete = phaseCells.length > 0 &&
             phaseCells.every(c => c.headline && c.description && c.headline.trim() !== '' && c.description.trim() !== '');
 
         if (isPhaseComplete) {
@@ -312,7 +319,7 @@ export class AIService {
             // Get fresh model based on current settings
             const settings = await this.adminService.getSettings();
             const modelName = settings.activeModel || 'gemini-2.5-flash-lite';
-            
+
             const model = this.vertexAI.getGenerativeModel({
                 model: modelName,
                 safetySettings: SAFETY_SETTINGS
@@ -359,14 +366,14 @@ export class AIService {
             const phaseName = phase?.name || 'Unknown';
             const swimlaneName = swimlane?.name || 'Unknown';
 
-            const isDone = cell.headline && cell.headline.trim().length > 0 
-                        && cell.description && cell.description.trim().length > 0;
+            const isDone = cell.headline && cell.headline.trim().length > 0
+                && cell.description && cell.description.trim().length > 0;
 
             if (isDone) {
                 completed.push({ phase: phaseName, swimlane: swimlaneName, headline: cell.headline });
             } else {
-                remaining.push({ 
-                    phase: phaseName, 
+                remaining.push({
+                    phase: phaseName,
                     swimlane: swimlaneName,
                     phaseId: cell.phaseId,
                     swimlaneId: cell.swimlaneId,
@@ -381,8 +388,8 @@ export class AIService {
             totalCells: journey.cells.length,
             completedCount: completed.length,
             remainingCount: remaining.length,
-            percentComplete: journey.cells.length > 0 
-                ? Math.round((completed.length / journey.cells.length) * 100) 
+            percentComplete: journey.cells.length > 0
+                ? Math.round((completed.length / journey.cells.length) * 100)
                 : 0,
             remaining,
             completed
@@ -427,8 +434,8 @@ export class AIService {
                     return await this.journeyService.generateMatrix(args.journeyMapId);
                 }
                 case 'update_cell': {
-                    logger.info('Tool: update_cell START', { 
-                        journeyId: args.journeyMapId, 
+                    logger.info('Tool: update_cell START', {
+                        journeyId: args.journeyMapId,
                         cellId: args.cellId,
                         headline: args.headline?.substring(0, 50)
                     });
@@ -440,12 +447,12 @@ export class AIService {
                     let targetCellId = args.cellId;
                     let pId: string | null = null;
                     let sId: string | null = null;
-    
+
                     if (!targetCellId && args.phaseName && args.swimlaneName) {
                         const findMatch = (list: any[], name: string) => list.find(item => item.name.toLowerCase().trim() === name.toLowerCase().trim());
                         const phase = findMatch(journey.phases, args.phaseName);
                         const swimlane = findMatch(journey.swimlanes, args.swimlaneName);
-                        
+
                         if (phase && swimlane) {
                             const cell = journey.cells.find(c => c.phaseId === phase.phaseId && c.swimlaneId === swimlane.swimlaneId);
                             if (cell) {
@@ -455,7 +462,7 @@ export class AIService {
                             }
                         }
                     }
-    
+
                     if (!targetCellId) {
                         logger.error('Tool: update_cell FAILED - Target not resolved', { args });
                         return { error: "Missing cellId and could not resolve phaseName/swimlaneName to a valid cell." };
@@ -469,7 +476,7 @@ export class AIService {
                             sId = cell.swimlaneId;
                         }
                     }
-    
+
                     const result = await this.journeyService.updateCell(args.journeyMapId, targetCellId, args);
 
                     if (!result) {
