@@ -1,0 +1,24 @@
+{
+        "name": "Journey Mapper Dev",
+        "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+        "customizations": {
+                "vscode": {
+                        "extensions": [
+                                "dbaeumer.vscode-eslint",
+                                "esbenp.prettier-vscode",
+                                "ms-azuretools.vscode-docker",
+                                "googlecloudtools.cloudcode"
+                        ]
+                }
+        },
+        "features": {
+                "ghcr.io/devcontainers/features/google-cloud-cli:1": {
+                        "version": "latest"
+                },
+                "ghcr.io/devcontainers/features/firebase-cli:1": {
+                        "version": "latest"
+                }
+        },
+        "postCreateCommand": "npm install -g firebase-tools && cd api-mcp && pnpm install && cd ../front-end && npm install",
+        "remoteUser": "node"
+}
