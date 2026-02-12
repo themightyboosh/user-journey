@@ -1,6 +1,6 @@
 // Config
 const VERSION = '3.0';
-console.log('Journey Mapper Admin v' + VERSION);
+console.debug('Journey Mapper Admin v' + VERSION);
 
 const BASE_URL = window.location.origin + '/';
 const LINKS_API_URL = window.location.origin + '/api/admin/links';
@@ -116,7 +116,6 @@ const addSwimlaneBtn = document.getElementById('addSwimlaneBtn');
 const addPhaseBtn = document.getElementById('addPhaseBtn');
 const generatedUrlCode = document.getElementById('generatedUrl');
 const copyBtn = document.getElementById('copyBtn');
-// testLinkBtn removed — generated URL is clickable directly
 const swimlaneTemplate = document.getElementById('swimlaneTemplate');
 const phaseTemplate = document.getElementById('phaseTemplate');
 const savedLinksList = document.getElementById('savedLinksList');
@@ -228,7 +227,7 @@ function showAdminApp() {
 // Handle redirect result on page load
 auth.getRedirectResult().then((result) => {
     if (result.user) {
-        console.log('Successfully signed in via redirect');
+        console.debug('Successfully signed in via redirect');
     }
 }).catch((error) => {
     console.error('Redirect sign-in error', error);
@@ -247,13 +246,13 @@ auth.onAuthStateChanged(async (user) => {
             const res = await fetch(ME_API_URL, {
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });
-            
-            // Debug Log
-            console.log('Auth check response:', res.status, res.statusText);
 
             if (res.status === 403) {
-                // Account inactive
-                throw new Error('Account inactive or unauthorized (403)');
+                // Account inactive / pending approval – show friendly message
+                loginError.style.display = 'none';
+                loginPending.style.display = 'block';
+                googleSignInBtn.style.display = 'none';
+                return;
             }
 
             if (!res.ok) {
@@ -264,15 +263,27 @@ auth.onAuthStateChanged(async (user) => {
             showAdminApp();
         } catch (err) {
             console.error('Auth verification error', err);
-            // Don't sign out automatically during debug
-            loginError.textContent = `Auth verification failed: ${err.message}. Status: ${err.cause ? err.cause : 'Unknown'}`;
+            loginPending.style.display = 'none';
+            loginError.textContent = `Auth verification failed: ${err.message}.`;
             loginError.style.display = 'block';
-            // await auth.signOut(); // Disabled for debugging
+            googleSignInBtn.style.display = 'flex';
         }
     } else {
-        // Not signed in - show login
+        // Not signed in – try auth bypass (when backend has admin auth disabled)
+        try {
+            const res = await fetch(ME_API_URL);
+            if (res.ok) {
+                currentAppUser = await res.json();
+                showAdminApp();
+                return;
+            }
+        } catch (e) { /* ignore */ }
+        // Normal: show login
         loginOverlay.style.display = 'flex';
         adminApp.style.display = 'none';
+        loginPending.style.display = 'none';
+        loginError.style.display = 'none';
+        googleSignInBtn.style.display = 'flex';
     }
 });
 
@@ -924,9 +935,11 @@ function loadConfiguration(link) {
     formInputs.role.value = link.role || (link.identity?.role?.value) || '';
     if (link.identity?.role?.confirmationMode && formInputs.roleMode) formInputs.roleMode.value = link.identity.role.confirmationMode;
 
-    formInputs.journey.value = link.journey || (link.journey?.name?.value) || '';
+    // Journey name: prefer legacy flat field, fall back to nested object
+    formInputs.journey.value = link.journeyName || (link.journey?.name?.value) || '';
     if (link.journey?.name?.confirmationMode && formInputs.journeyMode) formInputs.journeyMode.value = link.journey.name.confirmationMode;
 
+    // Journey description: prefer legacy flat field, fall back to nested object
     formInputs.journeyDescription.value = link.journeyDescription || (link.journey?.description?.value) || '';
     if (link.journey?.description?.confirmationMode && formInputs.journeyDescriptionMode) formInputs.journeyDescriptionMode.value = link.journey.description.confirmationMode;
 
@@ -935,7 +948,7 @@ function loadConfiguration(link) {
     if (link.structure?.swimlanes?.probeMode && formInputs.swimlanesProbeMode) formInputs.swimlanesProbeMode.value = link.structure.swimlanes.probeMode;
 
     formInputs.welcomePrompt.value = link.welcomePrompt || '';
-    formInputs.journeyPrompt.value = link.journeyPrompt || (link.journey?.prompt) || '';
+    formInputs.journeyPrompt.value = link.journeyPrompt || (typeof link.journey === 'object' ? link.journey?.prompt : '') || '';
     formInputs.ragContext.value = link.ragContext || '';
     formInputs.personaFrame.value = link.personaFrame || '';
     formInputs.personaLanguage.value = link.personaLanguage || '';
@@ -1040,18 +1053,20 @@ async function saveConfiguration() {
         structure: {
             phases: { 
                 data: getPhasesFromDOM(), 
-                probeMode: formInputs.phasesProbeMode ? formInputs.phasesProbeMode.value : 'NEVER_PROBE'
+                probeMode: formInputs.phasesProbeMode ? formInputs.phasesProbeMode.value : 'NEVER_PROBE',
+                probeThreshold: 1.0
             },
             swimlanes: { 
                 data: getSwimlanesFromDOM(), 
-                probeMode: formInputs.swimlanesProbeMode ? formInputs.swimlanesProbeMode.value : 'NEVER_PROBE'
+                probeMode: formInputs.swimlanesProbeMode ? formInputs.swimlanesProbeMode.value : 'NEVER_PROBE',
+                probeThreshold: 1.0
             }
         },
 
         // Legacy Flat Fields (for backward compatibility with old clients/viewers)
         name: formInputs.name.value.trim(),
         role: formInputs.role.value.trim(),
-        journey: formInputs.journey.value.trim(),
+        journeyName: formInputs.journey.value.trim(),
         journeyDescription: formInputs.journeyDescription.value.trim(),
         journeyPrompt: formInputs.journeyPrompt.value.trim(),
         phases: getPhasesFromDOM(),
