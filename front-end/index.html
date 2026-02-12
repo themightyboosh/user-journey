@@ -432,6 +432,132 @@
         }
 
         /* ========================================
+       INSPECTOR PANEL (LEFT SIDE DRAWER)
+       ======================================== */
+        .max-inspector {
+            width: 0;
+            background: #0d0f14;
+            border-right: 1px solid var(--max-color-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .max-inspector.open {
+            width: 380px;
+        }
+
+        .inspector-header {
+            padding: 16px;
+            background: var(--max-color-surface-secondary);
+            border-bottom: 1px solid var(--max-color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .inspector-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--max-color-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .inspector-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            font-family: var(--max-font-family-mono);
+            font-size: 12px;
+            color: var(--max-color-text-tertiary);
+        }
+
+        .log-entry {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--max-color-border-subtle);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-timestamp {
+            color: var(--max-color-text-tertiary);
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+
+        .log-type {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .log-type.tool-call {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        .log-type.tool-result {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        .log-type.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .log-type.system {
+            background: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+        }
+
+        .log-details {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #d1d5db;
+        }
+
+        /* Toggle Button */
+        .inspector-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--max-color-surface-secondary);
+            border: 1px solid var(--max-color-border);
+            color: var(--max-color-text-tertiary);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .inspector-toggle:hover {
+            color: var(--max-color-text-primary);
+            background: var(--max-color-surface-hover);
+        }
+
+        /* ========================================
        CHAT CONTAINER (RIGHT)
        ======================================== */
         .max-chat-container {
@@ -1737,7 +1863,37 @@
             </div>
         </div>
 
+        <!-- Inspector Toggle -->
+        <button class="inspector-toggle" id="inspectorToggle" title="Toggle Inspector" style="display: none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+
         <div class="max-main-content">
+            <!-- Inspector Panel -->
+            <div class="max-inspector" id="inspectorPanel">
+                <div class="inspector-header">
+                    <div class="inspector-title">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="4 17 10 11 4 5"></polyline>
+                            <line x1="12" y1="19" x2="20" y2="19"></line>
+                        </svg>
+                        System Logs
+                    </div>
+                    <div style="font-size: 10px; color: #6b7280;">LIVE</div>
+                </div>
+                <div class="inspector-content" id="inspectorContent">
+                    <!-- Logs injected here -->
+                    <div class="log-entry">
+                        <div class="log-timestamp">SYSTEM START</div>
+                        <div class="log-type system">INIT</div>
+                        <div class="log-details">Inspector initialized.</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Chat Container (Left) -->
             <div class="max-chat-container">
 
@@ -1855,6 +2011,15 @@
     <script src="js/journey-viewer.js?v=4"></script>
     <script src="js/json-renderer.js"></script>
     <script>
+        // Inspector Helper
+        function logToInspector(type, data) {
+            if (window.appendLog) {
+                window.appendLog(type, data);
+            } else {
+                console.warn('Inspector not ready:', type, data);
+            }
+        }
+
         // ===========================================
         // State
         // ===========================================
@@ -2716,6 +2881,17 @@
                                 // Handle tool execution events (for debugging/visibility)
                                 if (data.tool) {
                                     console.debug(`[TOOL] ${data.tool} - ${data.status}`, data.args || data.error || '');
+
+                                    // Log to Inspector
+                                    const logType = data.status === 'error' ? 'error' : 'tool-call';
+                                    const logData = {
+                                        tool: data.tool,
+                                        status: data.status,
+                                        args: data.args,
+                                        result: data.result,
+                                        error: data.error
+                                    };
+                                    logToInspector(logType, logData);
 
                                     // Show visual indicator for tool execution
                                     if (data.status === 'executing') {

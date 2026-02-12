@@ -311,12 +311,10 @@ export const STEP_3_DEFAULT = `3.  **Journey Setup**:
         3.  Call \`update_journey_metadata\` with known name + user's description.
     *   **Mode [BOTH UNKNOWN]**: If neither name nor description are provided:
         1.  Execute {{JOURNEY_PROMPT}} to ask about their activity.
-        2.  DEDUCE a succinct Journey Name from their response (don't explicitly ask "what should we call this?").
-        3.  **CRITICAL - NO HALLUCINATION**: Do NOT infer or make up details about the journey. After getting the activity name, EXPLICITLY ASK:
-            - "Can you give me a brief description of what [Journey Name] entails?"
-            - OR "Tell me a bit more about what [Journey Name] involves."
-        4.  Wait for user's actual description. Do NOT fabricate details like timing, purpose, or steps.
-        5.  Call \`update_journey_metadata\` with deduced name + user's ACTUAL description (not inferred).
+        2.  **CRITICAL - NO GUESSING**: Do NOT deduce or invent a name. ASK the user: "What should we call this journey?" or "How do you refer to this process?"
+        3.  Wait for their answer.
+        4.  Then ASK: "Can you give me a brief description of what [Journey Name] involves?"
+        5.  Call \`update_journey_metadata\` with the user's provided name and description.
     *   **Constraint**: Focus exclusively on the high-level context and purpose. Keep the scope broad - specific stages will be defined in Step 5.
     *   **Voice Rule**: Convert description to imperative/gerund phrase (e.g. "Helping people..." or "Manage requests..."). Do NOT use "I", "He", "She", or "They".
     *   **Formatting Rule**: Description must be PURE TEXT. Do NOT include variable assignments (e.g., \`name='...'\`) or JSON keys.
@@ -755,13 +753,18 @@ function buildNextTargetContext(journeyState: any): string {
 
 🎯 **THIS IS YOUR ONLY ALLOWED CELL. DO NOT DEVIATE.**
 Cell ID: ${nextCell.cellId}
-Phase: "${nextCell.phase.name}" (Stage ${nextCell.phase.sequence} of ${phases.length}) — ${phaseDesc}
-Swimlane: "${nextCell.swimlane.name}" (Layer ${nextCell.swimlane.sequence} of ${swimlanes.length}) — ${swimlaneDesc}
+Phase: "${nextCell.phase.name}" (Stage ${nextCell.phase.sequence} of ${phases.length})
+   ↳ Context: ${phaseDesc}
+Swimlane: "${nextCell.swimlane.name}" (Layer ${nextCell.swimlane.sequence} of ${swimlanes.length})
+   ↳ Context: ${swimlaneDesc}
 
-**YOUR NEXT QUESTION** must be about the intersection of "${nextCell.phase.name}" and "${nextCell.swimlane.name}".
-- Frame it conversationally, bridging from the user's previous answer.
-- Do NOT stay on the previous swimlane topic. If you just saved an "Actions" cell and this cell is "Gains", your question MUST ask about gains/benefits, NOT actions.
-- Do NOT ask follow-up questions about the previous cell. That cell is done. Move on.
+**YOUR NEXT QUESTION MUST BE:**
+1.  **Anchored**: Derived directly from the intersection of "${nextCell.phase.name}" and "${nextCell.swimlane.name}".
+2.  **Bridged**: Connected to the user's previous answer (The Golden Thread).
+3.  **Specific**: Asking about the SPECIFIC experience in this cell, not a generic "what happens here?".
+
+**CONSTRAINT**: Do NOT stay on the previous swimlane topic. If you just saved an "Actions" cell and this cell is "Gains", your question MUST ask about gains/benefits, NOT actions.
+**CONSTRAINT**: Do NOT ask follow-up questions about the previous cell. That cell is done. Move on.
 
 **AFTER THE USER RESPONDS**, follow this exact sequence:
 1. CALL update_cell IMMEDIATELY (do NOT speak first):

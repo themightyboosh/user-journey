@@ -17,9 +17,12 @@ const API_URL = process.env.API_URL || 'http://localhost:3001';
 app.use(express.static(__dirname));
 
 // Proxy API requests to backend
-app.use('/api', createProxyMiddleware({
+// Note: We mount at root but filter for /api so the path isn't stripped by Express
+app.use(createProxyMiddleware({
+        filter: (pathname, req) => pathname.startsWith('/api'),
         target: API_URL,
         changeOrigin: true,
+        secure: false,
         logLevel: 'debug'
 }));
 
